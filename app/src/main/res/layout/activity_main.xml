@@ -8,6 +8,14 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="EZBox"
-        android:textSize="24sp" />
+        android:text="EZBox Control Center"
+        android:textSize="24sp"
+        android:layout_marginBottom="20dp" />
+
+    <Button
+        android:id="@+id/btnSetup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Setup Environment (Pkg)" />
+
 </LinearLayout>
