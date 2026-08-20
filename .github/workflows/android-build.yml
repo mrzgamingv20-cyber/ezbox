@@ -12,9 +12,7 @@ jobs:
           java-version: '17'
 
       - name: Generate Gradle Wrapper
-        run: |
-          gradle wrapper --gradle-version=8.5 --distribution-type=bin
-          chmod +x gradlew
+        run: gradle wrapper --gradle-version=8.5 --distribution-type=bin && chmod +x gradlew
 
       - name: Build APK
         run: ./gradlew assembleDebug

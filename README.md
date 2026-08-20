@@ -1,1 +1,1 @@
-# ezbox
+# EZBox
