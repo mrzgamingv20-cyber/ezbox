@@ -1,5 +1,6 @@
 package com.mrzgaming.ezbox
 
+import android.graphics.Bitmap
 import android.util.Log
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -14,6 +15,9 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     var width: Int = 0
     var height: Int = 0
     var bitsPerPixel: Int = 32
+
+    lateinit var bitmap: Bitmap
+        private set
 
     fun connect(): Boolean {
         try {
@@ -65,6 +69,11 @@ class RfbClient(private val host: String, private val port: Int, private val pas
             input.readFully(nameBytes)
             Log.d("RfbClient", "Connected to desktop '${String(nameBytes)}' (${width}x${height})")
 
+            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+            setPixelFormat()
+            setEncodings()
+
             return true
         } catch (e: Exception) {
             Log.e("RfbClient", "Connection failed: ${e.message}")
@@ -103,6 +112,125 @@ class RfbClient(private val host: String, private val port: Int, private val pas
             v = v shr 1
         }
         return result.toByte()
+    }
+
+    // Minta server kirim pixel dalam format 32bpp RGBA (biar gampang dipetakan ke Bitmap Android)
+    private fun setPixelFormat() {
+        output.writeByte(0) // message type: SetPixelFormat
+        output.write(ByteArray(3)) // padding
+        output.writeByte(32) // bits-per-pixel
+        output.writeByte(24) // depth
+        output.writeByte(0)  // big-endian-flag = false
+        output.writeByte(1)  // true-color-flag = true
+        output.writeShort(255) // red-max
+        output.writeShort(255) // green-max
+        output.writeShort(255) // blue-max
+        output.writeByte(16) // red-shift
+        output.writeByte(8)  // green-shift
+        output.writeByte(0)  // blue-shift
+        output.write(ByteArray(3)) // padding
+        output.flush()
+    }
+
+    // Cuma pakai Raw encoding (type 0) dulu - paling simpel, tidak perlu decompress
+    private fun setEncodings() {
+        output.writeByte(2) // message type: SetEncodings
+        output.writeByte(0) // padding
+        output.writeShort(1) // number-of-encodings
+        output.writeInt(0)   // Raw encoding
+        output.flush()
+    }
+
+    fun requestFramebufferUpdate(incremental: Boolean) {
+        output.writeByte(3) // message type: FramebufferUpdateRequest
+        output.writeByte(if (incremental) 1 else 0)
+        output.writeShort(0) // x
+        output.writeShort(0) // y
+        output.writeShort(width)
+        output.writeShort(height)
+        output.flush()
+    }
+
+    // Baca satu pesan dari server, return true kalau ada update framebuffer yang berhasil diproses
+    fun readServerMessage(): Boolean {
+        val messageType = input.readUnsignedByte()
+        when (messageType) {
+            0 -> return readFramebufferUpdate()
+            1 -> readColourMapEntry()
+            2 -> { /* Bell - abaikan */ }
+            3 -> readServerCutText()
+            else -> Log.e("RfbClient", "Unknown server message type: $messageType")
+        }
+        return false
+    }
+
+    private fun readFramebufferUpdate(): Boolean {
+        input.skipBytes(1) // padding
+        val numRects = input.readUnsignedShort()
+
+        for (i in 0 until numRects) {
+            val x = input.readUnsignedShort()
+            val y = input.readUnsignedShort()
+            val w = input.readUnsignedShort()
+            val h = input.readUnsignedShort()
+            val encodingType = input.readInt()
+
+            if (encodingType == 0) {
+                readRawRectangle(x, y, w, h)
+            } else {
+                Log.e("RfbClient", "Unsupported encoding: $encodingType")
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun readRawRectangle(x: Int, y: Int, w: Int, h: Int) {
+        val pixels = IntArray(w * h)
+        val rowBytes = ByteArray(w * 4)
+
+        for (row in 0 until h) {
+            input.readFully(rowBytes)
+            for (col in 0 until w) {
+                val offset = col * 4
+                val blue = rowBytes[offset].toInt() and 0xFF
+                val green = rowBytes[offset + 1].toInt() and 0xFF
+                val red = rowBytes[offset + 2].toInt() and 0xFF
+                pixels[row * w + col] = (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
+            }
+        }
+
+        bitmap.setPixels(pixels, 0, w, x, y, w, h)
+    }
+
+    private fun readColourMapEntry() {
+        input.skipBytes(5)
+        val numColours = input.readUnsignedShort()
+        input.skipBytes(numColours * 6)
+    }
+
+    private fun readServerCutText() {
+        input.skipBytes(7)
+        val length = input.readInt()
+        input.skipBytes(length)
+    }
+
+    // Kirim event pointer (mouse/touch): mask bit 0 = tombol kiri
+    fun sendPointerEvent(x: Int, y: Int, buttonMask: Int) {
+        output.writeByte(5)
+        output.writeByte(buttonMask)
+        output.writeShort(x)
+        output.writeShort(y)
+        output.flush()
+    }
+
+    // Kirim event keyboard
+    fun sendKeyEvent(keysym: Int, down: Boolean) {
+        output.writeByte(4)
+        output.writeByte(if (down) 1 else 0)
+        output.writeShort(0) // padding
+        output.writeInt(keysym)
+        output.flush()
     }
 
     fun close() {
