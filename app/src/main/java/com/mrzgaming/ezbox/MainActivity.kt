@@ -12,9 +12,10 @@ class MainActivity : AppCompatActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNav.setOnItemSelectedListener { item ->
-            val fragment = when (item.itemId) {
+            val fragment: Fragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
-                R.id.nav_settings -> SettingsFragment()
+                R.id.nav_store -> StoreFragment()
+                R.id.nav_terminal -> TerminalFragment()
                 else -> HomeFragment()
             }
             supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit()

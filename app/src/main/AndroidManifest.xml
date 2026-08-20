@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mrzgaming.ezbox">
-<<<<<<< HEAD
-=======
 
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <queries>
-        <package android:name="com.termux" />
-    </queries>
->>>>>>> a2c7cb2 (Rename project: EZLauncher -> EZBox)
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
 
     <application
         android:allowBackup="true"
@@ -27,4 +20,3 @@
     </application>
 
 </manifest>
-
