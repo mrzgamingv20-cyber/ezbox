@@ -9,11 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.mrzgaming.ezbox"
-<<<<<<< HEAD
         minSdk 24
-=======
-        minSdk 26
->>>>>>> a2c7cb2 (Rename project: EZLauncher -> EZBox)
         targetSdk 34
         versionCode 1
         versionName "1.0"
