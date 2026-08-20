@@ -55,7 +55,7 @@ class HomeFragment : Fragment() {
         Log.d("EZBox", "Attempting to launch EZOS with resolution: $resolution")
         try {
             val intent = Intent().apply {
-                action = "com.termux.app.RUN_COMMAND"
+                action = "com.termux.RUN_COMMAND"
                 component = ComponentName("com.termux", "com.termux.app.RunCommandService")
                 putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", "EZBOX_RES=$resolution ezos-run EZOS"))
