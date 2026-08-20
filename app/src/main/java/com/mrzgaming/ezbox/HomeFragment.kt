@@ -62,6 +62,9 @@ class HomeFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", false)
             }
             requireContext().startService(intent)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                startActivity(android.content.Intent(requireContext(), VncActivity::class.java))
+            }, 5000)
             Log.d("EZBox", "Intent sent successfully")
         } catch (e: Exception) {
             Log.e("EZBox", "Error launching: ${e.message}")
