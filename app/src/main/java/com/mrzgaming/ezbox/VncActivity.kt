@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -37,12 +38,17 @@ class VncActivity : AppCompatActivity() {
 
     private fun connectAndRender() {
         scope.launch {
+            vncStatus.text = "Connecting to EZOS desktop..."
             val client = RfbClient("127.0.0.1", 5901, "ezbox123")
-            val connected = withContext(Dispatchers.IO) { client.connect() }
+            val connected = try {
+                withContext(Dispatchers.IO) { client.connect() }
+            } catch (e: Exception) {
+                Log.e("VncActivity", "Connect error: ${e.message}")
+                false
+            }
 
             if (!connected) {
                 vncStatus.text = "Failed to connect to EZOS desktop.\nMake sure the environment is running."
-                Log.e("VncActivity", "Connection failed")
                 return@launch
             }
 
@@ -55,12 +61,20 @@ class VncActivity : AppCompatActivity() {
 
     private suspend fun renderLoop(client: RfbClient) {
         while (running) {
-            val updated = withContext(Dispatchers.IO) {
-                client.requestFramebufferUpdate(true)
-                client.readServerMessage()
-            }
-            if (updated) {
-                vncScreen.setImageBitmap(client.bitmap)
+            try {
+                val updated = withContext(Dispatchers.IO) {
+                    client.requestFramebufferUpdate(true)
+                    client.readServerMessage()
+                }
+                if (updated) {
+                    vncScreen.setImageBitmap(client.bitmap)
+                }
+            } catch (e: Exception) {
+                Log.e("VncActivity", "Connection lost: ${e.message}")
+                running = false
+                vncStatus.text = "Connection to EZOS desktop was lost.\nTap back and try launching again."
+                client.close()
+                return
             }
         }
     }
@@ -77,8 +91,12 @@ class VncActivity : AppCompatActivity() {
         }
 
         scope.launch {
-            withContext(Dispatchers.IO) {
-                client.sendPointerEvent(screenX, screenY, buttonMask)
+            try {
+                withContext(Dispatchers.IO) {
+                    client.sendPointerEvent(screenX, screenY, buttonMask)
+                }
+            } catch (e: Exception) {
+                Log.e("VncActivity", "Touch send failed: ${e.message}")
             }
         }
     }
