@@ -59,7 +59,7 @@ class HomeFragment : Fragment() {
                 component = ComponentName("com.termux", "com.termux.app.RunCommandService")
                 putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", "EZBOX_RES=$resolution ezos-run EZOS"))
-                putExtra("com.termux.RUN_COMMAND_BACKGROUND", false)
+                putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             requireContext().startService(intent)
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
