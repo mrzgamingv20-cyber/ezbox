@@ -19,4 +19,25 @@
         android:textSize="16sp"
         android:text="Connecting to EZOS desktop..." />
 
+    <!-- EditText tak terlihat, dipakai untuk memicu soft keyboard Android dan menangkap input -->
+    <EditText
+        android:id="@+id/hiddenInput"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom|start"
+        android:background="@android:color/transparent"
+        android:textColor="@android:color/transparent"
+        android:cursorVisible="false"
+        android:inputType="text"
+        android:imeOptions="flagNoExtractUi" />
+
+    <Button
+        android:id="@+id/btnToggleKeyboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:alpha="0.7"
+        android:text="⌨" />
+
 </FrameLayout>

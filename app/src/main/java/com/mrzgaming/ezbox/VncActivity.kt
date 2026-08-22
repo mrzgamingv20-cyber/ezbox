@@ -1,8 +1,14 @@
 package com.mrzgaming.ezbox
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.inputmethod.InputMethodManager
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -16,22 +22,89 @@ class VncActivity : AppCompatActivity() {
 
     private lateinit var vncScreen: ImageView
     private lateinit var vncStatus: TextView
+    private lateinit var hiddenInput: EditText
+    private lateinit var btnToggleKeyboard: Button
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_vnc)
 
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
+        hiddenInput = findViewById(R.id.hiddenInput)
+        btnToggleKeyboard = findViewById(R.id.btnToggleKeyboard)
 
         connectAndRender()
+        setupKeyboardInput()
 
         vncScreen.setOnTouchListener { _, event ->
             handleTouch(event)
             true
+        }
+    }
+
+    private fun setupKeyboardInput() {
+        btnToggleKeyboard.setOnClickListener {
+            hiddenInput.requestFocus()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
+        }
+
+        // Tangkap karakter yang diketik dan kirim sebagai key event RFB
+        hiddenInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (count > 0 && s != null) {
+                    val newChar = s.subSequence(start, start + count)
+                    for (c in newChar) {
+                        sendCharKey(c)
+                    }
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {
+                // Kosongkan terus supaya EditText tidak menumpuk teks
+                if (!s.isNullOrEmpty()) s.clear()
+            }
+        })
+
+        // Tangkap tombol khusus: backspace, enter
+        hiddenInput.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DEL -> {
+                        sendKeysym(0xFF08) // Backspace
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_ENTER -> {
+                        sendKeysym(0xFF0D) // Enter
+                        return@setOnKeyListener true
+                    }
+                }
+            }
+            false
+        }
+    }
+
+    private fun sendCharKey(c: Char) {
+        val keysym = c.code
+        sendKeysym(keysym)
+    }
+
+    private fun sendKeysym(keysym: Int) {
+        val client = rfbClient ?: return
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    client.sendKeyEvent(keysym, true)
+                    client.sendKeyEvent(keysym, false)
+                }
+            } catch (e: Exception) {
+                Log.e("VncActivity", "Key send failed: ${e.message}")
+            }
         }
     }
 
@@ -78,8 +151,6 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
-    // Konversi koordinat sentuhan (posisi di ImageView) ke koordinat asli desktop (bitmap),
-    // dengan memperhitungkan scaling dan offset dari scaleType="fitCenter"
     private fun mapTouchToDesktop(client: RfbClient, touchX: Float, touchY: Float): Pair<Int, Int>? {
         val viewWidth = vncScreen.width.toFloat()
         val viewHeight = vncScreen.height.toFloat()
@@ -88,12 +159,10 @@ class VncActivity : AppCompatActivity() {
 
         if (viewWidth <= 0 || viewHeight <= 0 || bitmapWidth <= 0 || bitmapHeight <= 0) return null
 
-        // fitCenter: pilih scale terkecil supaya bitmap muat penuh di dalam view
         val scale = minOf(viewWidth / bitmapWidth, viewHeight / bitmapHeight)
         val scaledWidth = bitmapWidth * scale
         val scaledHeight = bitmapHeight * scale
 
-        // Offset karena bitmap yang sudah di-scale diletakkan di tengah (centered)
         val offsetX = (viewWidth - scaledWidth) / 2f
         val offsetY = (viewHeight - scaledHeight) / 2f
 
