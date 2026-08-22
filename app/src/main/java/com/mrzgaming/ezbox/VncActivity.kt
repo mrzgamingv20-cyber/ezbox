@@ -59,9 +59,13 @@ class VncActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (count > 0 && s != null) {
-                    val newChar = s.subSequence(start, start + count)
-                    for (c in newChar) {
-                        sendCharKey(c)
+                    val newChars = s.subSequence(start, start + count)
+                    for (c in newChars) {
+                        if (c == '\n') {
+                            sendKeysym(0xFF0D) // Enter, sebagian keyboard kirim newline langsung
+                        } else {
+                            sendCharKey(c)
+                        }
                     }
                 }
             }
@@ -71,7 +75,7 @@ class VncActivity : AppCompatActivity() {
             }
         })
 
-        // Tangkap tombol khusus: backspace, enter
+        // Tangkap tombol fisik/hardware: backspace, enter
         hiddenInput.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
                 when (keyCode) {
@@ -86,6 +90,15 @@ class VncActivity : AppCompatActivity() {
                 }
             }
             false
+        }
+
+        // Tangkap IME action (tombol Enter/Done pada soft keyboard) supaya tidak menutup keyboard
+        hiddenInput.setOnEditorActionListener { _, actionId, event ->
+            sendKeysym(0xFF0D) // Enter
+            hiddenInput.requestFocus()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
+            true // konsumsi event supaya keyboard tidak auto-close
         }
     }
 
