@@ -10,6 +10,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="EZBox"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
         <activity
             android:name=".MainActivity"
@@ -21,6 +22,10 @@
         </activity>
         <activity
             android:name=".VncActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".NoVncActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
     </application>
