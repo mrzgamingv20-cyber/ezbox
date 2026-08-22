@@ -50,7 +50,7 @@ class HomeFragment : Fragment() {
 
     private fun setupEnvironment() {
         val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
-        val resolution = prefs.getString("resolution", "1280x720")
+        val resolution = prefs.getString("resolution", "960x540")
 
         Log.d("EZBox", "Attempting to launch EZOS with resolution: $resolution")
         try {

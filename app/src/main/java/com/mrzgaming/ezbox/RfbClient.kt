@@ -140,9 +140,10 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         synchronized(writeLock) {
             output.writeByte(2)
             output.writeByte(0)
-            output.writeShort(2) // jumlah encoding: Raw + CopyRect
+            output.writeShort(3) // jumlah encoding: Hextile + CopyRect + Raw
+            output.writeInt(5)   // Hextile (prioritas utama, hemat bandwidth)
             output.writeInt(1)   // CopyRect
-            output.writeInt(0)   // Raw
+            output.writeInt(0)   // Raw (fallback)
             output.flush()
         }
     }
@@ -185,6 +186,7 @@ class RfbClient(private val host: String, private val port: Int, private val pas
             when (encodingType) {
                 0 -> readRawRectangle(x, y, w, h)
                 1 -> readCopyRect(x, y, w, h)
+                5 -> readHextile(x, y, w, h)
                 else -> {
                     Log.e("RfbClient", "Unsupported encoding: $encodingType")
                     return false
@@ -230,6 +232,95 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         val pixels = IntArray(w * h)
         bitmap.getPixels(pixels, 0, w, srcX, srcY, w, h)
         bitmap.setPixels(pixels, 0, w, x, y, w, h)
+    }
+
+    // Hextile: rectangle dibagi tile 16x16, tiap tile bisa "raw" atau "solid warna" (jauh lebih hemat untuk area polos/UI)
+    private fun readHextile(x: Int, y: Int, w: Int, h: Int) {
+        var bgColor = 0
+        var fgColor = 0
+
+        var tileY = y
+        while (tileY < y + h) {
+            val tileHeight = minOf(16, y + h - tileY)
+            var tileX = x
+            while (tileX < x + w) {
+                val tileWidth = minOf(16, x + w - tileX)
+                val subEncoding = input.readUnsignedByte()
+
+                when {
+                    subEncoding and 0x01 != 0 -> {
+                        // Raw tile
+                        val pixels = IntArray(tileWidth * tileHeight)
+                        val rowBytes = ByteArray(tileWidth * 2)
+                        for (row in 0 until tileHeight) {
+                            input.readFully(rowBytes)
+                            for (col in 0 until tileWidth) {
+                                pixels[row * tileWidth + col] = rgb565ToArgb(rowBytes, col * 2)
+                            }
+                        }
+                        bitmap.setPixels(pixels, 0, tileWidth, tileX, tileY, tileWidth, tileHeight)
+                    }
+                    else -> {
+                        if (subEncoding and 0x02 != 0) {
+                            val c = ByteArray(2)
+                            input.readFully(c)
+                            bgColor = rgb565ToArgb(c, 0)
+                        }
+                        if (subEncoding and 0x04 != 0) {
+                            val c = ByteArray(2)
+                            input.readFully(c)
+                            fgColor = rgb565ToArgb(c, 0)
+                        }
+
+                        // Fill tile dengan bgColor dulu
+                        val pixels = IntArray(tileWidth * tileHeight) { bgColor }
+
+                        if (subEncoding and 0x08 != 0) {
+                            val numSubrects = input.readUnsignedByte()
+                            val useForeground = subEncoding and 0x10 == 0
+
+                            for (s in 0 until numSubrects) {
+                                val color = if (useForeground) {
+                                    fgColor
+                                } else {
+                                    val c = ByteArray(2)
+                                    input.readFully(c)
+                                    rgb565ToArgb(c, 0)
+                                }
+                                val xy = input.readUnsignedByte()
+                                val wh = input.readUnsignedByte()
+                                val sx = (xy shr 4) and 0x0F
+                                val sy = xy and 0x0F
+                                val sw = ((wh shr 4) and 0x0F) + 1
+                                val sh = (wh and 0x0F) + 1
+
+                                for (row in sy until minOf(sy + sh, tileHeight)) {
+                                    for (col in sx until minOf(sx + sw, tileWidth)) {
+                                        pixels[row * tileWidth + col] = color
+                                    }
+                                }
+                            }
+                        }
+
+                        bitmap.setPixels(pixels, 0, tileWidth, tileX, tileY, tileWidth, tileHeight)
+                    }
+                }
+
+                tileX += 16
+            }
+            tileY += 16
+        }
+    }
+
+    private fun rgb565ToArgb(bytes: ByteArray, offset: Int): Int {
+        val raw = (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
+        val r5 = (raw shr 11) and 0x1F
+        val g6 = (raw shr 5) and 0x3F
+        val b5 = raw and 0x1F
+        val red = (r5 * 255) / 31
+        val green = (g6 * 255) / 63
+        val blue = (b5 * 255) / 31
+        return (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
     }
 
     private fun readColourMapEntry() {
