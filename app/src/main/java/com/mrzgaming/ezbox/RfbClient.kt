@@ -2,6 +2,8 @@ package com.mrzgaming.ezbox
 
 import android.graphics.Bitmap
 import android.util.Log
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
@@ -23,8 +25,11 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     fun connect(): Boolean {
         try {
             socket = Socket(host, port)
-            input = DataInputStream(socket.getInputStream())
-            output = DataOutputStream(socket.getOutputStream())
+            socket.tcpNoDelay = true
+            // Buffering krusial di sini - tanpa ini, tiap readUnsignedByte/readFully kecil
+            // jadi syscall network terpisah dan bikin decode (terutama Hextile) sangat lambat
+            input = DataInputStream(BufferedInputStream(socket.getInputStream(), 64 * 1024))
+            output = DataOutputStream(BufferedOutputStream(socket.getOutputStream(), 64 * 1024))
 
             val serverVersion = ByteArray(12)
             input.readFully(serverVersion)
