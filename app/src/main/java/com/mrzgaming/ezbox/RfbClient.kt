@@ -115,31 +115,34 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         return result.toByte()
     }
 
+    // RGB565: 16-bit, jauh lebih hemat bandwidth dibanding 32-bit RGBA
     private fun setPixelFormat() {
         synchronized(writeLock) {
             output.writeByte(0)
             output.write(ByteArray(3))
-            output.writeByte(32)
-            output.writeByte(24)
-            output.writeByte(0)
-            output.writeByte(1)
-            output.writeShort(255)
-            output.writeShort(255)
-            output.writeShort(255)
-            output.writeByte(16)
-            output.writeByte(8)
-            output.writeByte(0)
+            output.writeByte(16)  // bits-per-pixel
+            output.writeByte(16)  // depth
+            output.writeByte(0)   // big-endian-flag = false
+            output.writeByte(1)   // true-color-flag = true
+            output.writeShort(31)  // red-max (5 bit)
+            output.writeShort(63)  // green-max (6 bit)
+            output.writeShort(31)  // blue-max (5 bit)
+            output.writeByte(11)   // red-shift
+            output.writeByte(5)    // green-shift
+            output.writeByte(0)    // blue-shift
             output.write(ByteArray(3))
             output.flush()
         }
+        bitsPerPixel = 16
     }
 
     private fun setEncodings() {
         synchronized(writeLock) {
             output.writeByte(2)
             output.writeByte(0)
-            output.writeShort(1)
-            output.writeInt(0)
+            output.writeShort(2) // jumlah encoding: Raw + CopyRect
+            output.writeInt(1)   // CopyRect
+            output.writeInt(0)   // Raw
             output.flush()
         }
     }
@@ -179,31 +182,53 @@ class RfbClient(private val host: String, private val port: Int, private val pas
             val h = input.readUnsignedShort()
             val encodingType = input.readInt()
 
-            if (encodingType == 0) {
-                readRawRectangle(x, y, w, h)
-            } else {
-                Log.e("RfbClient", "Unsupported encoding: $encodingType")
-                return false
+            when (encodingType) {
+                0 -> readRawRectangle(x, y, w, h)
+                1 -> readCopyRect(x, y, w, h)
+                else -> {
+                    Log.e("RfbClient", "Unsupported encoding: $encodingType")
+                    return false
+                }
             }
         }
         return true
     }
 
+    // RGB565: 2 byte per pixel (bukan 4 seperti sebelumnya)
     private fun readRawRectangle(x: Int, y: Int, w: Int, h: Int) {
         val pixels = IntArray(w * h)
-        val rowBytes = ByteArray(w * 4)
+        val rowBytes = ByteArray(w * 2)
 
         for (row in 0 until h) {
             input.readFully(rowBytes)
             for (col in 0 until w) {
-                val offset = col * 4
-                val blue = rowBytes[offset].toInt() and 0xFF
-                val green = rowBytes[offset + 1].toInt() and 0xFF
-                val red = rowBytes[offset + 2].toInt() and 0xFF
+                val offset = col * 2
+                // Little-endian 16-bit: byte rendah dulu
+                val raw = (rowBytes[offset].toInt() and 0xFF) or ((rowBytes[offset + 1].toInt() and 0xFF) shl 8)
+
+                val r5 = (raw shr 11) and 0x1F
+                val g6 = (raw shr 5) and 0x3F
+                val b5 = raw and 0x1F
+
+                // Skala balik ke 8-bit per channel
+                val red = (r5 * 255) / 31
+                val green = (g6 * 255) / 63
+                val blue = (b5 * 255) / 31
+
                 pixels[row * w + col] = (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
             }
         }
 
+        bitmap.setPixels(pixels, 0, w, x, y, w, h)
+    }
+
+    // CopyRect: server cuma kasih koordinat sumber, kita copy dari bitmap yang sudah ada (murah, tanpa transfer pixel)
+    private fun readCopyRect(x: Int, y: Int, w: Int, h: Int) {
+        val srcX = input.readUnsignedShort()
+        val srcY = input.readUnsignedShort()
+
+        val pixels = IntArray(w * h)
+        bitmap.getPixels(pixels, 0, w, srcX, srcY, w, h)
         bitmap.setPixels(pixels, 0, w, x, y, w, h)
     }
 
