@@ -28,9 +28,8 @@
         android:background="@android:color/transparent"
         android:textColor="@android:color/transparent"
         android:cursorVisible="false"
-        android:inputType="text"
-        android:imeOptions="actionNone|flagNoExtractUi"
-        android:inputType="textMultiLine" />
+        android:inputType="textMultiLine"
+        android:imeOptions="actionNone|flagNoExtractUi" />
 
     <Button
         android:id="@+id/btnToggleKeyboard"
