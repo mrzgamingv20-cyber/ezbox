@@ -11,6 +11,7 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     private lateinit var socket: Socket
     private lateinit var input: DataInputStream
     private lateinit var output: DataOutputStream
+    private val writeLock = Any()
 
     var width: Int = 0
     var height: Int = 0
@@ -114,44 +115,47 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         return result.toByte()
     }
 
-    // Minta server kirim pixel dalam format 32bpp RGBA (biar gampang dipetakan ke Bitmap Android)
     private fun setPixelFormat() {
-        output.writeByte(0) // message type: SetPixelFormat
-        output.write(ByteArray(3)) // padding
-        output.writeByte(32) // bits-per-pixel
-        output.writeByte(24) // depth
-        output.writeByte(0)  // big-endian-flag = false
-        output.writeByte(1)  // true-color-flag = true
-        output.writeShort(255) // red-max
-        output.writeShort(255) // green-max
-        output.writeShort(255) // blue-max
-        output.writeByte(16) // red-shift
-        output.writeByte(8)  // green-shift
-        output.writeByte(0)  // blue-shift
-        output.write(ByteArray(3)) // padding
-        output.flush()
+        synchronized(writeLock) {
+            output.writeByte(0)
+            output.write(ByteArray(3))
+            output.writeByte(32)
+            output.writeByte(24)
+            output.writeByte(0)
+            output.writeByte(1)
+            output.writeShort(255)
+            output.writeShort(255)
+            output.writeShort(255)
+            output.writeByte(16)
+            output.writeByte(8)
+            output.writeByte(0)
+            output.write(ByteArray(3))
+            output.flush()
+        }
     }
 
-    // Cuma pakai Raw encoding (type 0) dulu - paling simpel, tidak perlu decompress
     private fun setEncodings() {
-        output.writeByte(2) // message type: SetEncodings
-        output.writeByte(0) // padding
-        output.writeShort(1) // number-of-encodings
-        output.writeInt(0)   // Raw encoding
-        output.flush()
+        synchronized(writeLock) {
+            output.writeByte(2)
+            output.writeByte(0)
+            output.writeShort(1)
+            output.writeInt(0)
+            output.flush()
+        }
     }
 
     fun requestFramebufferUpdate(incremental: Boolean) {
-        output.writeByte(3) // message type: FramebufferUpdateRequest
-        output.writeByte(if (incremental) 1 else 0)
-        output.writeShort(0) // x
-        output.writeShort(0) // y
-        output.writeShort(width)
-        output.writeShort(height)
-        output.flush()
+        synchronized(writeLock) {
+            output.writeByte(3)
+            output.writeByte(if (incremental) 1 else 0)
+            output.writeShort(0)
+            output.writeShort(0)
+            output.writeShort(width)
+            output.writeShort(height)
+            output.flush()
+        }
     }
 
-    // Baca satu pesan dari server, return true kalau ada update framebuffer yang berhasil diproses
     fun readServerMessage(): Boolean {
         val messageType = input.readUnsignedByte()
         when (messageType) {
@@ -165,7 +169,7 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     }
 
     private fun readFramebufferUpdate(): Boolean {
-        input.skipBytes(1) // padding
+        input.skipBytes(1)
         val numRects = input.readUnsignedShort()
 
         for (i in 0 until numRects) {
@@ -215,22 +219,24 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         input.skipBytes(length)
     }
 
-    // Kirim event pointer (mouse/touch): mask bit 0 = tombol kiri
     fun sendPointerEvent(x: Int, y: Int, buttonMask: Int) {
-        output.writeByte(5)
-        output.writeByte(buttonMask)
-        output.writeShort(x)
-        output.writeShort(y)
-        output.flush()
+        synchronized(writeLock) {
+            output.writeByte(5)
+            output.writeByte(buttonMask)
+            output.writeShort(x)
+            output.writeShort(y)
+            output.flush()
+        }
     }
 
-    // Kirim event keyboard
     fun sendKeyEvent(keysym: Int, down: Boolean) {
-        output.writeByte(4)
-        output.writeByte(if (down) 1 else 0)
-        output.writeShort(0) // padding
-        output.writeInt(keysym)
-        output.flush()
+        synchronized(writeLock) {
+            output.writeByte(4)
+            output.writeByte(if (down) 1 else 0)
+            output.writeShort(0)
+            output.writeInt(keysym)
+            output.flush()
+        }
     }
 
     fun close() {
