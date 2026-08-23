@@ -136,7 +136,7 @@ class StoreFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
-            requireContext().startService(intent)
+            androidx.core.content.ContextCompat.startForegroundService(requireContext(), intent)
             Toast.makeText(context, "Installing ${pkg.name} in Termux...", Toast.LENGTH_SHORT).show()
 
             // Re-enable tombol setelah beberapa saat (kita tidak punya cara langsung tahu kapan pkg install selesai
