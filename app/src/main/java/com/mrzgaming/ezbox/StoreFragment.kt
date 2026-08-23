@@ -24,8 +24,18 @@ import android.os.Looper
 import android.net.Uri
 import android.provider.Settings
 import java.io.File
+import android.widget.ProgressBar
 
 class StoreFragment : Fragment() {
+
+    private val expectedDurationMs = mapOf(
+        "wine" to 5 * 60_000L,
+        "box64" to 3 * 60_000L,
+        "firefox" to 90_000L,
+        "gimp" to 90_000L,
+        "vlc" to 60_000L,
+        "pcmanfm" to 45_000L
+    )
 
     private val availablePackages = listOf(
         StorePackage(
@@ -84,6 +94,37 @@ class StoreFragment : Fragment() {
     // Polling verifikasi instalasi nyata via checkBinary, bukan tebakan waktu.
     private val pollHandler = Handler(Looper.getMainLooper())
     private val activePolls = mutableMapOf<String, Runnable>()
+    private val cardProgressViews = mutableMapOf<String, Pair<ProgressBar, TextView>>()
+    private val progressTickHandler = Handler(Looper.getMainLooper())
+    private val activeTicks = mutableMapOf<String, Runnable>()
+
+    private fun startProgressTick(pkg: StorePackage, startTime: Long) {
+        val key = pkg.checkBinary
+        activeTicks[key]?.let { progressTickHandler.removeCallbacks(it) }
+        val duration = expectedDurationMs[key] ?: 90_000L
+        val (bar, status) = cardProgressViews[key] ?: return
+
+        val tick = object : Runnable {
+            override fun run() {
+                if (!isAdded) return
+                val elapsed = System.currentTimeMillis() - startTime
+                val pct = ((elapsed.toFloat() / duration) * 95).toInt().coerceIn(0, 95)
+                bar.progress = pct
+                status.text = "Installing ${pkg.name}... $pct%"
+                if (activePolls.containsKey(key)) {
+                    progressTickHandler.postDelayed(this, 300)
+                }
+            }
+        }
+        activeTicks[key] = tick
+        progressTickHandler.post(tick)
+    }
+
+    private fun stopProgressTick(pkg: StorePackage) {
+        val key = pkg.checkBinary
+        activeTicks[key]?.let { progressTickHandler.removeCallbacks(it) }
+        activeTicks.remove(key)
+    }
     private val pollIntervalMs = 3000L
     private val pollTimeoutMs = 10 * 60 * 1000L // 10 menit, cukup untuk Wine/Box64
 
@@ -108,6 +149,7 @@ class StoreFragment : Fragment() {
     private fun schedulePoll(pkg: StorePackage, button: Button, elapsedMs: Long = 0L) {
         val key = pkg.checkBinary
         activePolls[key]?.let { pollHandler.removeCallbacks(it) }
+        val (progressBar, statusText) = cardProgressViews[key] ?: Pair(null, null)
 
         val runnable = Runnable {
             if (!isAdded) return@Runnable
@@ -116,6 +158,10 @@ class StoreFragment : Fragment() {
                 file.exists() && file.readText().trim() == "done" -> {
                     file.delete()
                     activePolls.remove(key)
+                    stopProgressTick(pkg)
+                    progressBar?.progress = 100
+                    statusText?.text = "Installed"
+                    progressBar?.postDelayed({ progressBar.visibility = View.GONE; statusText?.visibility = View.GONE }, 1500)
                     markInstalled(pkg)
                     button.isEnabled = true
                     setButtonState(button, true)
@@ -124,12 +170,19 @@ class StoreFragment : Fragment() {
                 file.exists() && file.readText().trim() == "failed" -> {
                     file.delete()
                     activePolls.remove(key)
+                    stopProgressTick(pkg)
+                    progressBar?.visibility = View.GONE
+                    statusText?.text = "Failed"
+                    statusText?.setTextColor(Color.RED)
                     button.isEnabled = true
                     setButtonState(button, isMarkedInstalled(pkg))
                     Toast.makeText(context, "Failed to install ${pkg.name}", Toast.LENGTH_LONG).show()
                 }
                 elapsedMs >= pollTimeoutMs -> {
                     activePolls.remove(key)
+                    stopProgressTick(pkg)
+                    progressBar?.visibility = View.GONE
+                    statusText?.text = "Timed out"
                     button.isEnabled = true
                     button.text = "Check Termux"
                     Toast.makeText(context, "${pkg.name} install timed out - check Termux manually", Toast.LENGTH_LONG).show()
@@ -204,7 +257,36 @@ class StoreFragment : Fragment() {
 
         row.addView(textContainer)
         row.addView(installButton)
-        card.addView(row)
+
+        val progressBar = ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 0
+            visibility = View.GONE
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 12 }
+        }
+
+        val statusText = TextView(requireContext()).apply {
+            textSize = 12f
+            setTextColor(Color.DKGRAY)
+            visibility = View.GONE
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 4 }
+        }
+
+        val column = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        column.addView(row)
+        column.addView(progressBar)
+        column.addView(statusText)
+        card.addView(column)
+
+        cardProgressViews[pkg.checkBinary] = Pair(progressBar, statusText)
 
         return card
     }
@@ -224,6 +306,12 @@ class StoreFragment : Fragment() {
     private fun installPackage(pkg: StorePackage, button: Button) {
         button.isEnabled = false
         button.text = "Installing..."
+        val (progressBar, statusText) = cardProgressViews[pkg.checkBinary] ?: Pair(null, null)
+        progressBar?.visibility = View.VISIBLE
+        progressBar?.progress = 0
+        statusText?.visibility = View.VISIBLE
+        statusText?.setTextColor(Color.DKGRAY)
+        statusText?.text = "Installing ${pkg.name}... 0%"
 
         val pkgList = pkg.pkgNames.joinToString(" ")
         val statusPath = statusFile(pkg).absolutePath
@@ -250,6 +338,7 @@ class StoreFragment : Fragment() {
                 return
             }
 
+            startProgressTick(pkg, System.currentTimeMillis())
             schedulePoll(pkg, button)
         } catch (e: Exception) {
             Log.e("StoreFragment", "Install failed: ${e.message}")
@@ -263,5 +352,8 @@ class StoreFragment : Fragment() {
         super.onDestroyView()
         pollHandler.removeCallbacksAndMessages(null)
         activePolls.clear()
+        progressTickHandler.removeCallbacksAndMessages(null)
+        activeTicks.clear()
+        cardProgressViews.clear()
     }
 }

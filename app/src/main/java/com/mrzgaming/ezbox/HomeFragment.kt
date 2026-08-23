@@ -11,6 +11,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -26,6 +28,15 @@ class HomeFragment : Fragment() {
     private val requestCode = 1001
     private val launchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var launchRunnable: Runnable? = null
+    private var tvStatus: TextView? = null
+    private var progressLaunch: ProgressBar? = null
+    private var btnSetup: Button? = null
+
+    private fun setStatus(text: String, loading: Boolean) {
+        tvStatus?.text = text
+        progressLaunch?.visibility = if (loading) View.VISIBLE else View.GONE
+        btnSetup?.isEnabled = !loading
+    }
 
     private fun debugLog(msg: String) {
         try {
@@ -39,8 +50,12 @@ class HomeFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-        view.findViewById<Button>(R.id.btnSetup).setOnClickListener {
+        tvStatus = view.findViewById(R.id.tvStatus)
+        progressLaunch = view.findViewById(R.id.progressLaunch)
+        btnSetup = view.findViewById(R.id.btnSetup)
+        btnSetup?.setOnClickListener {
             debugLog("Button clicked")
+            setStatus("Checking permission...", true)
             checkPermissionAndLaunch()
         }
         return view
@@ -62,6 +77,7 @@ class HomeFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 setupEnvironment()
             } else {
+                setStatus("Environment not running", false)
                 Toast.makeText(context, "Izin Termux RUN_COMMAND ditolak. EZBox butuh izin ini untuk berjalan.", Toast.LENGTH_LONG).show()
             }
         }
@@ -81,13 +97,16 @@ class HomeFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", "EZBOX_RES=$resolution ezos-run EZOS"))
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
+            setStatus("Starting EZOS desktop in Termux...", true)
             debugLog("Calling startService...")
             requireContext().startService(intent)
             debugLog("startService returned OK, scheduling launch in 5s")
+            setStatus("Preparing desktop, please wait...", true)
             launchRunnable = Runnable {
                 debugLog("postDelayed fired, isAdded=$isAdded")
                 if (isAdded) {
                     debugLog("Starting VncActivity")
+                    setStatus("Environment not running", false)
                     startActivity(android.content.Intent(requireContext(), VncActivity::class.java))
                 }
             }
@@ -96,6 +115,7 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             debugLog("EXCEPTION: ${e.javaClass.simpleName}: ${e.message}")
             Log.e("EZBox", "Error launching: ${e.message}")
+            setStatus("Environment not running", false)
             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
