@@ -11,7 +11,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="EZBox"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        android:theme="@style/Theme.EZBox">
         <activity
             android:name=".MainActivity"
             android:exported="true">
