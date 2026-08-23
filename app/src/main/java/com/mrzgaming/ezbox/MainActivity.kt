@@ -1,7 +1,12 @@
 package com.mrzgaming.ezbox
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -12,12 +17,14 @@ class MainActivity : AppCompatActivity() {
 
     private val TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND"
     private val TERMUX_PERMISSION_REQUEST_CODE = 1001
+    private val STORAGE_PERMISSION_REQUEST_CODE = 1002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         requestTermuxPermissionIfNeeded()
+        requestAllFilesAccessIfNeeded()
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNav.setOnItemSelectedListener { item ->
@@ -45,6 +52,30 @@ class MainActivity : AppCompatActivity() {
                 arrayOf(TERMUX_PERMISSION),
                 TERMUX_PERMISSION_REQUEST_CODE
             )
+        }
+    }
+
+    /**
+     * MANAGE_EXTERNAL_STORAGE (All Files Access) adalah "special permission" di Android 11+
+     * yang TIDAK bisa diminta lewat ActivityCompat.requestPermissions biasa — harus lewat
+     * halaman Settings khusus. Tanpa ini, membaca file di /storage/emulated/0/Download/
+     * (dipakai CrashHandler dan debug log) akan gagal dengan EACCES walau sudah dideklarasikan
+     * di manifest.
+     */
+    private fun requestAllFilesAccessIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivityForResult(intent, STORAGE_PERMISSION_REQUEST_CODE)
+                } catch (e: Exception) {
+                    // Fallback untuk device yang tidak support intent spesifik di atas
+                    val fallbackIntent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    startActivityForResult(fallbackIntent, STORAGE_PERMISSION_REQUEST_CODE)
+                }
+            }
         }
     }
 }

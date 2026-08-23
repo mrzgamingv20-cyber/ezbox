@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="24dp"
-        android:text="Akses Termux dan log debug EZBox"
+        android:text="Access Termux and EZBox debug logs"
         android:textColor="@color/ezos_text_secondary"
         android:textSize="14sp" />
 
@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:text="Buka aplikasi Termux untuk akses shell penuh"
+                android:text="Open the Termux app for full shell access"
                 android:textColor="@color/ezos_text_secondary"
                 android:textSize="13sp" />
 
@@ -50,7 +50,7 @@
                 android:id="@+id/btnOpenTermux"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="Buka Termux"
+                android:text="Open Termux"
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 app:cornerRadius="14dp"
@@ -112,7 +112,7 @@
                     android:textColor="@color/ezos_accent"
                     android:fontFamily="monospace"
                     android:textSize="11sp"
-                    android:text="Belum ada log." />
+                    android:text="No logs yet." />
 
             </ScrollView>
 

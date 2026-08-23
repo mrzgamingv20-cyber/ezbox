@@ -46,7 +46,7 @@ class TerminalFragment : Fragment() {
         if (launchIntent != null) {
             startActivity(launchIntent)
         } else {
-            Toast.makeText(context, "Termux belum terpasang, membuka halaman download...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Termux is not installed, opening download page...", Toast.LENGTH_SHORT).show()
             val installIntent = Intent(Intent.ACTION_VIEW, Uri.parse(termuxFdroidUrl))
             startActivity(installIntent)
         }
@@ -58,12 +58,12 @@ class TerminalFragment : Fragment() {
             if (file.exists()) {
                 val lines = file.readLines()
                 val recent = lines.takeLast(50).joinToString("\n")
-                terminalOutput?.text = if (recent.isBlank()) "Log kosong." else recent
+                terminalOutput?.text = if (recent.isBlank()) "Log is empty." else recent
             } else {
-                terminalOutput?.text = "Belum ada log."
+                terminalOutput?.text = "No logs yet."
             }
         } catch (e: Exception) {
-            terminalOutput?.text = "Gagal membaca log: ${e.message}"
+            terminalOutput?.text = "Failed to read log: ${e.message}"
         }
     }
 }
