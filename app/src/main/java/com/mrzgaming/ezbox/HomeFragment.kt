@@ -15,6 +15,10 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -23,16 +27,29 @@ class HomeFragment : Fragment() {
     private val launchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var launchRunnable: Runnable? = null
 
+    private fun debugLog(msg: String) {
+        try {
+            val ts = SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date())
+            val file = File("/storage/emulated/0/Download/ezbox_debug.log")
+            file.appendText("[$ts] $msg\n")
+        } catch (e: Exception) {
+            Log.e("EZBox", "debugLog failed: ${e.message}")
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
         view.findViewById<Button>(R.id.btnSetup).setOnClickListener {
+            debugLog("Button clicked")
             checkPermissionAndLaunch()
         }
         return view
     }
 
     private fun checkPermissionAndLaunch() {
-        if (ContextCompat.checkSelfPermission(requireContext(), termuxPermission) == PackageManager.PERMISSION_GRANTED) {
+        val granted = ContextCompat.checkSelfPermission(requireContext(), termuxPermission) == PackageManager.PERMISSION_GRANTED
+        debugLog("Permission granted: $granted")
+        if (granted) {
             setupEnvironment()
         } else {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(termuxPermission), requestCode)
@@ -55,6 +72,7 @@ class HomeFragment : Fragment() {
         val resolution = prefs.getString("resolution", "960x540")
 
         Log.d("EZBox", "Attempting to launch EZOS with resolution: $resolution")
+        debugLog("setupEnvironment start, resolution=$resolution")
         try {
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
@@ -63,15 +81,20 @@ class HomeFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", "EZBOX_RES=$resolution ezos-run EZOS"))
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
+            debugLog("Calling startService...")
             requireContext().startService(intent)
+            debugLog("startService returned OK, scheduling launch in 5s")
             launchRunnable = Runnable {
+                debugLog("postDelayed fired, isAdded=$isAdded")
                 if (isAdded) {
+                    debugLog("Starting VncActivity")
                     startActivity(android.content.Intent(requireContext(), VncActivity::class.java))
                 }
             }
             launchHandler.postDelayed(launchRunnable!!, 5000)
             Log.d("EZBox", "Intent sent successfully")
         } catch (e: Exception) {
+            debugLog("EXCEPTION: ${e.javaClass.simpleName}: ${e.message}")
             Log.e("EZBox", "Error launching: ${e.message}")
             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
