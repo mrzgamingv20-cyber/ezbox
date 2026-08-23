@@ -352,7 +352,10 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     }
 
     private fun readServerCutText() {
-        skipFully(7)
+        // Urutan field RFB ServerCutText: padding(3) -> length(4) -> text(length).
+        // Sebelumnya skip 7 byte sekaligus lalu readInt() - itu salah baca 4 byte
+        // pertama TEKS sebagai length, bikin stream desync total (freeze).
+        skipFully(3)
         val length = input.readInt()
         skipFully(length)
     }
