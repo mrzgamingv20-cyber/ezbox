@@ -20,6 +20,8 @@ class HomeFragment : Fragment() {
 
     private val termuxPermission = "com.termux.permission.RUN_COMMAND"
     private val requestCode = 1001
+    private val launchHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var launchRunnable: Runnable? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
@@ -62,13 +64,21 @@ class HomeFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             requireContext().startService(intent)
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                startActivity(android.content.Intent(requireContext(), VncActivity::class.java))
-            }, 5000)
+            launchRunnable = Runnable {
+                if (isAdded) {
+                    startActivity(android.content.Intent(requireContext(), VncActivity::class.java))
+                }
+            }
+            launchHandler.postDelayed(launchRunnable!!, 5000)
             Log.d("EZBox", "Intent sent successfully")
         } catch (e: Exception) {
             Log.e("EZBox", "Error launching: ${e.message}")
             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        launchRunnable?.let { launchHandler.removeCallbacks(it) }
     }
 }
