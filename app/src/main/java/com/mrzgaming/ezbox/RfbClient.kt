@@ -328,16 +328,33 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         return (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
     }
 
+    // DataInputStream.skipBytes() TIDAK menjamin skip persis n byte - dia cuma
+    // skip sebisanya lalu return jumlah aktual. Kalau tidak di-loop, sisa byte
+    // yang belum ke-skip bikin seluruh stream desync dari titik ini seterusnya
+    // (parser jadi baca byte salah sebagai pesan berikutnya - kelihatan seperti freeze).
+    private fun skipFully(n: Int) {
+        var remaining = n
+        while (remaining > 0) {
+            val skipped = input.skipBytes(remaining)
+            if (skipped <= 0) {
+                if (input.read() == -1) throw java.io.EOFException("Unexpected end of stream while skipping")
+                remaining -= 1
+            } else {
+                remaining -= skipped
+            }
+        }
+    }
+
     private fun readColourMapEntry() {
-        input.skipBytes(5)
+        skipFully(5)
         val numColours = input.readUnsignedShort()
-        input.skipBytes(numColours * 6)
+        skipFully(numColours * 6)
     }
 
     private fun readServerCutText() {
-        input.skipBytes(7)
+        skipFully(7)
         val length = input.readInt()
-        input.skipBytes(length)
+        skipFully(length)
     }
 
     fun sendPointerEvent(x: Int, y: Int, buttonMask: Int) {
