@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -28,6 +29,12 @@ class VncActivity : AppCompatActivity() {
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
+    // Menyimpan hanya event pointer TERBARU. CONFLATED = kalau ada event baru
+    // sebelum yang lama sempat dikirim, yang lama otomatis dibuang (bukan menumpuk).
+    // Ini yang mencegah banjir coroutine saat drag/select teks cepat.
+    private data class PointerEvent(val x: Int, val y: Int, val mask: Int)
+    private val pointerChannel = Channel<PointerEvent>(Channel.CONFLATED)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -40,10 +47,32 @@ class VncActivity : AppCompatActivity() {
 
         connectAndRender()
         setupKeyboardInput()
+        startPointerSender()
 
         vncScreen.setOnTouchListener { _, event ->
             handleTouch(event)
             true
+        }
+    }
+
+    /**
+     * Satu coroutine tunggal, hidup selama Activity ini hidup, yang terus
+     * mengambil posisi pointer TERBARU dari channel dan mengirimkannya.
+     * Ini menggantikan pola lama "scope.launch{} per touch event" yang
+     * membanjiri thread pool IO dan bikin render loop ikut freeze.
+     */
+    private fun startPointerSender() {
+        scope.launch {
+            for (pointerEvent in pointerChannel) {
+                val client = rfbClient ?: continue
+                try {
+                    withContext(Dispatchers.IO) {
+                        client.sendPointerEvent(pointerEvent.x, pointerEvent.y, pointerEvent.mask)
+                    }
+                } catch (e: Exception) {
+                    Log.e("VncActivity", "Pointer send failed: ${e.message}")
+                }
+            }
         }
     }
 
@@ -54,7 +83,6 @@ class VncActivity : AppCompatActivity() {
             imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
         }
 
-        // Tangkap karakter yang diketik dan kirim sebagai key event RFB
         hiddenInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -62,7 +90,7 @@ class VncActivity : AppCompatActivity() {
                     val newChars = s.subSequence(start, start + count)
                     for (c in newChars) {
                         if (c == '\n') {
-                            sendKeysym(0xFF0D) // Enter, sebagian keyboard kirim newline langsung
+                            sendKeysym(0xFF0D)
                         } else {
                             sendCharKey(c)
                         }
@@ -70,21 +98,19 @@ class VncActivity : AppCompatActivity() {
                 }
             }
             override fun afterTextChanged(s: Editable?) {
-                // Kosongkan terus supaya EditText tidak menumpuk teks
                 if (!s.isNullOrEmpty()) s.clear()
             }
         })
 
-        // Tangkap tombol fisik/hardware: backspace, enter
         hiddenInput.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
                 when (keyCode) {
                     KeyEvent.KEYCODE_DEL -> {
-                        sendKeysym(0xFF08) // Backspace
+                        sendKeysym(0xFF08)
                         return@setOnKeyListener true
                     }
                     KeyEvent.KEYCODE_ENTER -> {
-                        sendKeysym(0xFF0D) // Enter
+                        sendKeysym(0xFF0D)
                         return@setOnKeyListener true
                     }
                 }
@@ -92,19 +118,17 @@ class VncActivity : AppCompatActivity() {
             false
         }
 
-        // Tangkap IME action (tombol Enter/Done pada soft keyboard) supaya tidak menutup keyboard
         hiddenInput.setOnEditorActionListener { _, actionId, event ->
-            sendKeysym(0xFF0D) // Enter
+            sendKeysym(0xFF0D)
             hiddenInput.requestFocus()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
-            true // konsumsi event supaya keyboard tidak auto-close
+            true
         }
     }
 
     private fun sendCharKey(c: Char) {
-        val keysym = c.code
-        sendKeysym(keysym)
+        sendKeysym(c.code)
     }
 
     private fun sendKeysym(keysym: Int) {
@@ -187,6 +211,11 @@ class VncActivity : AppCompatActivity() {
         return Pair(desktopX, desktopY)
     }
 
+    /**
+     * Sekarang HANYA menaruh event ke channel (non-blocking, instan),
+     * bukan langsung scope.launch{} seperti sebelumnya. Pengiriman
+     * sesungguhnya ditangani satu coroutine di startPointerSender().
+     */
     private fun handleTouch(event: MotionEvent) {
         val client = rfbClient ?: return
         val mapped = mapTouchToDesktop(client, event.x, event.y) ?: return
@@ -197,20 +226,14 @@ class VncActivity : AppCompatActivity() {
             else -> return
         }
 
-        scope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    client.sendPointerEvent(mapped.first, mapped.second, buttonMask)
-                }
-            } catch (e: Exception) {
-                Log.e("VncActivity", "Touch send failed: ${e.message}")
-            }
-        }
+        pointerChannel.trySend(PointerEvent(mapped.first, mapped.second, buttonMask))
     }
 
     override fun onDestroy() {
         super.onDestroy()
         running = false
         rfbClient?.close()
+        pointerChannel.close()
+        scope.cancel()
     }
 }
