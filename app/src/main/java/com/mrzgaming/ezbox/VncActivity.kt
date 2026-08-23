@@ -29,6 +29,8 @@ class VncActivity : AppCompatActivity() {
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+    private var lastFrameTime = 0L
+    private val minFrameIntervalMs = 33L // cap render ke ~30fps, cegah main thread banjir setImageBitmap
 
     // Menyimpan hanya event pointer TERBARU. CONFLATED = kalau ada event baru
     // sebelum yang lama sempat dikirim, yang lama otomatis dibuang (bukan menumpuk).
@@ -177,7 +179,11 @@ class VncActivity : AppCompatActivity() {
                     client.readServerMessage()
                 }
                 if (updated) {
-                    vncScreen.setImageBitmap(client.bitmap)
+                    val now = System.currentTimeMillis()
+                    if (now - lastFrameTime >= minFrameIntervalMs) {
+                        vncScreen.setImageBitmap(client.bitmap)
+                        lastFrameTime = now
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("VncActivity", "Connection lost: ${e.message}")
