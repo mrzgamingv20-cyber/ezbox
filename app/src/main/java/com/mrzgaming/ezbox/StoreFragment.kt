@@ -3,6 +3,7 @@ package com.mrzgaming.ezbox
 import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -20,85 +21,60 @@ import com.google.android.material.card.MaterialCardView
 class StoreFragment : Fragment() {
 
     private val availablePackages = listOf(
-        StorePackage(
-            name = "Wine",
-            description = "Run Windows applications on EZOS desktop",
-            pkgNames = listOf("wine-staging"),
-            checkBinary = "wine"
-        ),
-        StorePackage(
-            name = "Box64",
-            description = "x86_64 binary translation for ARM devices",
-            pkgNames = listOf("box64"),
-            checkBinary = "box64"
-        ),
-        StorePackage(
-            name = "Firefox",
-            description = "Web browser for the EZOS desktop",
-            pkgNames = listOf("firefox"),
-            checkBinary = "firefox"
-        ),
-        StorePackage(
-            name = "GIMP",
-            description = "Image editor",
-            pkgNames = listOf("gimp"),
-            checkBinary = "gimp"
-        ),
-        StorePackage(
-            name = "VLC",
-            description = "Media player",
-            pkgNames = listOf("vlc"),
-            checkBinary = "vlc"
-        ),
-        StorePackage(
-            name = "File Manager (PCManFM)",
-            description = "Lightweight graphical file manager",
-            pkgNames = listOf("pcmanfm"),
-            checkBinary = "pcmanfm"
-        )
+        StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", "🍷", R.color.ezos_icon_rose),
+        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", "📦", R.color.ezos_icon_blue),
+        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", "🌐", R.color.ezos_icon_amber),
+        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", "🎨", R.color.ezos_icon_green),
+        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", "▶", R.color.ezos_icon_cyan),
+        StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", "📁", R.color.ezos_icon_blue)
     )
 
     private lateinit var prefs: SharedPreferences
 
     private fun prefKeyFor(pkg: StorePackage) = "installed_${pkg.checkBinary}"
-
-    private fun isMarkedInstalled(pkg: StorePackage): Boolean =
-        prefs.getBoolean(prefKeyFor(pkg), false)
-
-    private fun markInstalled(pkg: StorePackage) {
-        prefs.edit().putBoolean(prefKeyFor(pkg), true).apply()
-    }
+    private fun isMarkedInstalled(pkg: StorePackage) = prefs.getBoolean(prefKeyFor(pkg), false)
+    private fun markInstalled(pkg: StorePackage) = prefs.edit().putBoolean(prefKeyFor(pkg), true).apply()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         prefs = requireContext().getSharedPreferences("ezbox_store", 0)
-
         val view = inflater.inflate(R.layout.fragment_store, container, false)
         val itemContainer = view.findViewById<LinearLayout>(R.id.storeItemContainer)
-
         for (pkg in availablePackages) {
             itemContainer.addView(buildPackageCard(pkg))
         }
-
         return view
     }
 
     private fun buildPackageCard(pkg: StorePackage): MaterialCardView {
         val card = MaterialCardView(requireContext()).apply {
-            radius = 16f
-            cardElevation = 2f
+            radius = 20f
+            cardElevation = 0f
+            strokeWidth = 2
+            strokeColor = ContextCompat.getColor(requireContext(), R.color.ezos_card_border)
             setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.ezos_card_bg))
-            setContentPadding(24, 24, 24, 24)
-            val params = LinearLayout.LayoutParams(
+            setContentPadding(20, 20, 20, 20)
+            layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            params.bottomMargin = 24
-            layoutParams = params
+            ).apply { bottomMargin = 16 }
         }
 
         val row = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+        }
+
+        // Badge ikon bulat berwarna
+        val iconBadge = TextView(requireContext()).apply {
+            text = pkg.icon
+            textSize = 20f
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
+                alpha = 60
+            }
         }
 
         val textContainer = LinearLayout(requireContext()).apply {
@@ -115,7 +91,7 @@ class StoreFragment : Fragment() {
 
         val descView = TextView(requireContext()).apply {
             text = pkg.description
-            textSize = 13f
+            textSize = 12f
             setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
         }
 
@@ -124,33 +100,25 @@ class StoreFragment : Fragment() {
 
         val installButton = Button(requireContext()).apply {
             setButtonState(this, isMarkedInstalled(pkg))
-            setOnClickListener {
-                installPackage(pkg, this)
-            }
+            setOnClickListener { installPackage(pkg, this) }
         }
 
+        row.addView(iconBadge)
         row.addView(textContainer)
         row.addView(installButton)
         card.addView(row)
-
         return card
     }
 
     private fun setButtonState(button: Button, installed: Boolean) {
-        if (installed) {
-            button.text = "Installed"
-        } else {
-            button.text = "Install"
-        }
+        button.text = if (installed) "Installed" else "Install"
     }
 
     private fun installPackage(pkg: StorePackage, button: Button) {
         button.isEnabled = false
         button.text = "Installing..."
-
         val pkgList = pkg.pkgNames.joinToString(" ")
         val command = "pkg install -y $pkgList"
-
         try {
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
@@ -161,9 +129,7 @@ class StoreFragment : Fragment() {
             }
             ContextCompat.startForegroundService(requireContext(), intent)
             Toast.makeText(context, "Installing ${pkg.name} in Termux...", Toast.LENGTH_SHORT).show()
-
             markInstalled(pkg)
-
             button.postDelayed({
                 button.isEnabled = true
                 setButtonState(button, true)

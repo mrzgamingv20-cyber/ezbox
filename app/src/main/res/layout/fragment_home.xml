@@ -27,7 +27,6 @@
             android:textSize="13sp"
             android:layout_marginBottom="20dp" />
 
-        <!-- Card status utama, gradient accent -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -77,55 +76,35 @@
 
         </LinearLayout>
 
-        <!-- Grid 2 kolom: quick stat cards -->
         <LinearLayout
+            android:id="@+id/quickOpenDesktop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:gravity="center_vertical"
+            android:background="@drawable/card_glow_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🖥"
+                android:textSize="22sp"
+                android:layout_marginEnd="12dp" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@drawable/card_glow_bg"
-                android:padding="16dp"
-                android:layout_marginEnd="8dp">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SESSIONS"
-                    android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.1" />
-
-                <TextView
-                    android:id="@+id/tvSessionCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@color/ezos_accent"
-                    android:textSize="28sp"
-                    android:textStyle="bold"
-                    android:layout_marginTop="4dp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@drawable/card_glow_bg"
-                android:padding="16dp"
-                android:layout_marginStart="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="STATUS"
+                    android:text="Backend Status"
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1" />
@@ -135,16 +114,21 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Idle"
-                    android:textColor="@color/ezos_success"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_marginTop="8dp" />
+                    android:textColor="@color/ezos_text_secondary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Open →"
+                android:textColor="@color/ezos_accent"
+                android:textSize="13sp" />
+
         </LinearLayout>
 
-        <!-- Quick actions row -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -160,28 +144,7 @@
             android:orientation="horizontal"
             android:background="@drawable/card_glow_bg"
             android:padding="16dp"
-            android:weightSum="3">
-
-            <LinearLayout
-                android:id="@+id/quickSessions"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🖥"
-                    android:textSize="22sp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Sessions"
-                    android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
+            android:weightSum="2">
 
             <LinearLayout
                 android:id="@+id/quickStore"

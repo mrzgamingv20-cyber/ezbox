@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ezos_bg_black">#0A0A0F</color>
-    <color name="ezos_card_bg">#15151F</color>
-    <color name="ezos_card_border">#2A1F3D</color>
-    <color name="ezos_accent">#B15CFF</color>
-    <color name="ezos_accent_glow">#7C3AED</color>
-    <color name="ezos_accent_soft">#3D2A5C</color>
-    <color name="ezos_text_primary">#F5F3FF</color>
-    <color name="ezos_text_secondary">#9C94B8</color>
+    <color name="ezos_bg_black">#000000</color>
+    <color name="ezos_card_bg">#121417</color>
+    <color name="ezos_card_border">#1F2937</color>
+
+    <color name="ezos_accent">#22D3EE</color>
+    <color name="ezos_accent_glow">#0E7490</color>
+    <color name="ezos_accent_soft">#164E4F</color>
+
+    <color name="ezos_text_primary">#F5F5F7</color>
+    <color name="ezos_text_secondary">#8B939E</color>
     <color name="ezos_success">#4ADE80</color>
 
-    <!-- Alias untuk kompatibilitas dengan layout lama (fragment_terminal.xml dll) -->
-    <color name="ezos_bg_dark">#0A0A0F</color>
-    <color name="ezos_primary">#B15CFF</color>
+    <!-- Aksen warna sekunder untuk badge ikon per-package di Store, biar variatif kayak referensi -->
+    <color name="ezos_icon_cyan">#22D3EE</color>
+    <color name="ezos_icon_blue">#60A5FA</color>
+    <color name="ezos_icon_green">#4ADE80</color>
+    <color name="ezos_icon_amber">#FBBF24</color>
+    <color name="ezos_icon_rose">#FB7185</color>
+
+    <!-- Alias kompatibilitas dengan layout lama -->
+    <color name="ezos_bg_dark">#000000</color>
+    <color name="ezos_primary">#22D3EE</color>
 </resources>

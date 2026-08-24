@@ -1,6 +1,5 @@
 package com.mrzgaming.ezbox
 
-import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -31,6 +30,7 @@ class HomeFragment : Fragment() {
     private var tvStatus: TextView? = null
     private var progressLaunch: ProgressBar? = null
     private var btnSetup: Button? = null
+    private var tvBackendStatus: TextView? = null
 
     private fun setStatus(text: String, loading: Boolean) {
         tvStatus?.text = text
@@ -53,6 +53,8 @@ class HomeFragment : Fragment() {
         tvStatus = view.findViewById(R.id.tvStatus)
         progressLaunch = view.findViewById(R.id.progressLaunch)
         btnSetup = view.findViewById(R.id.btnSetup)
+        tvBackendStatus = view.findViewById(R.id.tvBackendStatus)
+
         btnSetup?.setOnClickListener {
             debugLog("Button clicked")
             setStatus("Checking permission...", true)
@@ -65,8 +67,44 @@ class HomeFragment : Fragment() {
         view.findViewById<View>(R.id.quickTerminal)?.setOnClickListener {
             (activity as? MainActivity)?.navigateTo(R.id.nav_terminal)
         }
+        view.findViewById<View>(R.id.quickOpenDesktop)?.setOnClickListener {
+            startActivity(Intent(requireContext(), VncActivity::class.java))
+        }
 
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkBackendStatus()
+    }
+
+    /**
+     * Cek apakah desktop EZOS sedang berjalan dengan meminta Termux menjalankan pgrep
+     * dan menuliskan hasilnya ke file status yang dibaca app. RUN_COMMAND tidak
+     * mengembalikan stdout langsung ke app tanpa dependency tambahan (lihat catatan
+     * di StoreFragment soal keterbatasan ini), jadi status ini best-effort:
+     * ditampilkan "Checking..." lalu di-refresh tiap kali user kembali ke tab Home.
+     */
+    private fun checkBackendStatus() {
+        val statusFile = File("/storage/emulated/0/Download/ezbox_backend_status.txt")
+        try {
+            if (statusFile.exists()) {
+                val content = statusFile.readText().trim()
+                if (content == "running") {
+                    tvBackendStatus?.text = "Running"
+                    tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_success))
+                } else {
+                    tvBackendStatus?.text = "Idle"
+                    tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+                }
+            } else {
+                tvBackendStatus?.text = "Idle"
+                tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+            }
+        } catch (e: Exception) {
+            tvBackendStatus?.text = "Unknown"
+        }
     }
 
     private fun checkPermissionAndLaunch() {
@@ -86,7 +124,7 @@ class HomeFragment : Fragment() {
                 setupEnvironment()
             } else {
                 setStatus("Environment not running", false)
-                Toast.makeText(context, "Izin Termux RUN_COMMAND ditolak. EZBox butuh izin ini untuk berjalan.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Termux RUN_COMMAND permission denied. EZBox needs this to work.", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -95,34 +133,33 @@ class HomeFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
         val resolution = prefs.getString("resolution", "960x540")
 
-        Log.d("EZBox", "Attempting to launch EZOS with resolution: $resolution")
         debugLog("setupEnvironment start, resolution=$resolution")
         try {
+            val command = "EZBOX_RES=$resolution ezos-run EZOS; " +
+                "if pgrep -f 'Xvnc :1 ' > /dev/null; then echo running > /storage/emulated/0/Download/ezbox_backend_status.txt; " +
+                "else echo idle > /storage/emulated/0/Download/ezbox_backend_status.txt; fi"
+
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
                 component = ComponentName("com.termux", "com.termux.app.RunCommandService")
                 putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
-                putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", "EZBOX_RES=$resolution ezos-run EZOS"))
+                putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             setStatus("Starting EZOS desktop in Termux...", true)
-            debugLog("Calling startService...")
-            requireContext().startService(intent)
-            debugLog("startService returned OK, scheduling launch in 5s")
+            ContextCompat.startForegroundService(requireContext(), intent)
             setStatus("Preparing desktop, please wait...", true)
             launchRunnable = Runnable {
                 debugLog("postDelayed fired, isAdded=$isAdded")
                 if (isAdded) {
-                    debugLog("Starting VncActivity")
-                    setStatus("Environment not running", false)
-                    startActivity(android.content.Intent(requireContext(), VncActivity::class.java))
+                    setStatus("Ready to launch", false)
+                    checkBackendStatus()
+                    startActivity(Intent(requireContext(), VncActivity::class.java))
                 }
             }
             launchHandler.postDelayed(launchRunnable!!, 5000)
-            Log.d("EZBox", "Intent sent successfully")
         } catch (e: Exception) {
             debugLog("EXCEPTION: ${e.javaClass.simpleName}: ${e.message}")
-            Log.e("EZBox", "Error launching: ${e.message}")
             setStatus("Environment not running", false)
             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
