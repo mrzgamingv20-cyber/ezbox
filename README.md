@@ -1,5 +1,5 @@
 
-![Logo](./Tak berjudul48_20260824185844.png)
+![Logo](Tak%20berjudul48_20260824185844.png)
 
 
 # EZBox
