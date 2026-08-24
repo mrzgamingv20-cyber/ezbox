@@ -10,14 +10,13 @@ import androidx.lifecycle.LifecycleOwner
 
 class AppLifecycleObserver(private val appContext: Context) : DefaultLifecycleObserver {
 
-    // Dipanggil saat user benar-benar keluar dari EZBox (tekan Home/app lain/recents),
-    // BUKAN saat pindah tab Home/Store/Terminal di dalam app.
-    // Ini cuma matiin PROSES VNC untuk hemat baterai - file & konfigurasi desktop
-    // tetap tersimpan di $HOME/.ezos/home, jadi saat dibuka lagi otomatis "lanjut"
-    // dari kondisi terakhir, bukan mulai dari nol.
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
-        stopDesktopSession()
+        val prefs = appContext.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
+        val autoStop = prefs.getBoolean("auto_stop_background", true)
+        if (autoStop) {
+            stopDesktopSession()
+        }
     }
 
     private fun stopDesktopSession() {
@@ -31,7 +30,7 @@ class AppLifecycleObserver(private val appContext: Context) : DefaultLifecycleOb
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             ContextCompat.startForegroundService(appContext, intent)
-            Log.d("EZBox", "Stopped VNC session (app left foreground), desktop state preserved")
+            Log.d("EZBox", "Stopped VNC session (app left foreground)")
         } catch (e: Exception) {
             Log.e("EZBox", "Failed to stop session on background: ${e.message}")
         }

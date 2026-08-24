@@ -94,6 +94,20 @@
                 android:text="→"
                 android:layout_margin="3dp" />
 
+            <Button
+                android:id="@+id/btnClipboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📋"
+                android:layout_margin="3dp" />
+
+            <Button
+                android:id="@+id/btnScreenshot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📷"
+                android:layout_margin="3dp" />
+
         </LinearLayout>
     </HorizontalScrollView>
 

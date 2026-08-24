@@ -380,6 +380,18 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         }
     }
 
+    // Kirim teks clipboard Android ke clipboard X di desktop (ClientCutText, message type 6)
+    fun sendClientCutText(text: String) {
+        synchronized(writeLock) {
+            val bytes = text.toByteArray(Charsets.ISO_8859_1)
+            output.writeByte(6)
+            output.write(ByteArray(3)) // padding
+            output.writeInt(bytes.size)
+            output.write(bytes)
+            output.flush()
+        }
+    }
+
     fun close() {
         try {
             socket.close()

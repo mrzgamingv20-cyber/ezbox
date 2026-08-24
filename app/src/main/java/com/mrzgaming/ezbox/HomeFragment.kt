@@ -132,10 +132,11 @@ class HomeFragment : Fragment() {
     private fun setupEnvironment() {
         val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
         val resolution = prefs.getString("resolution", "960x540")
+        val vncPassword = prefs.getString("vnc_password", "ezbox123")
 
         debugLog("setupEnvironment start, resolution=$resolution")
         try {
-            val command = "EZBOX_RES=$resolution ezos-run EZOS; " +
+            val command = "EZBOX_RES=$resolution EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
                 "if pgrep -f 'Xvnc :1 ' > /dev/null; then echo running > /storage/emulated/0/Download/ezbox_backend_status.txt; " +
                 "else echo idle > /storage/emulated/0/Download/ezbox_backend_status.txt; fi"
 
@@ -154,7 +155,9 @@ class HomeFragment : Fragment() {
                 if (isAdded) {
                     setStatus("Ready to launch", false)
                     checkBackendStatus()
-                    startActivity(Intent(requireContext(), VncActivity::class.java))
+                    val vncIntent = Intent(requireContext(), VncActivity::class.java)
+                    vncIntent.putExtra("vnc_password", vncPassword)
+                    startActivity(vncIntent)
                 }
             }
             launchHandler.postDelayed(launchRunnable!!, 5000)

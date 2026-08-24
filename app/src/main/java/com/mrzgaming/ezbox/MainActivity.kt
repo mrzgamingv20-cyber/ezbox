@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_home -> HomeFragment()
                 R.id.nav_store -> StoreFragment()
                 R.id.nav_terminal -> TerminalFragment()
+                R.id.nav_settings -> SettingsFragment()
                 else -> HomeFragment()
             }
             supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit()

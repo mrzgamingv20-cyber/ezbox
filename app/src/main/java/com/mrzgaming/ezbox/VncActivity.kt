@@ -58,7 +58,11 @@ class VncActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_vnc)
 
-        mouseMode = intent.getStringExtra("mouse_mode") ?: "direct"
+        val prefs = requireActivityPrefs()
+        mouseMode = intent.getStringExtra("mouse_mode") ?: prefs.getString("mouse_mode", "direct") ?: "direct"
+        if (prefs.getBoolean("keep_awake", false)) {
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
 
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
@@ -72,6 +76,7 @@ class VncActivity : AppCompatActivity() {
         connectAndRender()
         setupKeyboardInput()
         setupExtraKeys()
+        setupClipboardAndScreenshot()
         startPointerSender()
 
         vncScreen.setOnTouchListener { _, event ->
@@ -110,6 +115,69 @@ class VncActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnRight).setOnClickListener { sendKeysym(KEY_RIGHT) }
         // Ctrl dan Alt sengaja tidak langsung kirim di sini - statusnya (isChecked) dibaca
         // saat tombol lain/keyboard ditekan, supaya bisa dipakai sebagai modifier kombinasi (Ctrl+C dst)
+    }
+
+    private fun requireActivityPrefs() =
+        getSharedPreferences("EZBoxPrefs", MODE_PRIVATE)
+
+    private fun setupClipboardAndScreenshot() {
+        findViewById<Button>(R.id.btnClipboard).setOnClickListener {
+            sendAndroidClipboardToDesktop()
+        }
+        findViewById<Button>(R.id.btnScreenshot).setOnClickListener {
+            saveScreenshot()
+        }
+    }
+
+    private fun sendAndroidClipboardToDesktop() {
+        val client = rfbClient ?: return
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = clipboard.primaryClip
+        if (clip == null || clip.itemCount == 0) {
+            android.widget.Toast.makeText(this, "Clipboard is empty", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val text = clip.getItemAt(0).text?.toString() ?: return
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    client.sendClientCutText(text)
+                }
+                android.widget.Toast.makeText(this@VncActivity, "Clipboard sent to desktop", android.widget.Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("VncActivity", "Clipboard send failed: ${e.message}")
+            }
+        }
+    }
+
+    private fun saveScreenshot() {
+        val client = rfbClient ?: return
+        try {
+            val filename = "EZBox_screenshot_${System.currentTimeMillis()}.png"
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val values = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES)
+                }
+                val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                uri?.let {
+                    contentResolver.openOutputStream(it)?.use { out ->
+                        client.bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+                    }
+                }
+            } else {
+                val dir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
+                val file = java.io.File(dir, filename)
+                java.io.FileOutputStream(file).use { out ->
+                    client.bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+                }
+            }
+            android.widget.Toast.makeText(this, "Screenshot saved", android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("VncActivity", "Screenshot failed: ${e.message}")
+            android.widget.Toast.makeText(this, "Screenshot failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupKeyboardInput() {
