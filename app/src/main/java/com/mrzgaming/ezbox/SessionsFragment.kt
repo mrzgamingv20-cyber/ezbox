@@ -37,6 +37,7 @@ class SessionsFragment : Fragment() {
     private lateinit var adapter: SessionAdapter
     private val resolutions = listOf("800x480", "960x540", "1280x720", "1600x900")
     private val wineVariants = listOf("wine-staging", "wine")
+    private val mouseModes = listOf("direct", "trackpad")
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_sessions, container, false)
@@ -80,10 +81,14 @@ class SessionsFragment : Fragment() {
                 val name = dialogView.findViewById<EditText>(R.id.inputName).text.toString().ifBlank { "New Session" }
                 val resolution = dialogView.findViewById<Spinner>(R.id.spinnerResolution).selectedItem as String
                 val wineVariant = dialogView.findViewById<Spinner>(R.id.spinnerWineVariant).selectedItem as String
+                val mouseMode = dialogView.findViewById<Spinner>(R.id.spinnerMouseMode).selectedItem as String
+                val password = dialogView.findViewById<EditText>(R.id.inputPassword).text.toString().ifBlank { "ezbox123" }
 
                 val session = sessionManager.createNewSession(name)
                 session.resolution = resolution
                 session.wineVariant = wineVariant
+                session.mouseMode = mouseMode
+                session.password = password
                 sessionManager.saveSession(session)
                 refreshList()
             }
@@ -98,6 +103,8 @@ class SessionsFragment : Fragment() {
         dialogView.findViewById<EditText>(R.id.inputName).setText(session.name)
         dialogView.findViewById<Spinner>(R.id.spinnerResolution).setSelection(resolutions.indexOf(session.resolution).coerceAtLeast(0))
         dialogView.findViewById<Spinner>(R.id.spinnerWineVariant).setSelection(wineVariants.indexOf(session.wineVariant).coerceAtLeast(0))
+        dialogView.findViewById<Spinner>(R.id.spinnerMouseMode).setSelection(mouseModes.indexOf(session.mouseMode).coerceAtLeast(0))
+        dialogView.findViewById<EditText>(R.id.inputPassword).setText(session.password)
 
         AlertDialog.Builder(requireContext())
             .setTitle("Edit Session")
@@ -106,6 +113,8 @@ class SessionsFragment : Fragment() {
                 session.name = dialogView.findViewById<EditText>(R.id.inputName).text.toString().ifBlank { session.name }
                 session.resolution = dialogView.findViewById<Spinner>(R.id.spinnerResolution).selectedItem as String
                 session.wineVariant = dialogView.findViewById<Spinner>(R.id.spinnerWineVariant).selectedItem as String
+                session.mouseMode = dialogView.findViewById<Spinner>(R.id.spinnerMouseMode).selectedItem as String
+                session.password = dialogView.findViewById<EditText>(R.id.inputPassword).text.toString().ifBlank { session.password }
                 sessionManager.saveSession(session)
                 refreshList()
             }
@@ -119,6 +128,9 @@ class SessionsFragment : Fragment() {
 
         val wineAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, wineVariants)
         dialogView.findViewById<Spinner>(R.id.spinnerWineVariant).adapter = wineAdapter
+
+        val mouseAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, mouseModes)
+        dialogView.findViewById<Spinner>(R.id.spinnerMouseMode).adapter = mouseAdapter
     }
 
     private fun deleteSession(session: EzSession) {
@@ -138,7 +150,7 @@ class SessionsFragment : Fragment() {
         sessionManager.markUsed(session.id)
 
         val sessionHome = "/data/data/com.termux/files/home/.ezos/sessions/${session.id}"
-        val command = "WINE_VARIANT=${session.wineVariant} EZBOX_RES=${session.resolution} EZBOX_DISPLAY_NUM=${session.displayNum} EZBOX_SESSION_HOME=$sessionHome ezos-run EZOS"
+        val command = "WINE_VARIANT=${session.wineVariant} EZBOX_RES=${session.resolution} EZBOX_DISPLAY_NUM=${session.displayNum} EZBOX_SESSION_HOME=$sessionHome EZBOX_VNC_PASSWORD='${session.password}' ezos-run EZOS"
         debugLog("Command: $command")
 
         try {
@@ -159,6 +171,8 @@ class SessionsFragment : Fragment() {
                     debugLog("Starting VncActivity from Sessions, port=${session.vncPort}")
                     val vncIntent = Intent(requireContext(), VncActivity::class.java)
                     vncIntent.putExtra("vnc_port", session.vncPort)
+                    vncIntent.putExtra("vnc_password", session.password)
+                    vncIntent.putExtra("mouse_mode", session.mouseMode)
                     startActivity(vncIntent)
                 }
             }, 5000)

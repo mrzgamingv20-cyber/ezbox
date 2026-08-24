@@ -21,6 +21,8 @@ class SessionManager(context: Context) {
                     resolution = obj.optString("resolution", "960x540"),
                     wineVariant = obj.optString("wineVariant", "wine-staging"),
                     displayNum = obj.optInt("displayNum", 1),
+                    password = obj.optString("password", "ezbox123"),
+                    mouseMode = obj.optString("mouseMode", "direct"),
                     lastUsed = obj.optLong("lastUsed", 0L)
                 )
             )
@@ -73,6 +75,8 @@ class SessionManager(context: Context) {
             obj.put("resolution", s.resolution)
             obj.put("wineVariant", s.wineVariant)
             obj.put("displayNum", s.displayNum)
+            obj.put("password", s.password)
+            obj.put("mouseMode", s.mouseMode)
             obj.put("lastUsed", s.lastUsed)
             arr.put(obj)
         }

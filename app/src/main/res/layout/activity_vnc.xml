@@ -19,7 +19,6 @@
         android:textSize="16sp"
         android:text="Connecting to EZOS desktop..." />
 
-    <!-- EditText tak terlihat, dipakai untuk memicu soft keyboard Android dan menangkap input -->
     <EditText
         android:id="@+id/hiddenInput"
         android:layout_width="1dp"
@@ -30,6 +29,81 @@
         android:cursorVisible="false"
         android:inputType="textMultiLine"
         android:imeOptions="actionNone|flagNoExtractUi" />
+
+    <!-- Toolbar tombol ekstra: Ctrl, Alt, Esc, Tab (mengambang di atas, bisa di-scroll horizontal) -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#CC000000"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <ToggleButton
+                android:id="@+id/btnCtrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOn="Ctrl"
+                android:textOff="Ctrl"
+                android:layout_margin="2dp" />
+
+            <ToggleButton
+                android:id="@+id/btnAlt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOn="Alt"
+                android:textOff="Alt"
+                android:layout_margin="2dp" />
+
+            <Button
+                android:id="@+id/btnEsc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Esc"
+                android:layout_margin="2dp" />
+
+            <Button
+                android:id="@+id/btnTab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tab"
+                android:layout_margin="2dp" />
+
+            <Button
+                android:id="@+id/btnUp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="↑"
+                android:layout_margin="2dp" />
+
+            <Button
+                android:id="@+id/btnDown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="↓"
+                android:layout_margin="2dp" />
+
+            <Button
+                android:id="@+id/btnLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="←"
+                android:layout_margin="2dp" />
+
+            <Button
+                android:id="@+id/btnRight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="→"
+                android:layout_margin="2dp" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <Button
         android:id="@+id/btnToggleKeyboard"

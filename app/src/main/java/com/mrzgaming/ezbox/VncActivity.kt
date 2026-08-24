@@ -7,18 +7,15 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,36 +26,47 @@ class VncActivity : AppCompatActivity() {
     private lateinit var vncStatus: TextView
     private lateinit var hiddenInput: EditText
     private lateinit var btnToggleKeyboard: Button
+    private lateinit var btnCtrl: ToggleButton
+    private lateinit var btnAlt: ToggleButton
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    private var lastFrameTime = 0L
-    private val minFrameIntervalMs = 33L // cap render ke ~30fps, cegah main thread banjir setImageBitmap
 
-    // Menyimpan hanya event pointer TERBARU. CONFLATED = kalau ada event baru
-    // sebelum yang lama sempat dikirim, yang lama otomatis dibuang (bukan menumpuk).
-    // Ini yang mencegah banjir coroutine saat drag/select teks cepat.
-    private data class PointerEvent(val x: Int, val y: Int, val mask: Int)
-    private val pointerChannel = Channel<PointerEvent>(Channel.CONFLATED)
+    private var mouseMode = "direct"
+    private var lastTrackpadX = 0f
+    private var lastTrackpadY = 0f
+    private var virtualCursorX = 0
+    private var virtualCursorY = 0
+
+    // Keysym constants
+    private val KEY_CTRL_L = 0xFFE3
+    private val KEY_ALT_L = 0xFFE9
+    private val KEY_ESC = 0xFF1B
+    private val KEY_TAB = 0xFF09
+    private val KEY_UP = 0xFF52
+    private val KEY_DOWN = 0xFF54
+    private val KEY_LEFT = 0xFF51
+    private val KEY_RIGHT = 0xFF53
+
+    private val pointerChannel = Channel<Triple<Int, Int, Int>>(Channel.CONFLATED)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val insetsController = WindowInsetsControllerCompat(window, window.decorView)
-        insetsController.hide(WindowInsetsCompat.Type.statusBars())
-        insetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         setContentView(R.layout.activity_vnc)
+
+        mouseMode = intent.getStringExtra("mouse_mode") ?: "direct"
 
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
         hiddenInput = findViewById(R.id.hiddenInput)
         btnToggleKeyboard = findViewById(R.id.btnToggleKeyboard)
+        btnCtrl = findViewById(R.id.btnCtrl)
+        btnAlt = findViewById(R.id.btnAlt)
 
         connectAndRender()
         setupKeyboardInput()
+        setupExtraKeys()
         startPointerSender()
 
         vncScreen.setOnTouchListener { _, event ->
@@ -67,25 +75,15 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Satu coroutine tunggal, hidup selama Activity ini hidup, yang terus
-     * mengambil posisi pointer TERBARU dari channel dan mengirimkannya.
-     * Ini menggantikan pola lama "scope.launch{} per touch event" yang
-     * membanjiri thread pool IO dan bikin render loop ikut freeze.
-     */
-    private fun startPointerSender() {
-        scope.launch {
-            for (pointerEvent in pointerChannel) {
-                val client = rfbClient ?: continue
-                try {
-                    withContext(Dispatchers.IO) {
-                        client.sendPointerEvent(pointerEvent.x, pointerEvent.y, pointerEvent.mask)
-                    }
-                } catch (e: Exception) {
-                    Log.e("VncActivity", "Pointer send failed: ${e.message}")
-                }
-            }
-        }
+    private fun setupExtraKeys() {
+        findViewById<Button>(R.id.btnEsc).setOnClickListener { sendKeysym(KEY_ESC) }
+        findViewById<Button>(R.id.btnTab).setOnClickListener { sendKeysym(KEY_TAB) }
+        findViewById<Button>(R.id.btnUp).setOnClickListener { sendKeysym(KEY_UP) }
+        findViewById<Button>(R.id.btnDown).setOnClickListener { sendKeysym(KEY_DOWN) }
+        findViewById<Button>(R.id.btnLeft).setOnClickListener { sendKeysym(KEY_LEFT) }
+        findViewById<Button>(R.id.btnRight).setOnClickListener { sendKeysym(KEY_RIGHT) }
+        // Ctrl dan Alt sengaja tidak langsung kirim di sini - statusnya (isChecked) dibaca
+        // saat tombol lain/keyboard ditekan, supaya bisa dipakai sebagai modifier kombinasi (Ctrl+C dst)
     }
 
     private fun setupKeyboardInput() {
@@ -104,7 +102,7 @@ class VncActivity : AppCompatActivity() {
                         if (c == '\n') {
                             sendKeysym(0xFF0D)
                         } else {
-                            sendCharKey(c)
+                            sendModifiedChar(c)
                         }
                     }
                 }
@@ -139,8 +137,31 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendCharKey(c: Char) {
-        sendKeysym(c.code)
+    // Kirim karakter dengan mempertimbangkan Ctrl/Alt yang sedang di-toggle aktif
+    private fun sendModifiedChar(c: Char) {
+        val client = rfbClient ?: return
+        val ctrlOn = btnCtrl.isChecked
+        val altOn = btnAlt.isChecked
+
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    if (ctrlOn) client.sendKeyEvent(KEY_CTRL_L, true)
+                    if (altOn) client.sendKeyEvent(KEY_ALT_L, true)
+
+                    client.sendKeyEvent(c.code, true)
+                    client.sendKeyEvent(c.code, false)
+
+                    if (altOn) client.sendKeyEvent(KEY_ALT_L, false)
+                    if (ctrlOn) client.sendKeyEvent(KEY_CTRL_L, false)
+                }
+                // Modifier sekali pakai - otomatis lepas toggle setelah dipakai
+                if (ctrlOn) runOnUiThread { btnCtrl.isChecked = false }
+                if (altOn) runOnUiThread { btnAlt.isChecked = false }
+            } catch (e: Exception) {
+                Log.e("VncActivity", "Modified key send failed: ${e.message}")
+            }
+        }
     }
 
     private fun sendKeysym(keysym: Int) {
@@ -159,9 +180,10 @@ class VncActivity : AppCompatActivity() {
 
     private fun connectAndRender() {
         val port = intent.getIntExtra("vnc_port", 5901)
+        val password = intent.getStringExtra("vnc_password") ?: "ezbox123"
         scope.launch {
             vncStatus.text = "Connecting to EZOS desktop..."
-            val client = RfbClient("127.0.0.1", port, "ezbox123")
+            val client = RfbClient("127.0.0.1", port, password)
             val connected = try {
                 withContext(Dispatchers.IO) { client.connect() }
             } catch (e: Exception) {
@@ -175,6 +197,8 @@ class VncActivity : AppCompatActivity() {
             }
 
             rfbClient = client
+            virtualCursorX = client.width / 2
+            virtualCursorY = client.height / 2
             vncStatus.text = ""
             running = true
             renderLoop(client)
@@ -189,11 +213,7 @@ class VncActivity : AppCompatActivity() {
                     client.readServerMessage()
                 }
                 if (updated) {
-                    val now = System.currentTimeMillis()
-                    if (now - lastFrameTime >= minFrameIntervalMs) {
-                        vncScreen.setImageBitmap(client.bitmap)
-                        lastFrameTime = now
-                    }
+                    vncScreen.setImageBitmap(client.bitmap)
                 }
             } catch (e: Exception) {
                 Log.e("VncActivity", "Connection lost: ${e.message}")
@@ -228,29 +248,69 @@ class VncActivity : AppCompatActivity() {
         return Pair(desktopX, desktopY)
     }
 
-    /**
-     * Sekarang HANYA menaruh event ke channel (non-blocking, instan),
-     * bukan langsung scope.launch{} seperti sebelumnya. Pengiriman
-     * sesungguhnya ditangani satu coroutine di startPointerSender().
-     */
+    // Channel conflated: hanya menyimpan event TERBARU, mencegah banjir pointer event saat drag cepat
+    private fun startPointerSender() {
+        scope.launch {
+            for (event in pointerChannel) {
+                try {
+                    withContext(Dispatchers.IO) {
+                        rfbClient?.sendPointerEvent(event.first, event.second, event.third)
+                    }
+                } catch (e: Exception) {
+                    Log.e("VncActivity", "Pointer send failed: ${e.message}")
+                }
+            }
+        }
+    }
+
     private fun handleTouch(event: MotionEvent) {
         val client = rfbClient ?: return
-        val mapped = mapTouchToDesktop(client, event.x, event.y) ?: return
 
+        if (mouseMode == "trackpad") {
+            handleTrackpadTouch(client, event)
+        } else {
+            handleDirectTouch(client, event)
+        }
+    }
+
+    private fun handleDirectTouch(client: RfbClient, event: MotionEvent) {
+        val mapped = mapTouchToDesktop(client, event.x, event.y) ?: return
         val buttonMask = when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> 1
             MotionEvent.ACTION_UP -> 0
             else -> return
         }
+        pointerChannel.trySend(Triple(mapped.first, mapped.second, buttonMask))
+    }
 
-        pointerChannel.trySend(PointerEvent(mapped.first, mapped.second, buttonMask))
+    // Mode trackpad: gerakan jari menggeser posisi kursor secara RELATIF (seperti touchpad laptop),
+    // bukan tap-langsung-ke-posisi. Cocok untuk kontrol presisi tinggi.
+    private fun handleTrackpadTouch(client: RfbClient, event: MotionEvent) {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                lastTrackpadX = event.x
+                lastTrackpadY = event.y
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val dx = (event.x - lastTrackpadX).toInt()
+                val dy = (event.y - lastTrackpadY).toInt()
+                virtualCursorX = (virtualCursorX + dx).coerceIn(0, client.width - 1)
+                virtualCursorY = (virtualCursorY + dy).coerceIn(0, client.height - 1)
+                lastTrackpadX = event.x
+                lastTrackpadY = event.y
+                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+            }
+            MotionEvent.ACTION_UP -> {
+                // Tap singkat di mode trackpad = klik di posisi kursor virtual saat ini
+                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 1))
+                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         running = false
         rfbClient?.close()
-        pointerChannel.close()
-        scope.cancel()
     }
 }
