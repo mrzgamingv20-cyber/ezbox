@@ -23,90 +23,147 @@
     <!-- Toolbar extra keys: HANYA terlihat saat keyboard aktif (dikontrol via kode, default GONE) -->
     <HorizontalScrollView
         android:id="@+id/extraKeysBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#E6151520"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_gravity="top|start"
+        android:background="#99000000"
         android:scrollbars="none"
         android:visibility="gone">
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:padding="6dp">
+            android:gravity="center_vertical"
+            android:padding="4dp">
 
             <ToggleButton
                 android:id="@+id/btnCtrl"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textSize="11sp"
                 android:textOn="Ctrl"
                 android:textOff="Ctrl"
-                android:layout_margin="3dp" />
+                android:layout_margin="2dp" />
 
             <ToggleButton
                 android:id="@+id/btnAlt"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textSize="11sp"
                 android:textOn="Alt"
                 android:textOff="Alt"
-                android:layout_margin="3dp" />
+                android:layout_margin="2dp" />
 
             <Button
                 android:id="@+id/btnEsc"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textSize="11sp"
                 android:text="Esc"
-                android:layout_margin="3dp" />
+                android:layout_margin="2dp" />
 
             <Button
                 android:id="@+id/btnTab"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textSize="11sp"
                 android:text="Tab"
-                android:layout_margin="3dp" />
+                android:layout_margin="2dp" />
 
-            <Button
-                android:id="@+id/btnUp"
+            <!-- Cluster panah jadi D-pad kompak 3x2, jauh lebih hemat lebar dibanding 4 tombol sejajar -->
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="↑"
-                android:layout_margin="3dp" />
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_margin="2dp">
 
-            <Button
-                android:id="@+id/btnDown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="↓"
-                android:layout_margin="3dp" />
+                <Button
+                    android:id="@+id/btnUp"
+                    android:layout_width="34dp"
+                    android:layout_height="18dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:textSize="9sp"
+                    android:text="↑" />
 
-            <Button
-                android:id="@+id/btnLeft"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="←"
-                android:layout_margin="3dp" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btnRight"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="→"
-                android:layout_margin="3dp" />
+                    <Button
+                        android:id="@+id/btnLeft"
+                        android:layout_width="34dp"
+                        android:layout_height="18dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:textSize="9sp"
+                        android:text="←" />
+
+                    <Button
+                        android:id="@+id/btnDown"
+                        android:layout_width="34dp"
+                        android:layout_height="18dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:textSize="9sp"
+                        android:text="↓" />
+
+                    <Button
+                        android:id="@+id/btnRight"
+                        android:layout_width="34dp"
+                        android:layout_height="18dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:textSize="9sp"
+                        android:text="→" />
+
+                </LinearLayout>
+            </LinearLayout>
 
             <Button
                 android:id="@+id/btnClipboard"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:textSize="14sp"
                 android:text="📋"
-                android:layout_margin="3dp" />
+                android:layout_margin="2dp" />
 
             <Button
                 android:id="@+id/btnScreenshot"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:textSize="14sp"
                 android:text="📷"
-                android:layout_margin="3dp" />
+                android:layout_margin="2dp" />
 
         </LinearLayout>
     </HorizontalScrollView>
