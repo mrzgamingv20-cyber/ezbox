@@ -82,11 +82,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/card_glow_bg_ripple"
             android:padding="16dp"
             android:layout_marginBottom="16dp"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            android:stateListAnimator="@animator/card_press_anim">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -145,6 +146,7 @@
             android:background="@drawable/card_glow_bg"
             android:padding="16dp"
             android:weightSum="2">
+            <!-- child cards diberi ripple individual via kode/atribut clickable masing-masing -->
 
             <LinearLayout
                 android:id="@+id/quickStore"
@@ -152,7 +154,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -173,7 +179,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
