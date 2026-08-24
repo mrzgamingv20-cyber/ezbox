@@ -16,8 +16,22 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SessionsFragment : Fragment() {
+
+    private fun debugLog(msg: String) {
+        try {
+            val ts = SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date())
+            val file = File("/storage/emulated/0/Download/ezbox_debug.log")
+            file.appendText("[$ts] [Sessions] $msg\n")
+        } catch (e: Exception) {
+            android.util.Log.e("EZBox", "debugLog failed: ${e.message}")
+        }
+    }
 
     private lateinit var sessionManager: SessionManager
     private lateinit var adapter: SessionAdapter
@@ -120,23 +134,33 @@ class SessionsFragment : Fragment() {
     }
 
     private fun launchSession(session: EzSession) {
+        debugLog("launchSession clicked: ${session.name}")
         sessionManager.markUsed(session.id)
 
         val command = "WINE_VARIANT=${session.wineVariant} EZBOX_RES=${session.resolution} ezos-run EZOS"
+        debugLog("Command: $command")
 
-        val intent = Intent().apply {
-            action = "com.termux.RUN_COMMAND"
-            component = ComponentName("com.termux", "com.termux.app.RunCommandService")
-            putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
-            putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
-            putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
-        }
-        ContextCompat.startForegroundService(requireContext(), intent)
-
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            if (isAdded) {
-                startActivity(Intent(requireContext(), VncActivity::class.java))
+        try {
+            val intent = Intent().apply {
+                action = "com.termux.RUN_COMMAND"
+                component = ComponentName("com.termux", "com.termux.app.RunCommandService")
+                putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
+                putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
+                putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
-        }, 5000)
+            debugLog("Calling startForegroundService...")
+            ContextCompat.startForegroundService(requireContext(), intent)
+            debugLog("startForegroundService returned OK, scheduling launch in 5s")
+
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                debugLog("postDelayed fired, isAdded=$isAdded")
+                if (isAdded) {
+                    debugLog("Starting VncActivity from Sessions")
+                    startActivity(Intent(requireContext(), VncActivity::class.java))
+                }
+            }, 5000)
+        } catch (e: Exception) {
+            debugLog("EXCEPTION: ${e.javaClass.simpleName}: ${e.message}")
+        }
     }
 }
