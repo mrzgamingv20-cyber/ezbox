@@ -42,9 +42,9 @@
 
 ---
 
-## 📦 Installation
+## 📦
 
-1. Install [Termux](https://f-droid.org/packages/com.termux/) from F-Droid (**not** the Play Store version — it's outdated and incompatible).
+1. Install [Termux](https://github.com/termux/termux-app) from github (**not** the Play Store version — it's outdated and incompatible).
 2. Download the latest `EZBox-debug.apk` from the [Releases](../../releases) page.
 3. Install the APK manually on your device.
 4. Open Termux once, then open EZBox — grant the **RUN_COMMAND** and **All Files Access** permissions when prompted.
