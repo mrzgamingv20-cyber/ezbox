@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.ToggleButton
+import android.view.ViewTreeObserver
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ class VncActivity : AppCompatActivity() {
     private lateinit var btnToggleKeyboard: Button
     private lateinit var btnCtrl: ToggleButton
     private lateinit var btnAlt: ToggleButton
+    private lateinit var extraKeysBar: android.widget.HorizontalScrollView
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -63,6 +65,8 @@ class VncActivity : AppCompatActivity() {
         btnToggleKeyboard = findViewById(R.id.btnToggleKeyboard)
         btnCtrl = findViewById(R.id.btnCtrl)
         btnAlt = findViewById(R.id.btnAlt)
+        extraKeysBar = findViewById(R.id.extraKeysBar)
+        setupKeyboardVisibilityListener()
 
         connectAndRender()
         setupKeyboardInput()
@@ -73,6 +77,27 @@ class VncActivity : AppCompatActivity() {
             handleTouch(event)
             true
         }
+    }
+
+    // Deteksi keyboard soft muncul/hilang lewat perubahan tinggi layout yang terlihat,
+    // supaya toolbar Ctrl/Alt/Esc/Tab/panah cuma tampil bareng keyboard - tidak permanen menutupi desktop
+    private fun setupKeyboardVisibilityListener() {
+        val rootView = findViewById<View>(android.R.id.content)
+        rootView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            var lastKeyboardState = false
+            override fun onGlobalLayout() {
+                val rect = android.graphics.Rect()
+                rootView.getWindowVisibleDisplayFrame(rect)
+                val screenHeight = rootView.height
+                val keypadHeight = screenHeight - rect.bottom
+                val keyboardVisible = keypadHeight > screenHeight * 0.15
+
+                if (keyboardVisible != lastKeyboardState) {
+                    lastKeyboardState = keyboardVisible
+                    extraKeysBar.visibility = if (keyboardVisible) View.VISIBLE else View.GONE
+                }
+            }
+        })
     }
 
     private fun setupExtraKeys() {
