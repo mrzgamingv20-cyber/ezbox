@@ -58,6 +58,20 @@ class HomeFragment : Fragment() {
             setStatus("Checking permission...", true)
             checkPermissionAndLaunch()
         }
+
+        val sessionCount = SessionManager(requireContext()).getAllSessions().size
+        view.findViewById<android.widget.TextView>(R.id.tvSessionCount)?.text = sessionCount.toString()
+
+        view.findViewById<View>(R.id.quickSessions)?.setOnClickListener {
+            (activity as? MainActivity)?.navigateTo(R.id.nav_sessions)
+        }
+        view.findViewById<View>(R.id.quickStore)?.setOnClickListener {
+            (activity as? MainActivity)?.navigateTo(R.id.nav_store)
+        }
+        view.findViewById<View>(R.id.quickTerminal)?.setOnClickListener {
+            (activity as? MainActivity)?.navigateTo(R.id.nav_terminal)
+        }
+
         return view
     }
 

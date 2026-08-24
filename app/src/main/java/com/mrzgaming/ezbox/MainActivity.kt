@@ -15,6 +15,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var bottomNavRef: BottomNavigationView
+
+    fun navigateTo(itemId: Int) {
+        bottomNavRef.selectedItemId = itemId
+    }
+
     private val TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND"
     private val TERMUX_PERMISSION_REQUEST_CODE = 1001
     private val STORAGE_PERMISSION_REQUEST_CODE = 1002
@@ -27,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         requestAllFilesAccessIfNeeded()
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        bottomNavRef = bottomNav
         bottomNav.setOnItemSelectedListener { item ->
             val fragment: Fragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()

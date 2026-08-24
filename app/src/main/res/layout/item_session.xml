@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="20dp"
+    app:cardBackgroundColor="@color/ezos_card_bg"
     app:cardElevation="2dp">
 
     <LinearLayout

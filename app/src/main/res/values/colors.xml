@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ezos_primary">#00BCD4</color>
-    <color name="ezos_primary_dark">#0097A7</color>
-    <color name="ezos_accent">#26C6DA</color>
-    <color name="ezos_bg_dark">#0F1720</color>
-    <color name="ezos_card_bg">#1A2530</color>
-    <color name="ezos_text_primary">#FFFFFF</color>
-    <color name="ezos_text_secondary">#94A3B8</color>
-    <color name="ezos_success">#4CAF50</color>
-    <color name="ezos_error">#EF5350</color>
+    <color name="ezos_bg_black">#0A0A0F</color>
+    <color name="ezos_card_bg">#15151F</color>
+    <color name="ezos_card_border">#2A1F3D</color>
+    <color name="ezos_accent">#B15CFF</color>
+    <color name="ezos_accent_glow">#7C3AED</color>
+    <color name="ezos_accent_soft">#3D2A5C</color>
+    <color name="ezos_text_primary">#F5F3FF</color>
+    <color name="ezos_text_secondary">#9C94B8</color>
+    <color name="ezos_success">#4ADE80</color>
 </resources>

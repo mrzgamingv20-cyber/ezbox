@@ -1,8 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.EZBox" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/ezos_primary</item>
-        <item name="colorPrimaryDark">@color/ezos_primary_dark</item>
+    <style name="Theme.EZBox" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">@color/ezos_bg_black</item>
+        <item name="colorPrimary">@color/ezos_accent</item>
         <item name="colorAccent">@color/ezos_accent</item>
-        <item name="android:windowBackground">@color/ezos_bg_dark</item>
+        <item name="android:textColorPrimary">@color/ezos_text_primary</item>
+        <item name="android:textColorSecondary">@color/ezos_text_secondary</item>
     </style>
 </resources>
