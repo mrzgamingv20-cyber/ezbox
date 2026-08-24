@@ -1,4 +1,12 @@
 
+
+<p align="center">
+  <img src=""Tak berjudul48_20260824185844.png width="150" alt="Logo">
+</p>
+
+
+
+
 # EZBox
 
 
