@@ -9,4 +9,8 @@
     <color name="ezos_text_primary">#F5F3FF</color>
     <color name="ezos_text_secondary">#9C94B8</color>
     <color name="ezos_success">#4ADE80</color>
+
+    <!-- Alias untuk kompatibilitas dengan layout lama (fragment_terminal.xml dll) -->
+    <color name="ezos_bg_dark">#0A0A0F</color>
+    <color name="ezos_primary">#B15CFF</color>
 </resources>
