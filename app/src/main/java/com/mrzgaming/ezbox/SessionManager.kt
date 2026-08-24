@@ -20,6 +20,7 @@ class SessionManager(context: Context) {
                     name = obj.getString("name"),
                     resolution = obj.optString("resolution", "960x540"),
                     wineVariant = obj.optString("wineVariant", "wine-staging"),
+                    displayNum = obj.optInt("displayNum", 1),
                     lastUsed = obj.optLong("lastUsed", 0L)
                 )
             )
@@ -44,7 +45,12 @@ class SessionManager(context: Context) {
     }
 
     fun createNewSession(name: String): EzSession {
-        val session = EzSession(id = UUID.randomUUID().toString(), name = name)
+        val usedDisplays = getAllSessions().map { it.displayNum }.toSet()
+        var nextDisplay = 1
+        while (usedDisplays.contains(nextDisplay)) {
+            nextDisplay++
+        }
+        val session = EzSession(id = UUID.randomUUID().toString(), name = name, displayNum = nextDisplay)
         saveSession(session)
         return session
     }
@@ -66,6 +72,7 @@ class SessionManager(context: Context) {
             obj.put("name", s.name)
             obj.put("resolution", s.resolution)
             obj.put("wineVariant", s.wineVariant)
+            obj.put("displayNum", s.displayNum)
             obj.put("lastUsed", s.lastUsed)
             arr.put(obj)
         }

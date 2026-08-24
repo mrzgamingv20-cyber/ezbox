@@ -137,7 +137,8 @@ class SessionsFragment : Fragment() {
         debugLog("launchSession clicked: ${session.name}")
         sessionManager.markUsed(session.id)
 
-        val command = "WINE_VARIANT=${session.wineVariant} EZBOX_RES=${session.resolution} ezos-run EZOS"
+        val sessionHome = "/data/data/com.termux/files/home/.ezos/sessions/${session.id}"
+        val command = "WINE_VARIANT=${session.wineVariant} EZBOX_RES=${session.resolution} EZBOX_DISPLAY_NUM=${session.displayNum} EZBOX_SESSION_HOME=$sessionHome ezos-run EZOS"
         debugLog("Command: $command")
 
         try {
@@ -155,8 +156,10 @@ class SessionsFragment : Fragment() {
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                 debugLog("postDelayed fired, isAdded=$isAdded")
                 if (isAdded) {
-                    debugLog("Starting VncActivity from Sessions")
-                    startActivity(Intent(requireContext(), VncActivity::class.java))
+                    debugLog("Starting VncActivity from Sessions, port=${session.vncPort}")
+                    val vncIntent = Intent(requireContext(), VncActivity::class.java)
+                    vncIntent.putExtra("vnc_port", session.vncPort)
+                    startActivity(vncIntent)
                 }
             }, 5000)
         } catch (e: Exception) {

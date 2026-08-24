@@ -158,9 +158,10 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun connectAndRender() {
+        val port = intent.getIntExtra("vnc_port", 5901)
         scope.launch {
             vncStatus.text = "Connecting to EZOS desktop..."
-            val client = RfbClient("127.0.0.1", 5901, "ezbox123")
+            val client = RfbClient("127.0.0.1", port, "ezbox123")
             val connected = try {
                 withContext(Dispatchers.IO) { client.connect() }
             } catch (e: Exception) {
