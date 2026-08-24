@@ -103,6 +103,8 @@ class HomeFragment : Fragment() {
 
         Log.d("EZBox", "Attempting to launch EZOS with resolution: $resolution")
         debugLog("setupEnvironment start, resolution=$resolution")
+        requireContext().getSharedPreferences("EZBoxActiveSession", Context.MODE_PRIVATE)
+            .edit().putInt("active_display_num", 1).apply()
         try {
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"

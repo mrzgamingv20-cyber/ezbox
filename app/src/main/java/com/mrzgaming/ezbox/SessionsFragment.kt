@@ -149,6 +149,10 @@ class SessionsFragment : Fragment() {
         debugLog("launchSession clicked: ${session.name}")
         sessionManager.markUsed(session.id)
 
+        // Simpan displayNum session aktif supaya bisa dimatikan otomatis saat app di-background
+        requireContext().getSharedPreferences("EZBoxActiveSession", Context.MODE_PRIVATE)
+            .edit().putInt("active_display_num", session.displayNum).apply()
+
         val sessionHome = "/data/data/com.termux/files/home/.ezos/sessions/${session.id}"
         val command = "WINE_VARIANT=${session.wineVariant} EZBOX_RES=${session.resolution} EZBOX_DISPLAY_NUM=${session.displayNum} EZBOX_SESSION_HOME=$sessionHome EZBOX_VNC_PASSWORD='${session.password}' ezos-run EZOS"
         debugLog("Command: $command")
