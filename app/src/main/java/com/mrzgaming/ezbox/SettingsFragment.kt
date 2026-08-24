@@ -43,7 +43,14 @@ class SettingsFragment : Fragment() {
         val savedMouseMode = prefs.getString("mouse_mode", "direct") ?: "direct"
         spinnerMouseMode.setSelection(mouseModes.indexOf(savedMouseMode).coerceAtLeast(0))
 
-        inputPassword.setText(prefs.getString("vnc_password", "ezbox123"))
+        // Tampilkan sebagai HINT (placeholder abu-abu), bukan teks ter-isi - supaya jelas
+        // ini cuma default, bukan seolah-olah user sudah pernah mengatur password sendiri
+        val savedPassword = prefs.getString("vnc_password", null)
+        if (savedPassword != null) {
+            inputPassword.setText(savedPassword)
+        } else {
+            inputPassword.hint = "Default: ezbox123"
+        }
         switchKeepAwake.isChecked = prefs.getBoolean("keep_awake", false)
         switchAutoStop.isChecked = prefs.getBoolean("auto_stop_background", true)
 

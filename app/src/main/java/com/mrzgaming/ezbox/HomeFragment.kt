@@ -31,6 +31,8 @@ class HomeFragment : Fragment() {
     private var progressLaunch: ProgressBar? = null
     private var btnSetup: Button? = null
     private var tvBackendStatus: TextView? = null
+    private val statusPollHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var statusPollRunnable: Runnable? = null
 
     private fun setStatus(text: String, loading: Boolean) {
         tvStatus?.text = text
@@ -76,7 +78,24 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        checkBackendStatus()
+        startStatusPolling()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        statusPollRunnable?.let { statusPollHandler.removeCallbacks(it) }
+    }
+
+    // Poll status tiap 3 detik selagi tab Home terbuka, supaya card "Backend Status"
+    // ter-update otomatis begitu desktop selesai startup - bukan cuma dicek sekali saat onResume
+    private fun startStatusPolling() {
+        statusPollRunnable = object : Runnable {
+            override fun run() {
+                checkBackendStatus()
+                statusPollHandler.postDelayed(this, 3000)
+            }
+        }
+        statusPollHandler.post(statusPollRunnable!!)
     }
 
     /**
@@ -136,9 +155,13 @@ class HomeFragment : Fragment() {
 
         debugLog("setupEnvironment start, resolution=$resolution")
         try {
-            val command = "EZBOX_RES=$resolution EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
-                "if pgrep -f 'Xvnc :1 ' > /dev/null; then echo running > /storage/emulated/0/Download/ezbox_backend_status.txt; " +
-                "else echo idle > /storage/emulated/0/Download/ezbox_backend_status.txt; fi"
+            // ezos-run sendiri sudah berupa keep-alive loop yang jalan lama (tidak langsung exit),
+            // jadi status "running" ditulis di AWAL sebelum ezos-run dipanggil (begitu command mulai jalan,
+            // proses Xvnc akan segera menyusul), dan "idle" ditulis ulang HANYA kalau ezos-run
+            // benar-benar berhenti/exit (baik karena error maupun VNC server di-stop manual)
+            val command = "echo running > /storage/emulated/0/Download/ezbox_backend_status.txt; " +
+                "EZBOX_RES=$resolution EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
+                "echo idle > /storage/emulated/0/Download/ezbox_backend_status.txt"
 
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
