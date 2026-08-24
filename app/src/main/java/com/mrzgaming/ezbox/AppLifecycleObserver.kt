@@ -10,22 +10,19 @@ import androidx.lifecycle.LifecycleOwner
 
 class AppLifecycleObserver(private val appContext: Context) : DefaultLifecycleObserver {
 
-    // Dipanggil saat SEMUA activity EZBox sudah tidak terlihat (user benar-benar keluar
-    // dari app - tekan Home, buka app lain, atau swipe dari recents), BUKAN saat
-    // pindah antar tab/fragment di dalam EZBox
+    // Dipanggil saat user benar-benar keluar dari EZBox (tekan Home/app lain/recents),
+    // BUKAN saat pindah tab Home/Store/Terminal di dalam app.
+    // Ini cuma matiin PROSES VNC untuk hemat baterai - file & konfigurasi desktop
+    // tetap tersimpan di $HOME/.ezos/home, jadi saat dibuka lagi otomatis "lanjut"
+    // dari kondisi terakhir, bukan mulai dari nol.
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
-        stopActiveSession()
+        stopDesktopSession()
     }
 
-    private fun stopActiveSession() {
-        val prefs = appContext.getSharedPreferences("EZBoxActiveSession", Context.MODE_PRIVATE)
-        val displayNum = prefs.getInt("active_display_num", -1)
-
-        if (displayNum == -1) return // Belum pernah launch session apa pun
-
+    private fun stopDesktopSession() {
         try {
-            val command = "pkill -9 -f 'Xvnc :$displayNum '"
+            val command = "pkill -9 -f 'Xvnc :1 '"
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
                 component = ComponentName("com.termux", "com.termux.app.RunCommandService")
@@ -34,9 +31,7 @@ class AppLifecycleObserver(private val appContext: Context) : DefaultLifecycleOb
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             ContextCompat.startForegroundService(appContext, intent)
-            Log.d("EZBox", "Stopped session on display :$displayNum due to app leaving foreground")
-
-            prefs.edit().remove("active_display_num").apply()
+            Log.d("EZBox", "Stopped VNC session (app left foreground), desktop state preserved")
         } catch (e: Exception) {
             Log.e("EZBox", "Failed to stop session on background: ${e.message}")
         }

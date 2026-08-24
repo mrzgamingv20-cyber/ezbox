@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener { item ->
             val fragment: Fragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
-                R.id.nav_sessions -> SessionsFragment()
                 R.id.nav_store -> StoreFragment()
                 R.id.nav_terminal -> TerminalFragment()
                 else -> HomeFragment()

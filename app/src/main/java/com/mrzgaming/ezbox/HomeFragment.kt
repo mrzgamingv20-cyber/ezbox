@@ -59,12 +59,6 @@ class HomeFragment : Fragment() {
             checkPermissionAndLaunch()
         }
 
-        val sessionCount = SessionManager(requireContext()).getAllSessions().size
-        view.findViewById<android.widget.TextView>(R.id.tvSessionCount)?.text = sessionCount.toString()
-
-        view.findViewById<View>(R.id.quickSessions)?.setOnClickListener {
-            (activity as? MainActivity)?.navigateTo(R.id.nav_sessions)
-        }
         view.findViewById<View>(R.id.quickStore)?.setOnClickListener {
             (activity as? MainActivity)?.navigateTo(R.id.nav_store)
         }
@@ -103,8 +97,6 @@ class HomeFragment : Fragment() {
 
         Log.d("EZBox", "Attempting to launch EZOS with resolution: $resolution")
         debugLog("setupEnvironment start, resolution=$resolution")
-        requireContext().getSharedPreferences("EZBoxActiveSession", Context.MODE_PRIVATE)
-            .edit().putInt("active_display_num", 1).apply()
         try {
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
