@@ -102,4 +102,18 @@ EZBox does not bundle Termux — it must be installed separately.
 Because it's built on Termux rather than a full virtualization/proot solution, it's significantly lighter on resources.
 Wine/Box64 application support is still under active deve
 
-no license
+# No License
+
+This project is intentionally provided without a formal license.
+
+You are free to use, modify, and build upon this project for your own purposes. However, you may not claim the original work as your own, remove or misrepresent its original authorship, or present the project as if you created it from scratch.
+
+Feel free to fork it.
+Feel free to modify it.
+Feel free to build something new from it.
+
+Just remember:
+
+«Use it. Change it. Build on it. But don't claim it.»
+
+The code is open to exploration and modification, while its original authorship remains respected.
