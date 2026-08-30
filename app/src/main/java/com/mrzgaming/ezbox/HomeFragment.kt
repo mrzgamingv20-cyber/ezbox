@@ -31,6 +31,9 @@ class HomeFragment : Fragment() {
     private var progressLaunch: ProgressBar? = null
     private var btnSetup: Button? = null
     private var tvBackendStatus: TextView? = null
+    private var tvUptime: TextView? = null
+    private var progressRam: ProgressBar? = null
+    private var tvRamDetail: TextView? = null
     private val statusPollHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var statusPollRunnable: Runnable? = null
 
@@ -56,6 +59,9 @@ class HomeFragment : Fragment() {
         progressLaunch = view.findViewById(R.id.progressLaunch)
         btnSetup = view.findViewById(R.id.btnSetup)
         tvBackendStatus = view.findViewById(R.id.tvBackendStatus)
+        tvUptime = view.findViewById(R.id.tvUptime)
+        progressRam = view.findViewById(R.id.progressRam)
+        tvRamDetail = view.findViewById(R.id.tvRamDetail)
 
         btnSetup?.setOnClickListener {
             debugLog("Button clicked")
@@ -107,22 +113,60 @@ class HomeFragment : Fragment() {
      */
     private fun checkBackendStatus() {
         val statusFile = File("/storage/emulated/0/Download/ezbox_backend_status.txt")
+        val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
         try {
             if (statusFile.exists()) {
                 val content = statusFile.readText().trim()
                 if (content == "running") {
                     tvBackendStatus?.text = "Running"
                     tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_success))
+                    updateUptime(prefs)
                 } else {
                     tvBackendStatus?.text = "Idle"
                     tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+                    tvUptime?.visibility = View.GONE
                 }
             } else {
                 tvBackendStatus?.text = "Idle"
                 tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+                tvUptime?.visibility = View.GONE
             }
         } catch (e: Exception) {
             tvBackendStatus?.text = "Unknown"
+        }
+        updateRamUsage()
+    }
+
+    private fun updateUptime(prefs: android.content.SharedPreferences) {
+        val launchTime = prefs.getLong("desktop_launch_time", 0L)
+        if (launchTime == 0L) {
+            tvUptime?.visibility = View.GONE
+            return
+        }
+        val elapsedMs = System.currentTimeMillis() - launchTime
+        val minutes = (elapsedMs / 60000) % 60
+        val hours = elapsedMs / 3600000
+        val text = if (hours > 0) "Running for ${hours}h ${minutes}m" else "Running for ${minutes}m"
+        tvUptime?.text = text
+        tvUptime?.visibility = View.VISIBLE
+    }
+
+    // RAM device level-OS resmi via ActivityManager - tidak perlu root, tidak baca proses app lain
+    private fun updateRamUsage() {
+        try {
+            val am = requireContext().getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val memInfo = android.app.ActivityManager.MemoryInfo()
+            am.getMemoryInfo(memInfo)
+
+            val totalMb = memInfo.totalMem / (1024 * 1024)
+            val availMb = memInfo.availMem / (1024 * 1024)
+            val usedMb = totalMb - availMb
+            val usedPercent = ((usedMb.toDouble() / totalMb.toDouble()) * 100).toInt()
+
+            progressRam?.progress = usedPercent
+            tvRamDetail?.text = "${usedMb}MB / ${totalMb}MB used ($usedPercent%)"
+        } catch (e: Exception) {
+            tvRamDetail?.text = "Unable to read memory info"
         }
     }
 
@@ -154,6 +198,7 @@ class HomeFragment : Fragment() {
         val vncPassword = prefs.getString("vnc_password", "ezbox123")
 
         debugLog("setupEnvironment start, resolution=$resolution")
+        prefs.edit().putLong("desktop_launch_time", System.currentTimeMillis()).apply()
         try {
             // ezos-run sendiri sudah berupa keep-alive loop yang jalan lama (tidak langsung exit),
             // jadi status "running" ditulis di AWAL sebelum ezos-run dipanggil (begitu command mulai jalan,
@@ -194,5 +239,6 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         launchRunnable?.let { launchHandler.removeCallbacks(it) }
+        statusPollRunnable?.let { statusPollHandler.removeCallbacks(it) }
     }
 }
