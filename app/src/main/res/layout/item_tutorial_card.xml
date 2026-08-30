@@ -35,6 +35,9 @@
         android:textColor="@color/ezos_accent"
         android:textSize="13sp"
         android:textAllCaps="false"
+        android:textColor="@color/ezos_bg_black"
+        android:textStyle="bold"
+        android:textAllCaps="false"
         android:background="@drawable/btn_tutorial_more" />
 
 </LinearLayout>
