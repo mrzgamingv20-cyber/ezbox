@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -58,11 +59,18 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, TERMUX_PERMISSION)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(TERMUX_PERMISSION),
-                TERMUX_PERMISSION_REQUEST_CODE
-            )
+            AlertDialog.Builder(this)
+                .setTitle("Termux Access Needed")
+                .setMessage("EZBox uses Termux as its backend to run your Linux desktop (XFCE4, VNC server). This permission lets EZBox send commands to Termux to start and stop your desktop environment.\n\nNo commands are sent without your action (e.g. tapping \"Launch Environment\").")
+                .setPositiveButton("Continue") { _, _ ->
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(TERMUX_PERMISSION),
+                        TERMUX_PERMISSION_REQUEST_CODE
+                    )
+                }
+                .setCancelable(false)
+                .show()
         }
     }
 
@@ -76,16 +84,23 @@ class MainActivity : AppCompatActivity() {
     private fun requestAllFilesAccessIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
-                try {
-                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                        data = Uri.parse("package:$packageName")
+                AlertDialog.Builder(this)
+                    .setTitle("Storage Access Needed")
+                    .setMessage("EZBox needs access to your device storage to:\n\n• Save crash logs and debug info to your Downloads folder (for troubleshooting)\n• Save desktop screenshots to your Pictures folder\n\nEZBox does not read, upload, or share your personal files. You'll be taken to a system settings page to grant this.")
+                    .setPositiveButton("Continue") { _, _ ->
+                        try {
+                            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                                data = Uri.parse("package:$packageName")
+                            }
+                            startActivityForResult(intent, STORAGE_PERMISSION_REQUEST_CODE)
+                        } catch (e: Exception) {
+                            val fallbackIntent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                            startActivityForResult(fallbackIntent, STORAGE_PERMISSION_REQUEST_CODE)
+                        }
                     }
-                    startActivityForResult(intent, STORAGE_PERMISSION_REQUEST_CODE)
-                } catch (e: Exception) {
-                    // Fallback untuk device yang tidak support intent spesifik di atas
-                    val fallbackIntent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    startActivityForResult(fallbackIntent, STORAGE_PERMISSION_REQUEST_CODE)
-                }
+                    .setNegativeButton("Not now", null)
+                    .setCancelable(true)
+                    .show()
             }
         }
     }
