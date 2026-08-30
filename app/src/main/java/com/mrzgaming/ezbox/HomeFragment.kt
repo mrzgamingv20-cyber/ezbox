@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -32,8 +33,10 @@ class HomeFragment : Fragment() {
     private var btnSetup: Button? = null
     private var tvBackendStatus: TextView? = null
     private var tvUptime: TextView? = null
-    private var progressRam: ProgressBar? = null
+    private var ringRam: RingProgressView? = null
+    private var tvRamPercent: TextView? = null
     private var tvRamDetail: TextView? = null
+    private var tvGreeting: TextView? = null
     private val statusPollHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var statusPollRunnable: Runnable? = null
 
@@ -53,6 +56,16 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun setGreeting() {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val greeting = when {
+            hour < 12 -> "Good morning"
+            hour < 18 -> "Good afternoon"
+            else -> "Good evening"
+        }
+        tvGreeting?.text = greeting
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
         tvStatus = view.findViewById(R.id.tvStatus)
@@ -60,8 +73,13 @@ class HomeFragment : Fragment() {
         btnSetup = view.findViewById(R.id.btnSetup)
         tvBackendStatus = view.findViewById(R.id.tvBackendStatus)
         tvUptime = view.findViewById(R.id.tvUptime)
-        progressRam = view.findViewById(R.id.progressRam)
+        ringRam = view.findViewById(R.id.ringRam)
+        tvRamPercent = view.findViewById(R.id.tvRamPercent)
         tvRamDetail = view.findViewById(R.id.tvRamDetail)
+        tvGreeting = view.findViewById(R.id.tvGreeting)
+
+        setGreeting()
+        ringRam?.ringColor = ContextCompat.getColor(requireContext(), R.color.ezos_success)
 
         btnSetup?.setOnClickListener {
             debugLog("Button clicked")
@@ -75,6 +93,9 @@ class HomeFragment : Fragment() {
         view.findViewById<View>(R.id.quickTerminal)?.setOnClickListener {
             (activity as? MainActivity)?.navigateTo(R.id.nav_terminal)
         }
+        view.findViewById<View>(R.id.quickSettings)?.setOnClickListener {
+            (activity as? MainActivity)?.navigateTo(R.id.nav_settings)
+        }
         view.findViewById<View>(R.id.quickOpenDesktop)?.setOnClickListener {
             startActivity(Intent(requireContext(), VncActivity::class.java))
         }
@@ -84,6 +105,7 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        setGreeting()
         startStatusPolling()
     }
 
@@ -92,8 +114,6 @@ class HomeFragment : Fragment() {
         statusPollRunnable?.let { statusPollHandler.removeCallbacks(it) }
     }
 
-    // Poll status tiap 3 detik selagi tab Home terbuka, supaya card "Backend Status"
-    // ter-update otomatis begitu desktop selesai startup - bukan cuma dicek sekali saat onResume
     private fun startStatusPolling() {
         statusPollRunnable = object : Runnable {
             override fun run() {
@@ -104,13 +124,6 @@ class HomeFragment : Fragment() {
         statusPollHandler.post(statusPollRunnable!!)
     }
 
-    /**
-     * Cek apakah desktop EZOS sedang berjalan dengan meminta Termux menjalankan pgrep
-     * dan menuliskan hasilnya ke file status yang dibaca app. RUN_COMMAND tidak
-     * mengembalikan stdout langsung ke app tanpa dependency tambahan (lihat catatan
-     * di StoreFragment soal keterbatasan ini), jadi status ini best-effort:
-     * ditampilkan "Checking..." lalu di-refresh tiap kali user kembali ke tab Home.
-     */
     private fun checkBackendStatus() {
         val statusFile = File("/storage/emulated/0/Download/ezbox_backend_status.txt")
         val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
@@ -151,7 +164,6 @@ class HomeFragment : Fragment() {
         tvUptime?.visibility = View.VISIBLE
     }
 
-    // RAM device level-OS resmi via ActivityManager - tidak perlu root, tidak baca proses app lain
     private fun updateRamUsage() {
         try {
             val am = requireContext().getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
@@ -163,8 +175,9 @@ class HomeFragment : Fragment() {
             val usedMb = totalMb - availMb
             val usedPercent = ((usedMb.toDouble() / totalMb.toDouble()) * 100).toInt()
 
-            progressRam?.progress = usedPercent
-            tvRamDetail?.text = "${usedMb}MB / ${totalMb}MB used ($usedPercent%)"
+            ringRam?.progress = usedPercent
+            tvRamPercent?.text = "$usedPercent%"
+            tvRamDetail?.text = "${usedMb}MB / ${totalMb}MB used"
         } catch (e: Exception) {
             tvRamDetail?.text = "Unable to read memory info"
         }
@@ -200,10 +213,6 @@ class HomeFragment : Fragment() {
         debugLog("setupEnvironment start, resolution=$resolution")
         prefs.edit().putLong("desktop_launch_time", System.currentTimeMillis()).apply()
         try {
-            // ezos-run sendiri sudah berupa keep-alive loop yang jalan lama (tidak langsung exit),
-            // jadi status "running" ditulis di AWAL sebelum ezos-run dipanggil (begitu command mulai jalan,
-            // proses Xvnc akan segera menyusul), dan "idle" ditulis ulang HANYA kalau ezos-run
-            // benar-benar berhenti/exit (baik karena error maupun VNC server di-stop manual)
             val command = "echo running > /storage/emulated/0/Download/ezbox_backend_status.txt; " +
                 "EZBOX_RES=$resolution EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
                 "echo idle > /storage/emulated/0/Download/ezbox_backend_status.txt"

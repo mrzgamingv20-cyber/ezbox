@@ -5,7 +5,8 @@ data class StorePackage(
     val description: String,
     val pkgNames: List<String>,
     val checkBinary: String,
-    val icon: String,       // emoji fallback, dipakai kalau iconRes null
+    val icon: String,
     val colorRes: Int,
-    val iconRes: Int? = null // drawable PNG logo asli, prioritas dipakai kalau ada
+    val iconRes: Int? = null,
+    val category: String = "Apps"
 )

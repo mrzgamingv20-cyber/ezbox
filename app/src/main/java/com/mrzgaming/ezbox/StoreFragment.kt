@@ -24,15 +24,20 @@ import com.google.android.material.card.MaterialCardView
 class StoreFragment : Fragment() {
 
     private val availablePackages = listOf(
-        StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", "🍷", R.color.ezos_icon_rose),
-        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", "📦", R.color.ezos_icon_blue, R.drawable.pkg_box64),
-        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", "🌐", R.color.ezos_icon_amber, R.drawable.pkg_firefox),
-        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", "🎨", R.color.ezos_icon_green, R.drawable.pkg_gimp),
-        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", "▶", R.color.ezos_icon_cyan, R.drawable.pkg_vlc),
-        StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", "📁", R.color.ezos_icon_blue)
+        StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", "🍷", R.color.ezos_icon_rose, category = "Runtime"),
+        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", "📦", R.color.ezos_icon_blue, R.drawable.pkg_box64, category = "Runtime"),
+        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", "🌐", R.color.ezos_icon_amber, R.drawable.pkg_firefox, category = "Apps"),
+        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", "🎨", R.color.ezos_icon_green, R.drawable.pkg_gimp, category = "Apps"),
+        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", "▶", R.color.ezos_icon_cyan, R.drawable.pkg_vlc, category = "Apps"),
+        StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", "📁", R.color.ezos_icon_blue, category = "Tools")
     )
 
+    private val categories = listOf("All", "Runtime", "Apps", "Tools")
+    private var selectedCategory = "All"
+
     private lateinit var prefs: SharedPreferences
+    private lateinit var itemContainer: LinearLayout
+    private lateinit var pillContainer: LinearLayout
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private fun prefKeyFor(pkg: StorePackage) = "installed_${pkg.checkBinary}"
@@ -42,11 +47,95 @@ class StoreFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         prefs = requireContext().getSharedPreferences("ezbox_store", 0)
         val view = inflater.inflate(R.layout.fragment_store, container, false)
-        val itemContainer = view.findViewById<LinearLayout>(R.id.storeItemContainer)
-        for (pkg in availablePackages) {
+        itemContainer = view.findViewById(R.id.storeItemContainer)
+        pillContainer = view.findViewById(R.id.categoryFilterContainer)
+
+        buildPills()
+        renderPackages()
+
+        return view
+    }
+
+    private fun countFor(category: String): Int {
+        return if (category == "All") availablePackages.size
+        else availablePackages.count { it.category == category }
+    }
+
+    private fun buildPills() {
+        pillContainer.removeAllViews()
+        for (category in categories) {
+            pillContainer.addView(buildPill(category))
+        }
+    }
+
+    private fun buildPill(category: String): LinearLayout {
+        val isSelected = category == selectedCategory
+        val pill = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(28, 16, 20, 16)
+            background = ContextCompat.getDrawable(
+                requireContext(),
+                if (isSelected) R.drawable.pill_selected_bg else R.drawable.pill_unselected_bg
+            )
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = 12 }
+            isClickable = true
+            isFocusable = true
+        }
+
+        val label = TextView(requireContext()).apply {
+            text = category
+            textSize = 13f
+            setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (isSelected) R.color.ezos_bg_black else R.color.ezos_text_secondary
+                )
+            )
+            if (isSelected) setTypeface(typeface, android.graphics.Typeface.BOLD)
+        }
+
+        val badge = TextView(requireContext()).apply {
+            text = countFor(category).toString()
+            textSize = 11f
+            setPadding(14, 4, 14, 4)
+            setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (isSelected) R.color.ezos_bg_black else R.color.ezos_text_secondary
+                )
+            )
+            background = ContextCompat.getDrawable(requireContext(), R.drawable.pill_badge_bg)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginStart = 8 }
+        }
+
+        pill.addView(label)
+        pill.addView(badge)
+
+        pill.setOnClickListener {
+            if (selectedCategory != category) {
+                selectedCategory = category
+                buildPills()
+                renderPackages()
+            }
+        }
+
+        return pill
+    }
+
+    private fun renderPackages() {
+        itemContainer.removeAllViews()
+        val filtered = if (selectedCategory == "All") availablePackages
+        else availablePackages.filter { it.category == selectedCategory }
+        for (pkg in filtered) {
             itemContainer.addView(buildPackageCard(pkg))
         }
-        return view
     }
 
     private fun buildPackageCard(pkg: StorePackage): MaterialCardView {
@@ -134,7 +223,6 @@ class StoreFragment : Fragment() {
         row.addView(textContainer)
         row.addView(installButton)
 
-        // Progress section - hidden by default, shown during install
         val progressSection = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
             visibility = View.GONE
@@ -218,8 +306,6 @@ class StoreFragment : Fragment() {
             }
             ContextCompat.startForegroundService(requireContext(), intent)
 
-            // Simulasi progress bertahap (Termux tidak expose progress asli lewat RUN_COMMAND,
-            // jadi progress ini estimasi durasi berbasis waktu, bukan status install nyata)
             simulateProgress(progressBar, statusText) {
                 progressSection.visibility = View.GONE
                 button.isEnabled = true

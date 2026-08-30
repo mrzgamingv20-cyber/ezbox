@@ -12,9 +12,10 @@
         android:padding="20dp">
 
         <TextView
+            android:id="@+id/tvGreeting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="EZBox"
+            android:text="Good morning"
             android:textColor="@color/ezos_text_primary"
             android:textSize="26sp"
             android:textStyle="bold" />
@@ -86,42 +87,63 @@
 
         </LinearLayout>
 
-        <!-- Resource device: RAM usage. Border hijau (bukan cyan default) supaya
-             section ini kerasa beda dari card lain, sesuai warna sukses/aman -->
+        <!-- Device Memory - sekarang pakai ring progress, bukan linear bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:background="@drawable/card_glow_bg_success"
             android:padding="16dp"
             android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Device Memory"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="11sp"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="8dp" />
+            <FrameLayout
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginEnd="16dp">
 
-            <ProgressBar
-                android:id="@+id/progressRam"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="6dp"
-                android:max="100"
-                android:progress="0"
-                android:progressTint="@color/ezos_success"
-                android:layout_marginBottom="6dp" />
+                <com.mrzgaming.ezbox.RingProgressView
+                    android:id="@+id/ringRam"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
 
-            <TextView
-                android:id="@+id/tvRamDetail"
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/tvRamPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="0%"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Calculating..."
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="11sp" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Device Memory"
+                    android:textColor="@color/ezos_text_secondary"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1" />
+
+                <TextView
+                    android:id="@+id/tvRamDetail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calculating..."
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -194,7 +216,7 @@
             android:orientation="horizontal"
             android:background="@drawable/card_glow_bg"
             android:padding="16dp"
-            android:weightSum="2">
+            android:weightSum="3">
 
             <LinearLayout
                 android:id="@+id/quickStore"
@@ -251,6 +273,36 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Terminal"
+                    android:textColor="@color/ezos_text_secondary"
+                    android:textSize="11sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/quickSettings"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:stateListAnimator="@animator/card_press_anim"
+                android:padding="8dp">
+
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="⚙"
+                    android:textSize="18sp"
+                    android:background="@drawable/badge_icon_green" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Settings"
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="11sp"
                     android:layout_marginTop="6dp" />
