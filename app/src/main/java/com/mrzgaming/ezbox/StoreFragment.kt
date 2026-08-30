@@ -22,10 +22,10 @@ class StoreFragment : Fragment() {
 
     private val availablePackages = listOf(
         StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", "🍷", R.color.ezos_icon_rose),
-        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", "📦", R.color.ezos_icon_blue),
-        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", "🌐", R.color.ezos_icon_amber),
-        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", "🎨", R.color.ezos_icon_green),
-        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", "▶", R.color.ezos_icon_cyan),
+        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", "📦", R.color.ezos_icon_blue, R.drawable.pkg_box64),
+        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", "🌐", R.color.ezos_icon_amber, R.drawable.pkg_firefox),
+        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", "🎨", R.color.ezos_icon_green, R.drawable.pkg_gimp),
+        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", "▶", R.color.ezos_icon_cyan, R.drawable.pkg_vlc),
         StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", "📁", R.color.ezos_icon_blue)
     )
 
@@ -64,16 +64,37 @@ class StoreFragment : Fragment() {
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        // Badge ikon bulat berwarna
-        val iconBadge = TextView(requireContext()).apply {
-            text = pkg.icon
-            textSize = 20f
-            gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
-                alpha = 60
+        // Badge ikon bulat: pakai logo PNG asli kalau ada (iconRes), fallback ke emoji kalau tidak
+        val iconBadge: View = if (pkg.iconRes != null) {
+            android.widget.ImageView(requireContext()).apply {
+                setImageResource(pkg.iconRes)
+                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
+                    alpha = 40
+                }
+                clipToOutline = true
+                outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: android.graphics.Outline) {
+                        outline.setOval(0, 0, view.width, view.height)
+                    }
+                }
+                val pad = 16
+                setPadding(pad, pad, pad, pad)
+            }
+        } else {
+            TextView(requireContext()).apply {
+                text = pkg.icon
+                textSize = 20f
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
+                    alpha = 60
+                }
             }
         }
 
