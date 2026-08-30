@@ -32,6 +32,7 @@ class VncActivity : AppCompatActivity() {
     private lateinit var btnStopDesktop: Button
     private lateinit var btnCtrl: ToggleButton
     private lateinit var btnAlt: ToggleButton
+    private lateinit var extraKeysBar: android.widget.HorizontalScrollView
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -78,6 +79,7 @@ class VncActivity : AppCompatActivity() {
         btnStopDesktop = findViewById(R.id.btnStopDesktop)
         btnCtrl = findViewById(R.id.btnCtrl)
         btnAlt = findViewById(R.id.btnAlt)
+        extraKeysBar = findViewById(R.id.extraKeysBar)
 
         btnStopDesktop.setOnClickListener { stopDesktop() }
 
@@ -165,9 +167,19 @@ class VncActivity : AppCompatActivity() {
 
     private fun setupKeyboardInput() {
         btnToggleKeyboard.setOnClickListener {
-            hiddenInput.requestFocus()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
+            if (extraKeysBar.visibility == View.VISIBLE) {
+                extraKeysBar.animate().alpha(0f).setDuration(150).withEndAction {
+                    extraKeysBar.visibility = View.GONE
+                }.start()
+                imm.hideSoftInputFromWindow(hiddenInput.windowToken, 0)
+            } else {
+                extraKeysBar.alpha = 0f
+                extraKeysBar.visibility = View.VISIBLE
+                extraKeysBar.animate().alpha(1f).setDuration(150).start()
+                hiddenInput.requestFocus()
+                imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
+            }
         }
         hiddenInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
