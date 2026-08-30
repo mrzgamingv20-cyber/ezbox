@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Switch
@@ -22,7 +23,6 @@ class SettingsFragment : Fragment() {
     private val mouseModes = listOf("direct", "trackpad")
     private lateinit var prefs: android.content.SharedPreferences
 
-    // Step kelipatan umum untuk resolusi layar, dan batas wajar biar tidak terlalu kecil/besar
     private val stepAmount = 20
     private val minWidth = 640
     private val maxWidth = 1920
@@ -47,9 +47,12 @@ class SettingsFragment : Fragment() {
         val switchAutoStop = view.findViewById<Switch>(R.id.switchAutoStop)
         val btnResetDesktop = view.findViewById<Button>(R.id.btnResetDesktop)
 
+        val checkViewOnly = view.findViewById<CheckBox>(R.id.checkViewOnly)
+        val checkDisableClipboard = view.findViewById<CheckBox>(R.id.checkDisableClipboard)
+        val checkLowBandwidth = view.findViewById<CheckBox>(R.id.checkLowBandwidth)
+
         spinnerMouseMode.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, mouseModes)
 
-        // Load resolusi tersimpan, format "WxH" - kalau gagal parse, fallback ke default
         val savedRes = prefs.getString("resolution", "960x540") ?: "960x540"
         val parts = savedRes.split("x")
         if (parts.size == 2) {
@@ -69,6 +72,10 @@ class SettingsFragment : Fragment() {
         }
         switchKeepAwake.isChecked = prefs.getBoolean("keep_awake", false)
         switchAutoStop.isChecked = prefs.getBoolean("auto_stop_background", true)
+
+        checkViewOnly.isChecked = prefs.getBoolean("view_only_mode", false)
+        checkDisableClipboard.isChecked = prefs.getBoolean("disable_clipboard", false)
+        checkLowBandwidth.isChecked = prefs.getBoolean("low_bandwidth_mode", false)
 
         view.findViewById<Button>(R.id.btnWidthMinus).setOnClickListener {
             currentWidth = (currentWidth - stepAmount).coerceAtLeast(minWidth)
@@ -105,6 +112,16 @@ class SettingsFragment : Fragment() {
         }
         switchAutoStop.setOnCheckedChangeListener { _, checked ->
             prefs.edit().putBoolean("auto_stop_background", checked).apply()
+        }
+
+        checkViewOnly.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean("view_only_mode", checked).apply()
+        }
+        checkDisableClipboard.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean("disable_clipboard", checked).apply()
+        }
+        checkLowBandwidth.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean("low_bandwidth_mode", checked).apply()
         }
 
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
