@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/ezos_bg_black">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="EZBox"
+        android:textColor="@color/ezos_accent"
+        android:textSize="42sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.02" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your Android desktop environment"
+        android:textColor="@color/ezos_text_secondary"
+        android:textSize="13sp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="40dp" />
+
+    <ProgressBar
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:indeterminateTint="@color/ezos_accent" />
+
+</LinearLayout>

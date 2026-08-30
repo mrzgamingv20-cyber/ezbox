@@ -190,7 +190,7 @@
                 android:layout_height="48dp"
                 android:text="Reset Desktop"
                 android:textColor="#FB7185"
-                android:background="#1AFB7185" />
+                android:background="@drawable/btn_danger_ripple" />
 
         </LinearLayout>
 
