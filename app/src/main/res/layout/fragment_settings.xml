@@ -162,7 +162,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Danger Zone"
-            android:textColor="#FB7185"
+            android:textColor="@color/ezos_icon_rose"
             android:textSize="13sp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
@@ -189,7 +189,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:text="Reset Desktop"
-                android:textColor="#FB7185"
+                android:textColor="@color/ezos_icon_rose"
                 android:background="@drawable/btn_danger_ripple" />
 
         </LinearLayout>
