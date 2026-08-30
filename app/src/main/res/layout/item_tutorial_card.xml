@@ -32,12 +32,10 @@
         android:minWidth="0dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
-        android:textColor="@color/ezos_accent"
+        android:textColor="@color/ezos_bg_black"
         android:textSize="13sp"
         android:textAllCaps="false"
-        android:textColor="@color/ezos_bg_black"
         android:textStyle="bold"
-        android:textAllCaps="false"
         android:background="@drawable/btn_tutorial_more" />
 
 </LinearLayout>
