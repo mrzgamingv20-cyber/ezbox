@@ -86,12 +86,13 @@
 
         </LinearLayout>
 
-        <!-- Resource device: RAM usage, murni info level-OS resmi (ActivityManager), tidak perlu root -->
+        <!-- Resource device: RAM usage. Border hijau (bukan cyan default) supaya
+             section ini kerasa beda dari card lain, sesuai warna sukses/aman -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/card_glow_bg_success"
             android:padding="16dp"
             android:layout_marginBottom="16dp">
 
@@ -111,7 +112,7 @@
                 android:layout_height="6dp"
                 android:max="100"
                 android:progress="0"
-                android:progressTint="@color/ezos_accent"
+                android:progressTint="@color/ezos_success"
                 android:layout_marginBottom="6dp" />
 
             <TextView
@@ -194,7 +195,6 @@
             android:background="@drawable/card_glow_bg"
             android:padding="16dp"
             android:weightSum="2">
-            <!-- child cards diberi ripple individual via kode/atribut clickable masing-masing -->
 
             <LinearLayout
                 android:id="@+id/quickStore"
@@ -206,19 +206,24 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:stateListAnimator="@animator/card_press_anim"
                 android:padding="8dp">
+
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
                     android:text="🛍"
-                    android:textSize="22sp" />
+                    android:textSize="18sp"
+                    android:background="@drawable/badge_icon_blue" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Store"
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="11sp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -231,19 +236,24 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:stateListAnimator="@animator/card_press_anim"
                 android:padding="8dp">
+
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
                     android:text="⌨"
-                    android:textSize="22sp" />
+                    android:textSize="18sp"
+                    android:background="@drawable/badge_icon_amber" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Terminal"
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="11sp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
         </LinearLayout>
