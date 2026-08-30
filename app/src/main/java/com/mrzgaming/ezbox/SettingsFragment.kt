@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
@@ -31,9 +32,14 @@ class SettingsFragment : Fragment() {
 
     private var currentWidth = 960
     private var currentHeight = 540
+    private var currentDe = "xfce"
 
     private lateinit var tvWidthValue: TextView
     private lateinit var tvHeightValue: TextView
+    private lateinit var deXfceCard: LinearLayout
+    private lateinit var deLxqtCard: LinearLayout
+    private lateinit var checkDeXfce: TextView
+    private lateinit var checkDeLxqt: TextView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
@@ -41,6 +47,11 @@ class SettingsFragment : Fragment() {
 
         tvWidthValue = view.findViewById(R.id.tvWidthValue)
         tvHeightValue = view.findViewById(R.id.tvHeightValue)
+        deXfceCard = view.findViewById(R.id.deXfceCard)
+        deLxqtCard = view.findViewById(R.id.deLxqtCard)
+        checkDeXfce = view.findViewById(R.id.checkDeXfce)
+        checkDeLxqt = view.findViewById(R.id.checkDeLxqt)
+
         val spinnerMouseMode = view.findViewById<Spinner>(R.id.spinnerMouseMode)
         val inputPassword = view.findViewById<EditText>(R.id.inputVncPassword)
         val switchKeepAwake = view.findViewById<Switch>(R.id.switchKeepAwake)
@@ -60,6 +71,9 @@ class SettingsFragment : Fragment() {
             currentHeight = parts[1].toIntOrNull() ?: 540
         }
         updateResolutionDisplay()
+
+        currentDe = prefs.getString("desktop_environment", "xfce") ?: "xfce"
+        updateDeSelection()
 
         val savedMouseMode = prefs.getString("mouse_mode", "direct") ?: "direct"
         spinnerMouseMode.setSelection(mouseModes.indexOf(savedMouseMode).coerceAtLeast(0))
@@ -98,6 +112,17 @@ class SettingsFragment : Fragment() {
             saveResolution()
         }
 
+        deXfceCard.setOnClickListener {
+            currentDe = "xfce"
+            prefs.edit().putString("desktop_environment", currentDe).apply()
+            updateDeSelection()
+        }
+        deLxqtCard.setOnClickListener {
+            currentDe = "lxqt"
+            prefs.edit().putString("desktop_environment", currentDe).apply()
+            updateDeSelection()
+        }
+
         spinnerMouseMode.setOnItemSelectedListenerCompat { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
 
         inputPassword.setOnFocusChangeListener { _, hasFocus ->
@@ -127,6 +152,17 @@ class SettingsFragment : Fragment() {
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
 
         return view
+    }
+
+    private fun updateDeSelection() {
+        val selectedBg = R.drawable.de_card_selected_bg
+        val unselectedBg = R.drawable.de_card_unselected_bg
+
+        deXfceCard.setBackgroundResource(if (currentDe == "xfce") selectedBg else unselectedBg)
+        deLxqtCard.setBackgroundResource(if (currentDe == "lxqt") selectedBg else unselectedBg)
+
+        checkDeXfce.text = if (currentDe == "xfce") "✓" else ""
+        checkDeLxqt.text = if (currentDe == "lxqt") "✓" else ""
     }
 
     private fun updateResolutionDisplay() {

@@ -208,13 +208,14 @@ class HomeFragment : Fragment() {
     private fun setupEnvironment() {
         val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
         val resolution = prefs.getString("resolution", "960x540")
+        val desktopEnvironment = prefs.getString("desktop_environment", "xfce")
         val vncPassword = prefs.getString("vnc_password", "ezbox123")
 
         debugLog("setupEnvironment start, resolution=$resolution")
         prefs.edit().putLong("desktop_launch_time", System.currentTimeMillis()).apply()
         try {
             val command = "echo running > /storage/emulated/0/Download/ezbox_backend_status.txt; " +
-                "EZBOX_RES=$resolution EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
+                "EZBOX_RES=$resolution EZBOX_DE=$desktopEnvironment EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
                 "echo idle > /storage/emulated/0/Download/ezbox_backend_status.txt"
 
             val intent = Intent().apply {
