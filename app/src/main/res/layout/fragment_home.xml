@@ -73,6 +73,55 @@
                 android:textStyle="bold"
                 android:background="@drawable/btn_primary_ripple" />
 
+            <TextView
+                android:id="@+id/tvUptime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/ezos_text_primary"
+                android:textSize="11sp"
+                android:alpha="0.75"
+                android:layout_marginTop="10dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Resource device: RAM usage, murni info level-OS resmi (ActivityManager), tidak perlu root -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_glow_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Device Memory"
+                android:textColor="@color/ezos_text_secondary"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
+
+            <ProgressBar
+                android:id="@+id/progressRam"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="@color/ezos_accent"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:id="@+id/tvRamDetail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Calculating..."
+                android:textColor="@color/ezos_text_secondary"
+                android:textSize="11sp" />
+
         </LinearLayout>
 
         <LinearLayout
