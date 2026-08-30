@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -12,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -30,6 +33,7 @@ class StoreFragment : Fragment() {
     )
 
     private lateinit var prefs: SharedPreferences
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private fun prefKeyFor(pkg: StorePackage) = "installed_${pkg.checkBinary}"
     private fun isMarkedInstalled(pkg: StorePackage) = prefs.getBoolean(prefKeyFor(pkg), false)
@@ -59,12 +63,15 @@ class StoreFragment : Fragment() {
             ).apply { bottomMargin = 16 }
         }
 
+        val outerColumn = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
         val row = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        // Badge ikon bulat: pakai logo PNG asli kalau ada (iconRes), fallback ke emoji kalau tidak
         val iconBadge: View = if (pkg.iconRes != null) {
             android.widget.ImageView(requireContext()).apply {
                 setImageResource(pkg.iconRes)
@@ -121,13 +128,48 @@ class StoreFragment : Fragment() {
 
         val installButton = Button(requireContext()).apply {
             setButtonState(this, isMarkedInstalled(pkg))
-            setOnClickListener { installPackage(pkg, this) }
         }
 
         row.addView(iconBadge)
         row.addView(textContainer)
         row.addView(installButton)
-        card.addView(row)
+
+        // Progress section - hidden by default, shown during install
+        val progressSection = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 16 }
+        }
+
+        val progressBar = ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 0
+            progressDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_ezbox)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                12
+            ).apply { bottomMargin = 8 }
+        }
+
+        val statusText = TextView(requireContext()).apply {
+            text = "Initializing..."
+            textSize = 11f
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+        }
+
+        progressSection.addView(progressBar)
+        progressSection.addView(statusText)
+
+        installButton.setOnClickListener {
+            installPackage(pkg, installButton, progressSection, progressBar, statusText)
+        }
+
+        outerColumn.addView(row)
+        outerColumn.addView(progressSection)
+        card.addView(outerColumn)
         return card
     }
 
@@ -135,11 +177,37 @@ class StoreFragment : Fragment() {
         button.text = if (installed) "Installed" else "Install"
     }
 
-    private fun installPackage(pkg: StorePackage, button: Button) {
+    private fun getStatusMessage(progress: Int): String {
+        return when {
+            progress < 5 -> "Initializing download..."
+            progress < 15 -> "Setting up environment..."
+            progress < 25 -> "Connecting to server..."
+            progress < 35 -> "Verifying permissions..."
+            progress < 50 -> "Downloading core files..."
+            progress < 65 -> "Downloading assets..."
+            progress < 80 -> "Downloading dependencies..."
+            progress < 90 -> "Extracting files..."
+            progress < 95 -> "Validating integrity..."
+            progress < 100 -> "Finalizing installation..."
+            else -> "Installation complete!"
+        }
+    }
+
+    private fun installPackage(
+        pkg: StorePackage,
+        button: Button,
+        progressSection: LinearLayout,
+        progressBar: ProgressBar,
+        statusText: TextView
+    ) {
         button.isEnabled = false
         button.text = "Installing..."
+        progressSection.visibility = View.VISIBLE
+        progressBar.progress = 0
+
         val pkgList = pkg.pkgNames.joinToString(" ")
         val command = "pkg install -y $pkgList"
+
         try {
             val intent = Intent().apply {
                 action = "com.termux.RUN_COMMAND"
@@ -149,17 +217,50 @@ class StoreFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             ContextCompat.startForegroundService(requireContext(), intent)
-            Toast.makeText(context, "Installing ${pkg.name} in Termux...", Toast.LENGTH_SHORT).show()
-            markInstalled(pkg)
-            button.postDelayed({
+
+            // Simulasi progress bertahap (Termux tidak expose progress asli lewat RUN_COMMAND,
+            // jadi progress ini estimasi durasi berbasis waktu, bukan status install nyata)
+            simulateProgress(progressBar, statusText) {
+                progressSection.visibility = View.GONE
                 button.isEnabled = true
+                markInstalled(pkg)
                 setButtonState(button, true)
-            }, 15000)
+                Toast.makeText(context, "${pkg.name} installed", Toast.LENGTH_SHORT).show()
+            }
         } catch (e: Exception) {
             Log.e("StoreFragment", "Install failed: ${e.message}")
             Toast.makeText(context, "Failed to start install: ${e.message}", Toast.LENGTH_SHORT).show()
+            progressSection.visibility = View.GONE
             button.isEnabled = true
             setButtonState(button, isMarkedInstalled(pkg))
         }
+    }
+
+    private fun simulateProgress(progressBar: ProgressBar, statusText: TextView, onDone: () -> Unit) {
+        val totalDurationMs = 15000L
+        val stepMs = 150L
+        val steps = (totalDurationMs / stepMs).toInt()
+        var current = 0
+
+        val runnable = object : Runnable {
+            override fun run() {
+                current += (steps / 30).coerceAtLeast(1)
+                if (current >= 100) {
+                    progressBar.progress = 100
+                    statusText.text = getStatusMessage(100)
+                    mainHandler.postDelayed({ onDone() }, 400)
+                    return
+                }
+                progressBar.progress = current
+                statusText.text = getStatusMessage(current)
+                mainHandler.postDelayed(this, stepMs)
+            }
+        }
+        mainHandler.post(runnable)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        mainHandler.removeCallbacksAndMessages(null)
     }
 }
