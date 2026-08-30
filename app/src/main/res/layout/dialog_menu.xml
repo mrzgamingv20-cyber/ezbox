@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/card_tutorial_bg"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/menuItemTutorial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="📘  How to Use EZBox"
+        android:textColor="@color/ezos_text_primary"
+        android:textSize="15sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
+        android:id="@+id/menuItemSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="⚙️  Settings"
+        android:textColor="@color/ezos_text_primary"
+        android:textSize="15sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
+        android:id="@+id/menuItemAbout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="ℹ️  About EZBox"
+        android:textColor="@color/ezos_text_primary"
+        android:textSize="15sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

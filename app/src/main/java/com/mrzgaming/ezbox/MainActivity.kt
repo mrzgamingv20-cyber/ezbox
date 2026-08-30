@@ -1,5 +1,6 @@
 package com.mrzgaming.ezbox
 
+import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,6 +9,11 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.app.AlertDialog
+import android.view.Gravity
+import android.view.ViewGroup
+import android.view.Window
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,6 +23,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavRef: BottomNavigationView
+    private lateinit var btnHamburger: ImageButton
+    private var menuOpen = false
 
     fun navigateTo(itemId: Int) {
         bottomNavRef.selectedItemId = itemId
@@ -53,6 +61,69 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, HomeFragment()).commit()
         }
+
+        btnHamburger = findViewById(R.id.btnHamburger)
+        btnHamburger.setOnClickListener { showMenuDialog() }
+    }
+
+    private fun showMenuDialog() {
+        // Animasi burger -> X sesaat sebelum dialog muncul
+        btnHamburger.animate()
+            .rotation(90f)
+            .setDuration(180)
+            .withEndAction {
+                btnHamburger.setImageResource(R.drawable.ic_close)
+            }
+            .start()
+
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_menu)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.82).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        dialog.window?.setGravity(Gravity.TOP or Gravity.END)
+        dialog.window?.setWindowAnimations(android.R.style.Animation_Dialog)
+        dialog.window?.attributes = dialog.window?.attributes?.apply {
+            y = 90
+            x = 16
+        }
+
+        dialog.findViewById<TextView>(R.id.menuItemTutorial).setOnClickListener {
+            dialog.dismiss()
+            supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                .replace(R.id.fragmentContainer, TutorialFragment())
+                .commit()
+        }
+
+        dialog.findViewById<TextView>(R.id.menuItemSettings).setOnClickListener {
+            dialog.dismiss()
+            navigateTo(R.id.nav_settings)
+        }
+
+        dialog.findViewById<TextView>(R.id.menuItemAbout).setOnClickListener {
+            dialog.dismiss()
+            AlertDialog.Builder(this)
+                .setTitle("About EZBox")
+                .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\nVersion 1.0")
+                .setPositiveButton("OK", null)
+                .show()
+        }
+
+        dialog.setOnDismissListener {
+            btnHamburger.animate()
+                .rotation(0f)
+                .setDuration(180)
+                .withEndAction {
+                    btnHamburger.setImageResource(R.drawable.ic_hamburger)
+                }
+                .start()
+        }
+
+        dialog.show()
     }
 
     private fun requestTermuxPermissionIfNeeded() {
@@ -74,13 +145,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * MANAGE_EXTERNAL_STORAGE (All Files Access) adalah "special permission" di Android 11+
-     * yang TIDAK bisa diminta lewat ActivityCompat.requestPermissions biasa — harus lewat
-     * halaman Settings khusus. Tanpa ini, membaca file di /storage/emulated/0/Download/
-     * (dipakai CrashHandler dan debug log) akan gagal dengan EACCES walau sudah dideklarasikan
-     * di manifest.
-     */
     private fun requestAllFilesAccessIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
