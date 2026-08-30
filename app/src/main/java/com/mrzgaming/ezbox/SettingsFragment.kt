@@ -13,38 +13,54 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Switch
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 
 class SettingsFragment : Fragment() {
 
-    private val resolutions = listOf("800x480", "960x540", "1280x720", "1600x900")
     private val mouseModes = listOf("direct", "trackpad")
     private lateinit var prefs: android.content.SharedPreferences
+
+    // Step kelipatan umum untuk resolusi layar, dan batas wajar biar tidak terlalu kecil/besar
+    private val stepAmount = 20
+    private val minWidth = 640
+    private val maxWidth = 1920
+    private val minHeight = 360
+    private val maxHeight = 1080
+
+    private var currentWidth = 960
+    private var currentHeight = 540
+
+    private lateinit var tvWidthValue: TextView
+    private lateinit var tvHeightValue: TextView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
         prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
 
-        val spinnerResolution = view.findViewById<Spinner>(R.id.spinnerResolution)
+        tvWidthValue = view.findViewById(R.id.tvWidthValue)
+        tvHeightValue = view.findViewById(R.id.tvHeightValue)
         val spinnerMouseMode = view.findViewById<Spinner>(R.id.spinnerMouseMode)
         val inputPassword = view.findViewById<EditText>(R.id.inputVncPassword)
         val switchKeepAwake = view.findViewById<Switch>(R.id.switchKeepAwake)
         val switchAutoStop = view.findViewById<Switch>(R.id.switchAutoStop)
         val btnResetDesktop = view.findViewById<Button>(R.id.btnResetDesktop)
 
-        spinnerResolution.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, resolutions)
         spinnerMouseMode.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, mouseModes)
 
-        // Load nilai tersimpan
+        // Load resolusi tersimpan, format "WxH" - kalau gagal parse, fallback ke default
         val savedRes = prefs.getString("resolution", "960x540") ?: "960x540"
-        spinnerResolution.setSelection(resolutions.indexOf(savedRes).coerceAtLeast(0))
+        val parts = savedRes.split("x")
+        if (parts.size == 2) {
+            currentWidth = parts[0].toIntOrNull() ?: 960
+            currentHeight = parts[1].toIntOrNull() ?: 540
+        }
+        updateResolutionDisplay()
 
         val savedMouseMode = prefs.getString("mouse_mode", "direct") ?: "direct"
         spinnerMouseMode.setSelection(mouseModes.indexOf(savedMouseMode).coerceAtLeast(0))
 
-        // Tampilkan sebagai HINT (placeholder abu-abu), bukan teks ter-isi - supaya jelas
-        // ini cuma default, bukan seolah-olah user sudah pernah mengatur password sendiri
         val savedPassword = prefs.getString("vnc_password", null)
         if (savedPassword != null) {
             inputPassword.setText(savedPassword)
@@ -54,8 +70,27 @@ class SettingsFragment : Fragment() {
         switchKeepAwake.isChecked = prefs.getBoolean("keep_awake", false)
         switchAutoStop.isChecked = prefs.getBoolean("auto_stop_background", true)
 
-        // Simpan otomatis tiap ada perubahan
-        spinnerResolution.setOnItemSelectedListenerCompat { prefs.edit().putString("resolution", resolutions[it]).apply() }
+        view.findViewById<Button>(R.id.btnWidthMinus).setOnClickListener {
+            currentWidth = (currentWidth - stepAmount).coerceAtLeast(minWidth)
+            updateResolutionDisplay()
+            saveResolution()
+        }
+        view.findViewById<Button>(R.id.btnWidthPlus).setOnClickListener {
+            currentWidth = (currentWidth + stepAmount).coerceAtMost(maxWidth)
+            updateResolutionDisplay()
+            saveResolution()
+        }
+        view.findViewById<Button>(R.id.btnHeightMinus).setOnClickListener {
+            currentHeight = (currentHeight - stepAmount).coerceAtLeast(minHeight)
+            updateResolutionDisplay()
+            saveResolution()
+        }
+        view.findViewById<Button>(R.id.btnHeightPlus).setOnClickListener {
+            currentHeight = (currentHeight + stepAmount).coerceAtMost(maxHeight)
+            updateResolutionDisplay()
+            saveResolution()
+        }
+
         spinnerMouseMode.setOnItemSelectedListenerCompat { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
 
         inputPassword.setOnFocusChangeListener { _, hasFocus ->
@@ -75,6 +110,15 @@ class SettingsFragment : Fragment() {
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
 
         return view
+    }
+
+    private fun updateResolutionDisplay() {
+        tvWidthValue.text = currentWidth.toString()
+        tvHeightValue.text = currentHeight.toString()
+    }
+
+    private fun saveResolution() {
+        prefs.edit().putString("resolution", "${currentWidth}x${currentHeight}").apply()
     }
 
     private fun confirmResetDesktop() {
@@ -104,7 +148,6 @@ class SettingsFragment : Fragment() {
     }
 }
 
-// Helper kecil supaya listener Spinner lebih ringkas dibanding AdapterView.OnItemSelectedListener penuh
 private fun Spinner.setOnItemSelectedListenerCompat(onSelected: (Int) -> Unit) {
     this.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
         override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {

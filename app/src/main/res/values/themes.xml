@@ -10,10 +10,8 @@
     </style>
 
     <style name="EZBox.BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="android:background">@color/ezos_card_bg</item>
         <item name="itemIconTint">@color/nav_icon_tint</item>
         <item name="itemTextColor">@color/nav_icon_tint</item>
         <item name="itemRippleColor">@color/ezos_accent</item>
-        <item name="elevation">0dp</item>
     </style>
 </resources>
