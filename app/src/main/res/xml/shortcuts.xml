@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="launch_desktop"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_home"
+        android:shortcutShortLabel="@string/shortcut_launch_short"
+        android:shortcutLongLabel="@string/shortcut_launch_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.mrzgaming.ezbox"
+            android:targetClass="com.mrzgaming.ezbox.MainActivity">
+            <extra android:name="shortcut_action" android:value="launch_desktop" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="open_store"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_store"
+        android:shortcutShortLabel="@string/shortcut_store_short"
+        android:shortcutLongLabel="@string/shortcut_store_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.mrzgaming.ezbox"
+            android:targetClass="com.mrzgaming.ezbox.MainActivity">
+            <extra android:name="shortcut_action" android:value="open_store" />
+        </intent>
+    </shortcut>
+
+</shortcuts>

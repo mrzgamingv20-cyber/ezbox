@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -41,6 +42,11 @@ class VncActivity : AppCompatActivity() {
     private var lastTrackpadY = 0f
     private var virtualCursorX = 0
     private var virtualCursorY = 0
+
+    // Advanced VNC preferences, dibaca sekali saat onCreate dari SettingsFragment
+    private var viewOnlyMode = false
+    private var disableClipboard = false
+    private var lowBandwidthMode = false
 
     private val KEY_CTRL_L = 0xFFE3
     private val KEY_ALT_L = 0xFFE9
@@ -72,6 +78,11 @@ class VncActivity : AppCompatActivity() {
         if (prefs.getBoolean("keep_awake", false)) {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+
+        viewOnlyMode = prefs.getBoolean("view_only_mode", false)
+        disableClipboard = prefs.getBoolean("disable_clipboard", false)
+        lowBandwidthMode = prefs.getBoolean("low_bandwidth_mode", false)
+
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
         hiddenInput = findViewById(R.id.hiddenInput)
@@ -88,7 +99,24 @@ class VncActivity : AppCompatActivity() {
         setupExtraKeys()
         setupClipboardAndScreenshot()
         startPointerSender()
-        vncScreen.setOnTouchListener { _, event -> handleTouch(event); true }
+        applyViewOnlyMode()
+
+        vncScreen.setOnTouchListener { _, event ->
+            if (!viewOnlyMode) handleTouch(event)
+            true
+        }
+    }
+
+    /**
+     * View-only mode: tidak ada input yang boleh dikirim ke desktop sama sekali.
+     * Sembunyikan total tombol keyboard dan toolbar extra keys, supaya tidak ada
+     * cara bagi user untuk mencoba mengirim input yang toh akan diabaikan.
+     */
+    private fun applyViewOnlyMode() {
+        if (viewOnlyMode) {
+            btnToggleKeyboard.visibility = View.GONE
+            extraKeysBar.visibility = View.GONE
+        }
     }
 
     private fun stopDesktop() {
@@ -130,11 +158,17 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun setupClipboardAndScreenshot() {
-        findViewById<Button>(R.id.btnClipboard).setOnClickListener { sendAndroidClipboardToDesktop() }
+        val btnClipboard = findViewById<Button>(R.id.btnClipboard)
+        if (disableClipboard) {
+            btnClipboard.visibility = View.GONE
+        } else {
+            btnClipboard.setOnClickListener { sendAndroidClipboardToDesktop() }
+        }
         findViewById<Button>(R.id.btnScreenshot).setOnClickListener { saveScreenshot() }
     }
 
     private fun sendAndroidClipboardToDesktop() {
+        if (disableClipboard) return
         val client = rfbClient ?: return
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
         val clip = clipboard.primaryClip ?: return
@@ -166,6 +200,8 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun setupKeyboardInput() {
+        if (viewOnlyMode) return
+
         btnToggleKeyboard.setOnClickListener {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             if (extraKeysBar.visibility == View.VISIBLE) {
@@ -209,6 +245,7 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun sendModifiedChar(c: Char) {
+        if (viewOnlyMode) return
         val client = rfbClient ?: return
         val ctrlOn = btnCtrl.isChecked
         val altOn = btnAlt.isChecked
@@ -229,6 +266,7 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun sendKeysym(keysym: Int) {
+        if (viewOnlyMode) return
         val client = rfbClient ?: return
         scope.launch {
             try { withContext(Dispatchers.IO) { client.sendKeyEvent(keysym, true); client.sendKeyEvent(keysym, false) } }
@@ -253,11 +291,18 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Low bandwidth mode: tambahkan jeda antar permintaan framebuffer update,
+     * jadi request ke server lebih jarang (hemat data), bukan cuma skip render lokal.
+     * Normal: tanpa jeda (secepat mungkin). Low bandwidth: ~10fps (100ms jeda).
+     */
     private suspend fun renderLoop(client: RfbClient) {
+        val frameDelayMs = if (lowBandwidthMode) 100L else 0L
         while (running) {
             try {
                 val updated = withContext(Dispatchers.IO) { client.requestFramebufferUpdate(true); client.readServerMessage() }
                 if (updated) vncScreen.setImageBitmap(client.bitmap)
+                if (frameDelayMs > 0) delay(frameDelayMs)
             } catch (e: Exception) {
                 running = false
                 vncStatus.text = "Connection lost.\nTap back and try again."

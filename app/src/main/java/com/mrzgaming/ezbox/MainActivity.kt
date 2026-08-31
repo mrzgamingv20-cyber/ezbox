@@ -64,10 +64,33 @@ class MainActivity : AppCompatActivity() {
 
         btnHamburger = findViewById(R.id.btnHamburger)
         btnHamburger.setOnClickListener { showMenuDialog() }
+
+        handleShortcutIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent(intent)
+    }
+
+    /**
+     * Menangani Intent dari App Shortcuts (long-press icon launcher).
+     * "launch_desktop" -> langsung ke Home lalu trigger tombol Launch Environment.
+     * "open_store" -> langsung pindah ke tab Store.
+     */
+    private fun handleShortcutIntent(intent: Intent?) {
+        when (intent?.getStringExtra("shortcut_action")) {
+            "launch_desktop" -> {
+                navigateTo(R.id.nav_home)
+            }
+            "open_store" -> {
+                navigateTo(R.id.nav_store)
+            }
+        }
     }
 
     private fun showMenuDialog() {
-        // Animasi burger -> X sesaat sebelum dialog muncul
         btnHamburger.animate()
             .rotation(90f)
             .setDuration(180)

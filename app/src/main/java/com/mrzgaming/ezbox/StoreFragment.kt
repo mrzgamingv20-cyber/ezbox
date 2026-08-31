@@ -7,12 +7,15 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -34,10 +37,12 @@ class StoreFragment : Fragment() {
 
     private val categories = listOf("All", "Runtime", "Apps", "Tools")
     private var selectedCategory = "All"
+    private var searchQuery = ""
 
     private lateinit var prefs: SharedPreferences
     private lateinit var itemContainer: LinearLayout
     private lateinit var pillContainer: LinearLayout
+    private lateinit var tvNoResults: TextView
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private fun prefKeyFor(pkg: StorePackage) = "installed_${pkg.checkBinary}"
@@ -49,6 +54,17 @@ class StoreFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_store, container, false)
         itemContainer = view.findViewById(R.id.storeItemContainer)
         pillContainer = view.findViewById(R.id.categoryFilterContainer)
+        tvNoResults = view.findViewById(R.id.tvNoResults)
+
+        val inputSearch = view.findViewById<EditText>(R.id.inputSearchStore)
+        inputSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchQuery = s?.toString()?.trim() ?: ""
+                renderPackages()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
 
         buildPills()
         renderPackages()
@@ -131,10 +147,24 @@ class StoreFragment : Fragment() {
 
     private fun renderPackages() {
         itemContainer.removeAllViews()
-        val filtered = if (selectedCategory == "All") availablePackages
+
+        var filtered = if (selectedCategory == "All") availablePackages
         else availablePackages.filter { it.category == selectedCategory }
-        for (pkg in filtered) {
-            itemContainer.addView(buildPackageCard(pkg))
+
+        if (searchQuery.isNotBlank()) {
+            filtered = filtered.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                it.description.contains(searchQuery, ignoreCase = true)
+            }
+        }
+
+        if (filtered.isEmpty()) {
+            tvNoResults.visibility = View.VISIBLE
+        } else {
+            tvNoResults.visibility = View.GONE
+            for (pkg in filtered) {
+                itemContainer.addView(buildPackageCard(pkg))
+            }
         }
     }
 
