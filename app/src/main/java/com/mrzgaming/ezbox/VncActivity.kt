@@ -28,6 +28,9 @@ import kotlinx.coroutines.withContext
 class VncActivity : AppCompatActivity() {
     private lateinit var vncScreen: ImageView
     private lateinit var vncStatus: TextView
+    private lateinit var vncStatusIcon: TextView
+    private lateinit var vncStatusSpinner: android.widget.ProgressBar
+    private lateinit var btnRetryConnection: Button
     private lateinit var hiddenInput: EditText
     private lateinit var btnToggleKeyboard: Button
     private lateinit var btnStopDesktop: Button
@@ -86,6 +89,13 @@ class VncActivity : AppCompatActivity() {
 
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
+        vncStatusIcon = findViewById(R.id.vncStatusIcon)
+        vncStatusSpinner = findViewById(R.id.vncStatusSpinner)
+        btnRetryConnection = findViewById(R.id.btnRetryConnection)
+        btnRetryConnection.setOnClickListener {
+            showLoadingState("Reconnecting to EZOS desktop...")
+            connectAndRender()
+        }
         hiddenInput = findViewById(R.id.hiddenInput)
         btnToggleKeyboard = findViewById(R.id.btnToggleKeyboard)
         btnStopDesktop = findViewById(R.id.btnStopDesktop)
@@ -292,18 +302,40 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
+    private fun showLoadingState(message: String) {
+        vncStatusSpinner.visibility = View.VISIBLE
+        vncStatusIcon.visibility = View.GONE
+        btnRetryConnection.visibility = View.GONE
+        vncStatus.text = message
+        vncStatus.visibility = View.VISIBLE
+        findViewById<View>(R.id.vncStatusCard).visibility = View.VISIBLE
+    }
+
+    private fun showErrorState(message: String) {
+        vncStatusSpinner.visibility = View.GONE
+        vncStatusIcon.visibility = View.VISIBLE
+        vncStatusIcon.text = "⚠"
+        btnRetryConnection.visibility = View.VISIBLE
+        vncStatus.text = message
+        findViewById<View>(R.id.vncStatusCard).visibility = View.VISIBLE
+    }
+
+    private fun hideStatusCard() {
+        findViewById<View>(R.id.vncStatusCard).visibility = View.GONE
+    }
+
     private fun connectAndRender() {
         val port = intent.getIntExtra("vnc_port", 5901)
         val password = intent.getStringExtra("vnc_password") ?: "ezbox123"
         scope.launch {
-            vncStatus.text = "Connecting to EZOS desktop..."
+            showLoadingState("Connecting to EZOS desktop...")
             val client = RfbClient("127.0.0.1", port, password)
             val connected = try { withContext(Dispatchers.IO) { client.connect() } } catch (e: Exception) { false }
-            if (!connected) { vncStatus.text = "Failed to connect.\nMake sure the environment is running."; return@launch }
+            if (!connected) { showErrorState("Failed to connect.\nMake sure the environment is running."); return@launch }
             rfbClient = client
             virtualCursorX = client.width / 2
             virtualCursorY = client.height / 2
-            vncStatus.text = ""
+            hideStatusCard()
             running = true
             renderLoop(client)
         }
@@ -323,7 +355,7 @@ class VncActivity : AppCompatActivity() {
                 if (frameDelayMs > 0) delay(frameDelayMs)
             } catch (e: Exception) {
                 running = false
-                vncStatus.text = "Connection lost.\nTap back and try again."
+                showErrorState("Connection lost.\nTap retry to reconnect.")
                 client.close()
                 return
             }
