@@ -33,6 +33,9 @@
 
 ---
 
+🚨 The next update is a major update, so it will take a bit longer.
+
+
 ## ✨ Features
 
 - Persistent XFCE4 Linux desktop (auto-resumes from the last session)
