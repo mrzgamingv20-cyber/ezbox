@@ -34,6 +34,7 @@ class VncActivity : AppCompatActivity() {
     private lateinit var btnCtrl: ToggleButton
     private lateinit var btnAlt: ToggleButton
     private lateinit var extraKeysBar: android.widget.HorizontalScrollView
+    private lateinit var btnExpandKeys: Button
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -91,8 +92,10 @@ class VncActivity : AppCompatActivity() {
         btnCtrl = findViewById(R.id.btnCtrl)
         btnAlt = findViewById(R.id.btnAlt)
         extraKeysBar = findViewById(R.id.extraKeysBar)
+        btnExpandKeys = findViewById(R.id.btnExpandKeys)
 
         btnStopDesktop.setOnClickListener { stopDesktop() }
+        btnExpandKeys.setOnClickListener { toggleExtraKeysBar() }
 
         connectAndRender()
         setupKeyboardInput()
@@ -115,7 +118,22 @@ class VncActivity : AppCompatActivity() {
     private fun applyViewOnlyMode() {
         if (viewOnlyMode) {
             btnToggleKeyboard.visibility = View.GONE
+            btnExpandKeys.visibility = View.GONE
             extraKeysBar.visibility = View.GONE
+        }
+    }
+
+    // Toggle toolbar SAJA, tanpa membuka soft keyboard - dipisah dari btnToggleKeyboard
+    // supaya user bisa akses Ctrl/Alt/Esc/dll tanpa harus buka keyboard sekaligus
+    private fun toggleExtraKeysBar() {
+        if (extraKeysBar.visibility == View.VISIBLE) {
+            extraKeysBar.animate().alpha(0f).setDuration(150).withEndAction {
+                extraKeysBar.visibility = View.GONE
+            }.start()
+        } else {
+            extraKeysBar.alpha = 0f
+            extraKeysBar.visibility = View.VISIBLE
+            extraKeysBar.animate().alpha(1f).setDuration(150).start()
         }
     }
 
