@@ -368,32 +368,43 @@ class HomeFragment : Fragment() {
         launchWaitRunnable = object : Runnable {
             override fun run() {
                 if (!isAdded) return
-
                 val elapsed = System.currentTimeMillis() - startTime
-                val ready = try {
-                    statusFile.exists() && statusFile.readText().trim() == "running"
-                } catch (e: Exception) { false }
 
-                if (ready) {
-                    debugLog("Backend ready after ${elapsed}ms")
-                    isWaitingForLaunch = false
-                    isDesktopRunning = true
-                    setStatus("Ready to launch", false)
-                    btnSetup?.text = "Open Desktop"
-                    checkBackendStatus()
-                    val vncIntent = Intent(requireContext(), VncActivity::class.java)
-                    vncIntent.putExtra("vnc_password", vncPassword)
-                    startActivity(vncIntent)
-                } else if (elapsed >= timeoutMs) {
-                    debugLog("Backend wait timeout after ${elapsed}ms")
-                    isWaitingForLaunch = false
-                    setStatus("Taking longer than usual. Try opening the desktop manually.", false)
-                } else {
-                    launchWaitHandler.postDelayed(this, 500)
-                }
+                // Socket check butuh I/O, jalankan di background thread supaya tidak ANR
+                Thread {
+                    val ready = try {
+                        val socket = java.net.Socket()
+                        socket.connect(java.net.InetSocketAddress("127.0.0.1", 5901), 300)
+                        socket.close()
+                        true
+                    } catch (e: Exception) { false }
+
+                    launchWaitHandler.post { onBackendCheckResult(ready, elapsed, vncPassword) }
+                }.start()
             }
         }
         launchWaitHandler.post(launchWaitRunnable!!)
+    }
+
+    private fun onBackendCheckResult(ready: Boolean, elapsed: Long, vncPassword: String?) {
+        if (!isAdded) return
+        if (ready) {
+            debugLog("Backend ready after ${elapsed}ms")
+            isWaitingForLaunch = false
+            isDesktopRunning = true
+            setStatus("Ready to launch", false)
+            btnSetup?.text = "Open Desktop"
+            checkBackendStatus()
+            val vncIntent = Intent(requireContext(), VncActivity::class.java)
+            vncIntent.putExtra("vnc_password", vncPassword)
+            startActivity(vncIntent)
+        } else if (elapsed >= 20000L) {
+            debugLog("Backend wait timeout after ${elapsed}ms")
+            isWaitingForLaunch = false
+            setStatus("Taking longer than usual. Try opening the desktop manually.", false)
+        } else {
+            launchWaitHandler.postDelayed(launchWaitRunnable!!, 500)
+        }
     }
 
     override fun onDestroyView() {
