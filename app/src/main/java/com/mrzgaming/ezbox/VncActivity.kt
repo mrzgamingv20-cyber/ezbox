@@ -38,6 +38,8 @@ class VncActivity : AppCompatActivity() {
     private lateinit var btnAlt: ToggleButton
     private lateinit var extraKeysBar: android.widget.HorizontalScrollView
     private lateinit var btnExpandKeys: Button
+    private lateinit var typingPreviewBar: TextView
+    private var typedBuffer = StringBuilder()
     private var rfbClient: RfbClient? = null
     private var running = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -103,6 +105,7 @@ class VncActivity : AppCompatActivity() {
         btnAlt = findViewById(R.id.btnAlt)
         extraKeysBar = findViewById(R.id.extraKeysBar)
         btnExpandKeys = findViewById(R.id.btnExpandKeys)
+        typingPreviewBar = findViewById(R.id.typingPreviewBar)
 
         btnStopDesktop.setOnClickListener { stopDesktop() }
         btnExpandKeys.setOnClickListener { toggleExtraKeysBar() }
@@ -237,10 +240,14 @@ class VncActivity : AppCompatActivity() {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             if (keyboardShown) {
                 imm.hideSoftInputFromWindow(hiddenInput.windowToken, 0)
+                typingPreviewBar.visibility = View.GONE
                 keyboardShown = false
             } else {
                 hiddenInput.requestFocus()
                 imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
+                typedBuffer.clear()
+                typingPreviewBar.text = ""
+                typingPreviewBar.visibility = View.VISIBLE
                 keyboardShown = true
             }
         }
@@ -249,7 +256,17 @@ class VncActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (count > 0 && s != null) {
                     val newChars = s.subSequence(start, start + count)
-                    for (c in newChars) { if (c == '\n') sendKeysym(0xFF0D) else sendModifiedChar(c) }
+                    for (c in newChars) {
+                        if (c == '\n') {
+                            sendKeysym(0xFF0D)
+                            typedBuffer.clear()
+                        } else {
+                            sendModifiedChar(c)
+                            typedBuffer.append(c)
+                            if (typedBuffer.length > 60) typedBuffer.delete(0, typedBuffer.length - 60)
+                        }
+                    }
+                    typingPreviewBar.text = typedBuffer.toString()
                 }
             }
             override fun afterTextChanged(s: Editable?) { if (!s.isNullOrEmpty()) s.clear() }
@@ -257,8 +274,13 @@ class VncActivity : AppCompatActivity() {
         hiddenInput.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
                 when (keyCode) {
-                    KeyEvent.KEYCODE_DEL -> { sendKeysym(0xFF08); true }
-                    KeyEvent.KEYCODE_ENTER -> { sendKeysym(0xFF0D); true }
+                    KeyEvent.KEYCODE_DEL -> {
+                        sendKeysym(0xFF08)
+                        if (typedBuffer.isNotEmpty()) typedBuffer.deleteCharAt(typedBuffer.length - 1)
+                        typingPreviewBar.text = typedBuffer.toString()
+                        true
+                    }
+                    KeyEvent.KEYCODE_ENTER -> { sendKeysym(0xFF0D); typedBuffer.clear(); typingPreviewBar.text = ""; true }
                     else -> false
                 }
             } else false
