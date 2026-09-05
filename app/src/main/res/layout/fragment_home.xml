@@ -17,33 +17,53 @@
             android:layout_height="wrap_content"
             android:text="Good morning"
             android:textColor="@color/ezos_text_primary"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Your Android desktop environment"
             android:textColor="@color/ezos_text_secondary"
-            android:textSize="13sp"
-            android:layout_marginBottom="20dp" />
+            android:textSize="14sp"
+            android:layout_marginBottom="24dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/card_accent_bg"
-            android:padding="20dp"
+            android:padding="24dp"
             android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="EZOS DESKTOP"
-                android:textColor="@color/ezos_text_primary"
-                android:textSize="12sp"
-                android:letterSpacing="0.1"
-                android:alpha="0.8" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="EZOS DESKTOP"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:alpha="0.8" />
+
+                <TextView
+                    android:id="@+id/tvUptime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/ezos_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvStatus"
@@ -51,19 +71,20 @@
                 android:layout_height="wrap_content"
                 android:text="Ready to launch"
                 android:textColor="@color/ezos_text_primary"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginTop="8dp" />
 
             <TextView
                 android:id="@+id/tvActiveConfig"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="960×540 · XFCE4"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="@color/ezos_accent"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp" />
 
             <ProgressBar
                 android:id="@+id/progressLaunch"
@@ -72,64 +93,53 @@
                 android:layout_height="wrap_content"
                 android:indeterminate="true"
                 android:visibility="gone"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="16dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
 
                 <Button
                     android:id="@+id/btnSetup"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="56dp"
                     android:layout_weight="1"
                     android:text="Launch Environment"
                     android:textColor="@color/ezos_text_primary"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textAllCaps="false"
                     android:background="@drawable/btn_primary_ripple" />
 
                 <ImageButton
                     android:id="@+id/btnQuickSettings"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    android:layout_marginStart="10dp"
-                    android:padding="14dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="12dp"
+                    android:padding="16dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_settings_gear"
                     android:background="@drawable/stepper_btn_bg" />
 
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvUptime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textColor="@color/ezos_text_primary"
-                android:textSize="11sp"
-                android:alpha="0.75"
-                android:layout_marginTop="10dp"
-                android:visibility="gone" />
-
         </LinearLayout>
 
-        <!-- Device Memory - sekarang pakai ring progress, bukan linear bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/card_glow_bg_success"
-            android:padding="16dp"
+            android:padding="20dp"
             android:layout_marginBottom="16dp">
 
             <FrameLayout
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_marginEnd="16dp">
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginEnd="20dp">
 
                 <com.mrzgaming.ezbox.RingProgressView
                     android:id="@+id/ringRam"
@@ -145,7 +155,6 @@
                     android:textColor="@color/ezos_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
-
             </FrameLayout>
 
             <LinearLayout
@@ -159,7 +168,7 @@
                     android:layout_height="wrap_content"
                     android:text="Device Memory"
                     android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.1" />
 
                 <TextView
@@ -168,12 +177,10 @@
                     android:layout_height="wrap_content"
                     android:text="Calculating..."
                     android:textColor="@color/ezos_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:layout_marginTop="4dp" />
-
             </LinearLayout>
-
         </LinearLayout>
 
         <LinearLayout
@@ -183,18 +190,18 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/card_glow_bg_ripple"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp"
+            android:padding="20dp"
+            android:layout_marginBottom="24dp"
             android:clickable="true"
             android:focusable="true"
             android:stateListAnimator="@animator/card_press_anim">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🖥"
-                android:textSize="22sp"
-                android:layout_marginEnd="12dp" />
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_desktop_monitor"
+                app:tint="@color/ezos_accent"
+                android:layout_marginEnd="16dp" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -207,7 +214,7 @@
                     android:layout_height="wrap_content"
                     android:text="Backend Status"
                     android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.1" />
 
                 <TextView
@@ -218,16 +225,18 @@
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Open →"
-                android:textColor="@color/ezos_accent"
-                android:textSize="13sp" />
-
+                android:text="Open"
+                android:textColor="@color/ezos_bg_black"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:background="@drawable/btn_primary_ripple" />
         </LinearLayout>
 
         <TextView
@@ -235,9 +244,9 @@
             android:layout_height="wrap_content"
             android:text="Quick Actions"
             android:textColor="@color/ezos_text_primary"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="12dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -260,12 +269,12 @@
                 android:stateListAnimator="@animator/card_press_anim"
                 android:padding="8dp">
 
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="🛍"
-                    android:textSize="18sp"
+                <ImageView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_store_bag"
+                    app:tint="@color/ezos_text_primary"
                     android:background="@drawable/badge_icon_blue" />
 
                 <TextView
@@ -273,8 +282,8 @@
                     android:layout_height="wrap_content"
                     android:text="Store"
                     android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -290,12 +299,12 @@
                 android:stateListAnimator="@animator/card_press_anim"
                 android:padding="8dp">
 
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="⌨"
-                    android:textSize="18sp"
+                <ImageView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_terminal_cli"
+                    app:tint="@color/ezos_text_primary"
                     android:background="@drawable/badge_icon_amber" />
 
                 <TextView
@@ -303,8 +312,8 @@
                     android:layout_height="wrap_content"
                     android:text="Terminal"
                     android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -321,10 +330,9 @@
                 android:padding="8dp">
 
                 <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:padding="10dp"
-                    android:scaleType="fitCenter"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:padding="12dp"
                     android:src="@drawable/ic_settings_gear"
                     android:background="@drawable/badge_icon_green" />
 
@@ -333,11 +341,9 @@
                     android:layout_height="wrap_content"
                     android:text="Settings"
                     android:textColor="@color/ezos_text_secondary"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
-
         </LinearLayout>
-
     </LinearLayout>
 </ScrollView>
