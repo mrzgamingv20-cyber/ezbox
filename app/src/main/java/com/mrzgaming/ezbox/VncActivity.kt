@@ -137,16 +137,33 @@ class VncActivity : AppCompatActivity() {
     }
 
     // Toggle toolbar SAJA, tanpa membuka soft keyboard - dipisah dari btnToggleKeyboard
-    // supaya user bisa akses Ctrl/Alt/Esc/dll tanpa harus buka keyboard sekaligus
+    // supaya user bisa akses Ctrl/Alt/Esc/dll tanpa harus buka keyboard sekaligus.
+    // Saat toolbar muncul, vncScreen digeser (bottomMargin) sejumlah tinggi toolbar,
+    // supaya area kerja desktop tidak ketutup melainkan "menyusut" secara sengaja.
     private fun toggleExtraKeysBar() {
+        val params = vncScreen.layoutParams as android.widget.FrameLayout.LayoutParams
         if (extraKeysBar.visibility == View.VISIBLE) {
             extraKeysBar.animate().alpha(0f).setDuration(150).withEndAction {
                 extraKeysBar.visibility = View.GONE
             }.start()
+            animateVncScreenMargin(params, params.bottomMargin, 0)
         } else {
             extraKeysBar.alpha = 0f
             extraKeysBar.visibility = View.VISIBLE
             extraKeysBar.animate().alpha(1f).setDuration(150).start()
+            val toolbarHeightPx = (44 * resources.displayMetrics.density).toInt()
+            animateVncScreenMargin(params, params.bottomMargin, toolbarHeightPx)
+        }
+    }
+
+    private fun animateVncScreenMargin(params: android.widget.FrameLayout.LayoutParams, from: Int, to: Int) {
+        android.animation.ValueAnimator.ofInt(from, to).apply {
+            duration = 150
+            addUpdateListener {
+                params.bottomMargin = it.animatedValue as Int
+                vncScreen.layoutParams = params
+            }
+            start()
         }
     }
 
