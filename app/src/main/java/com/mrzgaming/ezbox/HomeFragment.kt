@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.ImageButton
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -31,7 +32,7 @@ class HomeFragment : Fragment() {
     private var tvStatus: TextView? = null
     private var progressLaunch: ProgressBar? = null
     private var btnSetup: Button? = null
-    private var btnQuickSettings: Button? = null
+    private var btnQuickSettings: ImageButton? = null
     private var tvBackendStatus: TextView? = null
     private var tvUptime: TextView? = null
     private var tvActiveConfig: TextView? = null
