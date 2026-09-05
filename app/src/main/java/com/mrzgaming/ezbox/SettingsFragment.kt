@@ -40,6 +40,12 @@ class SettingsFragment : Fragment() {
     private lateinit var deLxqtCard: LinearLayout
     private lateinit var checkDeXfce: TextView
     private lateinit var checkDeLxqt: TextView
+    private lateinit var backendVncCard: LinearLayout
+    private lateinit var backendX11Card: LinearLayout
+    private lateinit var checkBackendVnc: TextView
+    private lateinit var checkBackendX11: TextView
+    private lateinit var tvBackendNote: TextView
+    private var currentBackend = "vnc"
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
@@ -51,6 +57,11 @@ class SettingsFragment : Fragment() {
         deLxqtCard = view.findViewById(R.id.deLxqtCard)
         checkDeXfce = view.findViewById(R.id.checkDeXfce)
         checkDeLxqt = view.findViewById(R.id.checkDeLxqt)
+        backendVncCard = view.findViewById(R.id.backendVncCard)
+        backendX11Card = view.findViewById(R.id.backendX11Card)
+        checkBackendVnc = view.findViewById(R.id.checkBackendVnc)
+        checkBackendX11 = view.findViewById(R.id.checkBackendX11)
+        tvBackendNote = view.findViewById(R.id.tvBackendNote)
 
         val spinnerMouseMode = view.findViewById<Spinner>(R.id.spinnerMouseMode)
         val inputPassword = view.findViewById<EditText>(R.id.inputVncPassword)
@@ -74,6 +85,9 @@ class SettingsFragment : Fragment() {
 
         currentDe = prefs.getString("desktop_environment", "xfce") ?: "xfce"
         updateDeSelection()
+
+        currentBackend = prefs.getString("display_backend", "vnc") ?: "vnc"
+        updateBackendSelection()
 
         val savedMouseMode = prefs.getString("mouse_mode", "trackpad") ?: "trackpad"
         spinnerMouseMode.setSelection(mouseModes.indexOf(savedMouseMode).coerceAtLeast(0))
@@ -123,6 +137,17 @@ class SettingsFragment : Fragment() {
             updateDeSelection()
         }
 
+        backendVncCard.setOnClickListener {
+            currentBackend = "vnc"
+            prefs.edit().putString("display_backend", currentBackend).apply()
+            updateBackendSelection()
+        }
+        backendX11Card.setOnClickListener {
+            currentBackend = "termux_x11"
+            prefs.edit().putString("display_backend", currentBackend).apply()
+            updateBackendSelection()
+        }
+
         spinnerMouseMode.setOnItemSelectedListenerCompat { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
 
         inputPassword.setOnFocusChangeListener { _, hasFocus ->
@@ -152,6 +177,19 @@ class SettingsFragment : Fragment() {
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
 
         return view
+    }
+
+    private fun updateBackendSelection() {
+        val selectedBg = R.drawable.de_card_selected_bg
+        val unselectedBg = R.drawable.de_card_unselected_bg
+
+        backendVncCard.setBackgroundResource(if (currentBackend == "vnc") selectedBg else unselectedBg)
+        backendX11Card.setBackgroundResource(if (currentBackend == "termux_x11") selectedBg else unselectedBg)
+
+        checkBackendVnc.text = if (currentBackend == "vnc") "✓" else ""
+        checkBackendX11.text = if (currentBackend == "termux_x11") "✓" else ""
+
+        tvBackendNote.visibility = if (currentBackend == "termux_x11") View.VISIBLE else View.GONE
     }
 
     private fun updateDeSelection() {
