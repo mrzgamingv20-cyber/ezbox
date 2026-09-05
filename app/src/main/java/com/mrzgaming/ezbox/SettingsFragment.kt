@@ -75,7 +75,7 @@ class SettingsFragment : Fragment() {
         currentDe = prefs.getString("desktop_environment", "xfce") ?: "xfce"
         updateDeSelection()
 
-        val savedMouseMode = prefs.getString("mouse_mode", "direct") ?: "direct"
+        val savedMouseMode = prefs.getString("mouse_mode", "trackpad") ?: "trackpad"
         spinnerMouseMode.setSelection(mouseModes.indexOf(savedMouseMode).coerceAtLeast(0))
 
         val savedPassword = prefs.getString("vnc_password", null)

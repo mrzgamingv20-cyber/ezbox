@@ -56,6 +56,15 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="16dp" />
 
+            <TextView
+                android:id="@+id/tvActiveConfig"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="960×540 · XFCE4"
+                android:textColor="@color/ezos_text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="12dp" />
+
             <ProgressBar
                 android:id="@+id/progressLaunch"
                 style="?android:attr/progressBarStyleHorizontal"
@@ -65,14 +74,36 @@
                 android:visibility="gone"
                 android:layout_marginBottom="12dp" />
 
-            <Button
-                android:id="@+id/btnSetup"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="Launch Environment"
-                android:textColor="@color/ezos_text_primary"
-                android:textStyle="bold"
-                android:background="@drawable/btn_primary_ripple" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/btnSetup"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:text="Launch Environment"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textStyle="bold"
+                    android:textAllCaps="false"
+                    android:background="@drawable/btn_primary_ripple" />
+
+                <Button
+                    android:id="@+id/btnQuickSettings"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="10dp"
+                    android:minWidth="0dp"
+                    android:padding="0dp"
+                    android:text="⚙"
+                    android:textSize="18sp"
+                    android:textColor="@color/ezos_text_primary"
+                    android:background="@drawable/stepper_btn_bg" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvUptime"

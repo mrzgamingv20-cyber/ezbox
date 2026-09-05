@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/card_glow_bg"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quick Settings"
+        android:textColor="@color/ezos_text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Resolution"
+        android:textColor="@color/ezos_text_secondary"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:layout_marginBottom="18dp">
+
+        <Button
+            android:id="@+id/btnResPhone"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Phone"
+            android:textSize="11sp"
+            android:textAllCaps="false"
+            android:textColor="@color/ezos_text_primary"
+            android:background="@drawable/stepper_btn_bg" />
+
+        <Button
+            android:id="@+id/btnResTablet"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:text="Tablet"
+            android:textSize="11sp"
+            android:textAllCaps="false"
+            android:textColor="@color/ezos_text_primary"
+            android:background="@drawable/stepper_btn_bg" />
+
+        <Button
+            android:id="@+id/btnResDesktop"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="Desktop"
+            android:textSize="11sp"
+            android:textAllCaps="false"
+            android:textColor="@color/ezos_text_primary"
+            android:background="@drawable/stepper_btn_bg" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Desktop Environment"
+        android:textColor="@color/ezos_text_secondary"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:layout_marginBottom="18dp">
+
+        <Button
+            android:id="@+id/btnDeXfce"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="XFCE4"
+            android:textSize="11sp"
+            android:textAllCaps="false"
+            android:textColor="@color/ezos_text_primary"
+            android:background="@drawable/stepper_btn_bg" />
+
+        <Button
+            android:id="@+id/btnDeLxqt"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="LXQt"
+            android:textSize="11sp"
+            android:textAllCaps="false"
+            android:textColor="@color/ezos_text_primary"
+            android:background="@drawable/stepper_btn_bg" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvQuickSettingsNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Applies next time you launch the desktop"
+        android:textColor="@color/ezos_text_secondary"
+        android:textSize="11sp"
+        android:textStyle="italic"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnQuickSettingsDone"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Done"
+        android:textColor="@color/ezos_text_primary"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:background="@drawable/btn_primary_ripple" />
+
+</LinearLayout>

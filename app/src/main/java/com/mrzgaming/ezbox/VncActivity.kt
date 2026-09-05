@@ -80,7 +80,7 @@ class VncActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_vnc)
         val prefs = getSharedPreferences("EZBoxPrefs", MODE_PRIVATE)
-        mouseMode = intent.getStringExtra("mouse_mode") ?: prefs.getString("mouse_mode", "direct") ?: "direct"
+        mouseMode = intent.getStringExtra("mouse_mode") ?: prefs.getString("mouse_mode", "trackpad") ?: "trackpad"
         if (prefs.getBoolean("keep_awake", false)) {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
