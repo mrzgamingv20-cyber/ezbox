@@ -91,16 +91,14 @@
                     android:textAllCaps="false"
                     android:background="@drawable/btn_primary_ripple" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/btnQuickSettings"
                     android:layout_width="52dp"
                     android:layout_height="52dp"
                     android:layout_marginStart="10dp"
-                    android:minWidth="0dp"
-                    android:padding="0dp"
-                    android:text="⚙"
-                    android:textSize="18sp"
-                    android:textColor="@color/ezos_text_primary"
+                    android:padding="14dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_settings_gear"
                     android:background="@drawable/stepper_btn_bg" />
 
             </LinearLayout>
@@ -322,12 +320,12 @@
                 android:stateListAnimator="@animator/card_press_anim"
                 android:padding="8dp">
 
-                <TextView
+                <ImageView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="⚙"
-                    android:textSize="18sp"
+                    android:padding="10dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_settings_gear"
                     android:background="@drawable/badge_icon_green" />
 
                 <TextView

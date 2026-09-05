@@ -166,16 +166,19 @@ class HomeFragment : Fragment() {
             )
             for ((res, btn) in options) {
                 val active = res == selectedRes
+                btn?.isSelected = active
                 btn?.setTextColor(ContextCompat.getColor(requireContext(),
-                    if (active) R.color.ezos_accent else R.color.ezos_text_primary))
+                    if (active) android.R.color.black else R.color.ezos_text_primary))
             }
         }
 
         fun refreshDeButtons() {
+            btnDeXfce?.isSelected = selectedDe == "xfce"
             btnDeXfce?.setTextColor(ContextCompat.getColor(requireContext(),
-                if (selectedDe == "xfce") R.color.ezos_accent else R.color.ezos_text_primary))
+                if (selectedDe == "xfce") android.R.color.black else R.color.ezos_text_primary))
+            btnDeLxqt?.isSelected = selectedDe == "lxqt"
             btnDeLxqt?.setTextColor(ContextCompat.getColor(requireContext(),
-                if (selectedDe == "lxqt") R.color.ezos_accent else R.color.ezos_text_primary))
+                if (selectedDe == "lxqt") android.R.color.black else R.color.ezos_text_primary))
         }
 
         refreshResButtons()
