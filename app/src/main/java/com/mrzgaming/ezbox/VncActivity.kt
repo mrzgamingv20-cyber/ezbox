@@ -230,19 +230,18 @@ class VncActivity : AppCompatActivity() {
     private fun setupKeyboardInput() {
         if (viewOnlyMode) return
 
+        // Murni toggle soft keyboard SAJA - tidak menyentuh extraKeysBar sama sekali.
+        // extraKeysBar exclusive dipicu oleh btnExpandKeys (toggleExtraKeysBar()).
+        var keyboardShown = false
         btnToggleKeyboard.setOnClickListener {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            if (extraKeysBar.visibility == View.VISIBLE) {
-                extraKeysBar.animate().alpha(0f).setDuration(150).withEndAction {
-                    extraKeysBar.visibility = View.GONE
-                }.start()
+            if (keyboardShown) {
                 imm.hideSoftInputFromWindow(hiddenInput.windowToken, 0)
+                keyboardShown = false
             } else {
-                extraKeysBar.alpha = 0f
-                extraKeysBar.visibility = View.VISIBLE
-                extraKeysBar.animate().alpha(1f).setDuration(150).start()
                 hiddenInput.requestFocus()
                 imm.showSoftInput(hiddenInput, InputMethodManager.SHOW_FORCED)
+                keyboardShown = true
             }
         }
         hiddenInput.addTextChangedListener(object : TextWatcher {

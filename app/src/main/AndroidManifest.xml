@@ -36,7 +36,8 @@
         <activity
             android:name=".VncActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing" />
         <activity
             android:name=".NoVncActivity"
             android:exported="false"
