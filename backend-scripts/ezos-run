@@ -1,0 +1,201 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Sengaja TIDAK pakai 'set -e' - kita mau kontrol sendiri kapan exit,
+# supaya satu kegagalan kecil tidak langsung mematikan seluruh proses tanpa pesan jelas.
+
+RES="${EZBOX_RES:-960x540}"
+DE="${EZBOX_DE:-xfce}"
+VNC_DISPLAY=":1"
+VNC_PORT="5901"
+SESSION_HOME="$HOME/.ezos/home"
+LOG_FILE="/storage/emulated/0/Download/ezos_run.log"
+
+log() {
+    echo "[EZBox] $1"
+    echo "[$(date '+%H:%M:%S')] $1" >> "$LOG_FILE" 2>/dev/null
+}
+
+setup_flag_for() {
+    echo "$HOME/.ezos/.setup_done_$1"
+}
+
+# Verifikasi binary utama benar-benar ada dan bisa dieksekusi (bukan cuma "pkg install" bilang sukses),
+# supaya tidak ada kasus seperti lxqt-session yang keinstall tapi library dependency-nya kurang.
+verify_binary() {
+    local binary="$1"
+    if ! command -v "$binary" >/dev/null 2>&1; then
+        return 1
+    fi
+    return 0
+}
+
+install_xfce() {
+    log "Installing XFCE..."
+    pkg install -y xfce4 xfce4-terminal
+    if ! verify_binary xfce4-session; then
+        log "ERROR: xfce4-session not found after install."
+        return 1
+    fi
+    return 0
+}
+
+install_lxqt() {
+    log "Installing LXQt..."
+    # procps menyediakan libproc2.so yang dibutuhkan lxqt-session untuk linking,
+    # biasanya sudah terinstall bawaan Termux tapi dipasang eksplisit untuk jaga-jaga di device lain
+    pkg install -y procps lxqt
+    if ! verify_binary startlxqt; then
+        log "ERROR: startlxqt not found after install."
+        return 1
+    fi
+    # Coba jalankan startlxqt --version atau semacamnya untuk deteksi dini masalah linking,
+    # tapi startlxqt biasanya tidak punya flag --version, jadi cukup verifikasi binary ada dan executable
+    if [ ! -x "$(command -v startlxqt)" ]; then
+        log "ERROR: startlxqt exists but is not executable."
+        return 1
+    fi
+    return 0
+}
+
+xstartup_for() {
+    case "$1" in
+        xfce)
+            echo "dbus-launch --exit-with-session xfce4-session &"
+            ;;
+        lxqt)
+            echo "dbus-launch --exit-with-session startlxqt &"
+            ;;
+        *)
+            log "Unknown DE '$1', falling back to xfce."
+            echo "dbus-launch --exit-with-session xfce4-session &"
+            ;;
+    esac
+}
+
+setup_base() {
+    log "First-time base setup - installing common packages..."
+    pkg update -y
+    pkg install -y x11-repo
+    pkg install -y tigervnc dbus
+    if ! verify_binary vncserver; then
+        log "FATAL: vncserver not found after base setup. Aborting."
+        return 1
+    fi
+    touch "$HOME/.ezos/.base_setup_done"
+    return 0
+}
+
+# Flag instalasi HANYA ditulis kalau verify_binary sukses - jadi kalau instalasi
+# gagal/terputus, launch berikutnya akan otomatis coba install ulang, bukan
+# menganggap DE ini "sudah siap" padahal sebenarnya rusak/tidak lengkap.
+setup_de_if_needed() {
+    local de="$1"
+    local flag
+    flag=$(setup_flag_for "$de")
+    if [ -f "$flag" ]; then
+        return 0
+    fi
+
+    local install_ok=1
+    case "$de" in
+        xfce) install_xfce; install_ok=$? ;;
+        lxqt) install_lxqt; install_ok=$? ;;
+        *)
+            log "Unknown DE '$de', cannot install. Falling back to xfce."
+            install_xfce; install_ok=$?
+            de="xfce"
+            ;;
+    esac
+
+    if [ "$install_ok" -ne 0 ]; then
+        log "FATAL: Failed to install DE '$de'. Not marking as complete."
+        return 1
+    fi
+
+    touch "$flag"
+    return 0
+}
+
+write_xstartup() {
+    local de="$1"
+    mkdir -p "$SESSION_HOME/.vnc"
+    {
+        echo '#!/data/data/com.termux/files/usr/bin/bash'
+        echo 'unset SESSION_MANAGER'
+        echo 'unset DBUS_SESSION_BUS_ADDRESS'
+        xstartup_for "$de"
+    } > "$SESSION_HOME/.vnc/xstartup"
+    chmod +x "$SESSION_HOME/.vnc/xstartup"
+}
+
+setup_password() {
+    local pw="${EZBOX_VNC_PASSWORD:-ezbox123}"
+    echo "$pw" | HOME="$SESSION_HOME" vncpasswd -f > "$SESSION_HOME/.vnc/passwd"
+    chmod 600 "$SESSION_HOME/.vnc/passwd"
+}
+
+cleanup_stale_locks() {
+    log "Cleaning up any stale VNC processes/locks..."
+    pkill -9 -f "Xvnc $VNC_DISPLAY " 2>/dev/null || true
+    sleep 1
+    rm -f "$PREFIX/tmp/.X1-lock"
+    rm -f "$PREFIX/tmp/.X11-unix/X1"
+}
+
+start_dbus_system_bus() {
+    # LXQt (dan beberapa modul XFCE) butuh D-Bus SYSTEM bus aktif, bukan cuma session bus.
+    # Tanpa ini, lxqt-session gagal total dengan "Failed to get connection to system bus"
+    # dan semua modulnya (panel, runner, dll) crash berantai sampai "Can't open display".
+    if ! pgrep -f "dbus-daemon --system" > /dev/null; then
+        log "Starting D-Bus system bus..."
+        dbus-daemon --system --fork 2>/dev/null || true
+        sleep 1
+    fi
+}
+
+launch_environment() {
+    setup_password
+    cleanup_stale_locks
+    start_dbus_system_bus
+
+    log "Starting VNC server on $VNC_DISPLAY, resolution $RES, DE=$DE..."
+    HOME="$SESSION_HOME" vncserver "$VNC_DISPLAY" -geometry "$RES" -depth 24 -localhost no
+
+    # Verifikasi Xvnc benar-benar hidup setelah start, sebelum lapor sukses ke log
+    sleep 1
+    if ! pgrep -f "Xvnc $VNC_DISPLAY " > /dev/null; then
+        log "FATAL: Xvnc failed to start. Check ~/.ezos/home/.vnc/*.log for details."
+        return 1
+    fi
+
+    log "VNC server active on port $VNC_PORT. Keeping alive..."
+
+    while pgrep -f "Xvnc $VNC_DISPLAY " > /dev/null; do
+        sleep 5
+    done
+
+    log "VNC server has stopped."
+    return 0
+}
+
+mkdir -p "$HOME/.ezos"
+: > "$LOG_FILE" 2>/dev/null
+
+if [ "$1" = "EZOS" ] || [ -z "$1" ]; then
+    if [ ! -f "$HOME/.ezos/.base_setup_done" ]; then
+        if ! setup_base; then
+            log "Aborting: base setup failed."
+            exit 1
+        fi
+    fi
+
+    if ! setup_de_if_needed "$DE"; then
+        log "Aborting: desktop environment setup failed."
+        exit 1
+    fi
+
+    write_xstartup "$DE"
+    launch_environment
+else
+    log "Distro '$1' not recognized. EZBox currently only supports native mode 'EZOS'."
+    exit 1
+fi
