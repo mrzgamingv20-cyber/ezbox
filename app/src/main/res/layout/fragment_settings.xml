@@ -408,16 +408,13 @@
             android:layout_marginBottom="20dp">
 
             <LinearLayout
-                android:id="@+id/backendVncCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:background="@drawable/de_card_selected_bg"
                 android:padding="12dp"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_marginBottom="10dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -436,14 +433,13 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Default • Tidak butuh app tambahan"
+                        android:text="Default • No additional app required"
                         android:textColor="@color/ezos_text_secondary"
                         android:textSize="11sp" />
 
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/checkBackendVnc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="12dp"
@@ -479,160 +475,9 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="VNC berjalan di dalam EZBox, tidak butuh app tambahan. Untuk opsi kualitas render (view-only, clipboard, low bandwidth), lihat bagian 'Advanced VNC' di bawah halaman ini."
+                    android:text="VNC runs entirely inside EZBox, no additional app required. For render quality options (view-only, clipboard, low bandwidth), see the 'Advanced VNC' section further down this page."
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/backendX11Card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/de_card_unselected_bg"
-                android:padding="12dp"
-                android:layout_marginBottom="8dp"
-                android:clickable="true"
-                android:focusable="true">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Termux:X11 (External)"
-                        android:textColor="@color/ezos_text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Lebih responsif • Butuh app Termux:X11 terpisah"
-                        android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp" />
-
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/checkBackendX11"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="12dp"
-                    android:text=""
-                    android:textColor="@color/ezos_accent"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/chevronX11"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:gravity="center"
-                    android:text="⌄"
-                    android:textColor="@color/ezos_text_secondary"
-                    android:textSize="16sp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/panelX11Sub"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/de_card_unselected_bg"
-                android:padding="14dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/tvBackendNote"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="EZBox tidak menyertakan app Termux:X11. Kalau belum terpasang, install dulu dari F-Droid (lihat tab Tutorial)."
-                    android:textColor="@color/ezos_text_secondary"
-                    android:textSize="12sp"
-                    android:layout_marginBottom="12dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="10dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Legacy Drawing Mode"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Aktifkan kalau layar cuma nampilin kursor (blank)"
-                            android:textColor="@color/ezos_text_secondary"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-
-                    <Switch
-                        android:id="@+id/switchX11LegacyDrawing"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Force BGRA"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Aktifkan kalau warna kulit/gambar kebalik jadi kebiruan"
-                            android:textColor="@color/ezos_text_secondary"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-
-                    <Switch
-                        android:id="@+id/switchX11ForceBgra"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
 
             </LinearLayout>
 

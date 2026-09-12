@@ -40,18 +40,8 @@ class SettingsFragment : Fragment() {
     private lateinit var deLxqtCard: LinearLayout
     private lateinit var checkDeXfce: TextView
     private lateinit var checkDeLxqt: TextView
-    private lateinit var backendVncCard: LinearLayout
-    private lateinit var backendX11Card: LinearLayout
-    private lateinit var checkBackendVnc: TextView
-    private lateinit var checkBackendX11: TextView
-    private lateinit var tvBackendNote: TextView
     private lateinit var chevronVnc: TextView
-    private lateinit var chevronX11: TextView
     private lateinit var panelVncSub: LinearLayout
-    private lateinit var panelX11Sub: LinearLayout
-    private lateinit var switchX11LegacyDrawing: Switch
-    private lateinit var switchX11ForceBgra: Switch
-    private var currentBackend = "vnc"
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
@@ -63,17 +53,8 @@ class SettingsFragment : Fragment() {
         deLxqtCard = view.findViewById(R.id.deLxqtCard)
         checkDeXfce = view.findViewById(R.id.checkDeXfce)
         checkDeLxqt = view.findViewById(R.id.checkDeLxqt)
-        backendVncCard = view.findViewById(R.id.backendVncCard)
-        backendX11Card = view.findViewById(R.id.backendX11Card)
-        checkBackendVnc = view.findViewById(R.id.checkBackendVnc)
-        checkBackendX11 = view.findViewById(R.id.checkBackendX11)
-        tvBackendNote = view.findViewById(R.id.tvBackendNote)
         chevronVnc = view.findViewById(R.id.chevronVnc)
-        chevronX11 = view.findViewById(R.id.chevronX11)
         panelVncSub = view.findViewById(R.id.panelVncSub)
-        panelX11Sub = view.findViewById(R.id.panelX11Sub)
-        switchX11LegacyDrawing = view.findViewById(R.id.switchX11LegacyDrawing)
-        switchX11ForceBgra = view.findViewById(R.id.switchX11ForceBgra)
 
         val spinnerMouseMode = view.findViewById<Spinner>(R.id.spinnerMouseMode)
         val inputPassword = view.findViewById<EditText>(R.id.inputVncPassword)
@@ -97,12 +78,6 @@ class SettingsFragment : Fragment() {
 
         currentDe = prefs.getString("desktop_environment", "xfce") ?: "xfce"
         updateDeSelection()
-
-        currentBackend = prefs.getString("display_backend", "vnc") ?: "vnc"
-        updateBackendSelection()
-
-        switchX11LegacyDrawing.isChecked = prefs.getBoolean("x11_legacy_drawing", false)
-        switchX11ForceBgra.isChecked = prefs.getBoolean("x11_force_bgra", false)
 
         val savedMouseMode = prefs.getString("mouse_mode", "trackpad") ?: "trackpad"
         spinnerMouseMode.setSelection(mouseModes.indexOf(savedMouseMode).coerceAtLeast(0))
@@ -152,33 +127,10 @@ class SettingsFragment : Fragment() {
             updateDeSelection()
         }
 
-        backendVncCard.setOnClickListener {
-            currentBackend = "vnc"
-            prefs.edit().putString("display_backend", currentBackend).apply()
-            updateBackendSelection()
-        }
-        backendX11Card.setOnClickListener {
-            currentBackend = "termux_x11"
-            prefs.edit().putString("display_backend", currentBackend).apply()
-            updateBackendSelection()
-        }
-
         chevronVnc.setOnClickListener {
             val expand = panelVncSub.visibility != View.VISIBLE
             panelVncSub.visibility = if (expand) View.VISIBLE else View.GONE
             chevronVnc.text = if (expand) "⌃" else "⌄"
-        }
-        chevronX11.setOnClickListener {
-            val expand = panelX11Sub.visibility != View.VISIBLE
-            panelX11Sub.visibility = if (expand) View.VISIBLE else View.GONE
-            chevronX11.text = if (expand) "⌃" else "⌄"
-        }
-
-        switchX11LegacyDrawing.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean("x11_legacy_drawing", checked).apply()
-        }
-        switchX11ForceBgra.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean("x11_force_bgra", checked).apply()
         }
 
         spinnerMouseMode.setOnItemSelectedListenerCompat { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
@@ -210,19 +162,6 @@ class SettingsFragment : Fragment() {
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
 
         return view
-    }
-
-    private fun updateBackendSelection() {
-        val selectedBg = R.drawable.de_card_selected_bg
-        val unselectedBg = R.drawable.de_card_unselected_bg
-
-        backendVncCard.setBackgroundResource(if (currentBackend == "vnc") selectedBg else unselectedBg)
-        backendX11Card.setBackgroundResource(if (currentBackend == "termux_x11") selectedBg else unselectedBg)
-
-        checkBackendVnc.text = if (currentBackend == "vnc") "✓" else ""
-        checkBackendX11.text = if (currentBackend == "termux_x11") "✓" else ""
-
-        tvBackendNote.visibility = if (currentBackend == "termux_x11") View.VISIBLE else View.GONE
     }
 
     private fun updateDeSelection() {
