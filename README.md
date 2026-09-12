@@ -33,7 +33,7 @@
 
 ---
 
-🚨 The next update is a major update, so it will take a bit longer.
+🚨 This repository has been temporarily suspended.
 
 
 ## ✨ Features
