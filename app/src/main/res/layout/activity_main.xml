@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ezos_bg_black">
+    android:background="@color/ezos_bg_base"
+    android:fitsSystemWindows="true">
 
     <FrameLayout
         android:id="@+id/fragmentContainer"
@@ -11,6 +12,7 @@
         android:layout_height="match_parent"
         android:paddingBottom="88dp" />
 
+    <!-- Hamburger with glass -->
     <ImageButton
         android:id="@+id/btnHamburger"
         android:layout_width="44dp"
@@ -18,12 +20,13 @@
         android:layout_gravity="top|end"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/hamburger_btn_bg"
+        android:background="@drawable/stepper_btn_bg"
         android:src="@drawable/ic_hamburger"
         android:padding="10dp"
         android:contentDescription="Menu"
         android:elevation="10dp" />
 
+    <!-- Bottom Nav with glass pill -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="wrap_content"
@@ -32,10 +35,28 @@
         android:layout_marginBottom="20dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:background="@drawable/nav_pill_bg"
         android:elevation="8dp"
         app:labelVisibilityMode="unlabeled"
         app:itemIconSize="24dp"
         app:menu="@menu/bottom_nav_menu" />
 
-</FrameLayout>
+    <!-- Animated background orbs (subtle) -->
+    <View
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="-60dp"
+        android:layout_marginStart="-60dp"
+        android:background="@drawable/card_glow_bg"
+        android:alpha="0.15" />
+
+    <View
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="-40dp"
+        android:layout_marginEnd="-40dp"
+        android:background="@drawable/card_glow_bg"
+        android:alpha="0.1" />
+
+</LinearLayout>

@@ -20,7 +20,6 @@ class CrashHandler(private val context: Context) : Thread.UncaughtExceptionHandl
         try {
             writeCrashLog(throwable)
         } catch (e: Exception) {
-            // Jangan sampai gagal logging malah bikin crash handler-nya sendiri error
         }
         defaultHandler?.uncaughtException(thread, throwable)
     }
@@ -47,10 +46,18 @@ class CrashHandler(private val context: Context) : Thread.UncaughtExceptionHandl
                 }
             }
         } else {
-            val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val file = File(dir, filename)
-            FileOutputStream(file).use { out ->
-                out.write(stackTrace.toByteArray())
+            val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            if (downloadsDir != null) {
+                val file = File(downloadsDir, filename)
+                FileOutputStream(file).use { out ->
+                    out.write(stackTrace.toByteArray())
+                }
+            } else {
+                val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(dir, filename)
+                FileOutputStream(file).use { out ->
+                    out.write(stackTrace.toByteArray())
+                }
             }
         }
     }

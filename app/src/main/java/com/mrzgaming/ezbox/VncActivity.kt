@@ -1,7 +1,5 @@
 package com.mrzgaming.ezbox
 
-import android.content.ComponentName
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -48,6 +46,13 @@ class VncActivity : AppCompatActivity() {
     private var lastTrackpadY = 0f
     private var virtualCursorX = 0
     private var virtualCursorY = 0
+
+    // Gesture: long-press untuk right-click, two-finger drag untuk scroll
+    private var longPressHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var longPressRunnable: Runnable? = null
+    private var isLongPress = false
+    private var twoFingerStartY = 0f
+    private var isTwoFinger = false
 
     // Advanced VNC preferences, dibaca sekali saat onCreate dari SettingsFragment
     private var viewOnlyMode = false
@@ -136,47 +141,25 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
-    // Toggle toolbar SAJA, tanpa membuka soft keyboard - dipisah dari btnToggleKeyboard
-    // supaya user bisa akses Ctrl/Alt/Esc/dll tanpa harus buka keyboard sekaligus.
-    // Saat toolbar muncul, vncScreen digeser (bottomMargin) sejumlah tinggi toolbar,
-    // supaya area kerja desktop tidak ketutup melainkan "menyusut" secara sengaja.
+    // Toggle toolbar SAJA tanpa animasi margin - layout_above di XML handle otomatis
+    // supaya user bisa akses Ctrl/Alt/Esc/dll tanpa harus buka keyboard sekaligus
     private fun toggleExtraKeysBar() {
-        val params = vncScreen.layoutParams as android.widget.FrameLayout.LayoutParams
         if (extraKeysBar.visibility == View.VISIBLE) {
             extraKeysBar.animate().alpha(0f).setDuration(150).withEndAction {
                 extraKeysBar.visibility = View.GONE
+                typingPreviewBar.visibility = View.GONE
             }.start()
-            animateVncScreenMargin(params, params.bottomMargin, 0)
         } else {
             extraKeysBar.alpha = 0f
             extraKeysBar.visibility = View.VISIBLE
             extraKeysBar.animate().alpha(1f).setDuration(150).start()
-            val toolbarHeightPx = (44 * resources.displayMetrics.density).toInt()
-            animateVncScreenMargin(params, params.bottomMargin, toolbarHeightPx)
-        }
-    }
-
-    private fun animateVncScreenMargin(params: android.widget.FrameLayout.LayoutParams, from: Int, to: Int) {
-        android.animation.ValueAnimator.ofInt(from, to).apply {
-            duration = 150
-            addUpdateListener {
-                params.bottomMargin = it.animatedValue as Int
-                vncScreen.layoutParams = params
-            }
-            start()
         }
     }
 
     private fun stopDesktop() {
-        val command = "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'ezos-run'; echo done"
+        val command = "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'xfce4-session'; pkill -9 -f 'startlxqt'; echo done"
         try {
-            val intent = Intent("com.termux.RUN_COMMAND").apply {
-                component = ComponentName("com.termux", "com.termux.app.RunCommandService")
-                putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
-                putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
-                putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
-            }
-            ContextCompat.startForegroundService(this, intent)
+            TermuxCommand.start(this, command)
         } catch (e: Exception) {
             Log.e("VncActivity", "Stop desktop failed: ${e.message}")
         } finally {
@@ -242,6 +225,15 @@ class VncActivity : AppCompatActivity() {
                 }
                 val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                 uri?.let { contentResolver.openOutputStream(it)?.use { out -> client.bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) } }
+            } else {
+                val dir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
+                if (!dir.exists()) dir.mkdirs()
+                val file = java.io.File(dir, filename)
+                java.io.FileOutputStream(file).use { out ->
+                    client.bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+                }
+                // Notify media scanner so image appears in gallery
+                android.media.MediaScannerConnection.scanFile(this, arrayOf(file.absolutePath), arrayOf("image/png"), null)
             }
             android.widget.Toast.makeText(this, "Screenshot saved", android.widget.Toast.LENGTH_SHORT).show()
         } catch (e: Exception) { android.widget.Toast.makeText(this, "Screenshot failed", android.widget.Toast.LENGTH_SHORT).show() }
@@ -366,17 +358,36 @@ class VncActivity : AppCompatActivity() {
         val port = intent.getIntExtra("vnc_port", 5901)
         val password = intent.getStringExtra("vnc_password") ?: "ezbox123"
         scope.launch {
-            showLoadingState("Connecting to EZOS desktop...")
+            connectWithRetry(port, password)
+        }
+    }
+
+    private suspend fun connectWithRetry(port: Int, password: String) {
+        var retryCount = 0
+        val maxRetries = 5
+        while (retryCount < maxRetries) {
+            showLoadingState("Connecting to EZOS desktop...${if (retryCount > 0) " (retry ${retryCount}/${maxRetries})" else ""}")
             val client = RfbClient("127.0.0.1", port, password)
             val connected = try { withContext(Dispatchers.IO) { client.connect() } } catch (e: Exception) { false }
-            if (!connected) { showErrorState("Failed to connect.\nMake sure the environment is running."); return@launch }
-            rfbClient = client
-            virtualCursorX = client.width / 2
-            virtualCursorY = client.height / 2
-            hideStatusCard()
-            running = true
-            renderLoop(client)
+            if (connected) {
+                rfbClient = client
+                virtualCursorX = client.width / 2
+                virtualCursorY = client.height / 2
+                hideStatusCard()
+                running = true
+                renderLoop(client)
+                return
+            }
+            retryCount++
+            if (retryCount < maxRetries) {
+                delay((retryCount * 2000L).coerceAtMost(10000L))
+            }
         }
+        showErrorState("Failed to connect after ${maxRetries} attempts.\nTap retry to try again.")
+    }
+
+    private fun showRetryButton() {
+        btnRetryConnection.visibility = View.VISIBLE
     }
 
     /**
@@ -385,11 +396,22 @@ class VncActivity : AppCompatActivity() {
      * Normal: tanpa jeda (secepat mungkin). Low bandwidth: ~10fps (100ms jeda).
      */
     private suspend fun renderLoop(client: RfbClient) {
-        val frameDelayMs = if (lowBandwidthMode) 100L else 0L
+        val frameDelayMs = if (lowBandwidthMode) 100L else 16L  // minimal 16ms (~60fps) untuk hemat CPU
+        // Set bitmap sekali saja, setelahnya cukup invalidate karena bitmap di-mutate in-place
+        vncScreen.setImageBitmap(client.bitmap)
         while (running) {
             try {
                 val updated = withContext(Dispatchers.IO) { client.requestFramebufferUpdate(true); client.readServerMessage() }
-                if (updated) vncScreen.setImageBitmap(client.bitmap)
+                if (updated) vncScreen.invalidate()
+                // Sync clipboard dari desktop ke Android
+                if (!disableClipboard) {
+                    client.serverClipboardText?.let { text ->
+                        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        val clip = android.content.ClipData.newPlainText("EZBox Desktop", text)
+                        clipboard.setPrimaryClip(clip)
+                        client.clearServerClipboard()
+                    }
+                }
                 if (frameDelayMs > 0) delay(frameDelayMs)
             } catch (e: Exception) {
                 running = false
@@ -432,15 +454,117 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun handleDirectTouch(client: RfbClient, event: MotionEvent) {
+        // Two-finger scroll wheel
+        if (event.pointerCount == 2) {
+            isTwoFinger = true
+            cancelLongPress()
+            when (event.actionMasked) {
+                MotionEvent.ACTION_POINTER_DOWN -> {
+                    twoFingerStartY = (event.getY(0) + event.getY(1)) / 2f
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val currentY = (event.getY(0) + event.getY(1)) / 2f
+                    val deltaY = currentY - twoFingerStartY
+                    val mapped = mapTouchToDesktop(client, event.x, event.y) ?: return
+                    if (deltaY < -30f) {
+                        // Scroll up (button 4)
+                        pointerChannel.trySend(Triple(mapped.first, mapped.second, 8))
+                        pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                        twoFingerStartY = currentY
+                    } else if (deltaY > 30f) {
+                        // Scroll down (button 5)
+                        pointerChannel.trySend(Triple(mapped.first, mapped.second, 16))
+                        pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                        twoFingerStartY = currentY
+                    }
+                }
+            }
+            return
+        }
+
+        if (event.actionMasked == MotionEvent.ACTION_UP && isTwoFinger) {
+            isTwoFinger = false
+            return
+        }
+
         val mapped = mapTouchToDesktop(client, event.x, event.y) ?: return
-        val buttonMask = when (event.action) { MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> 1; MotionEvent.ACTION_UP -> 0; else -> return }
-        pointerChannel.trySend(Triple(mapped.first, mapped.second, buttonMask))
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                // Start long-press timer untuk right-click
+                isLongPress = false
+                longPressRunnable = Runnable {
+                    isLongPress = true
+                    // Right-click (button 3 = mask 4)
+                    pointerChannel.trySend(Triple(mapped.first, mapped.second, 4))
+                    pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                }
+                longPressHandler.postDelayed(longPressRunnable!!, 500)
+                pointerChannel.trySend(Triple(mapped.first, mapped.second, 1))
+            }
+            MotionEvent.ACTION_MOVE -> {
+                cancelLongPress()
+                pointerChannel.trySend(Triple(mapped.first, mapped.second, 1))
+            }
+            MotionEvent.ACTION_UP -> {
+                cancelLongPress()
+                if (!isLongPress) {
+                    pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                }
+                isLongPress = false
+            }
+        }
+    }
+
+    private fun cancelLongPress() {
+        longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+        longPressRunnable = null
     }
 
     private fun handleTrackpadTouch(client: RfbClient, event: MotionEvent) {
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> { lastTrackpadX = event.x; lastTrackpadY = event.y }
+        // Two-finger scroll in trackpad mode
+        if (event.pointerCount == 2) {
+            isTwoFinger = true
+            cancelLongPress()
+            when (event.actionMasked) {
+                MotionEvent.ACTION_POINTER_DOWN -> {
+                    twoFingerStartY = (event.getY(0) + event.getY(1)) / 2f
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val currentY = (event.getY(0) + event.getY(1)) / 2f
+                    val deltaY = currentY - twoFingerStartY
+                    if (deltaY < -30f) {
+                        pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 8))
+                        pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                        twoFingerStartY = currentY
+                    } else if (deltaY > 30f) {
+                        pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 16))
+                        pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                        twoFingerStartY = currentY
+                    }
+                }
+            }
+            return
+        }
+
+        if (event.actionMasked == MotionEvent.ACTION_UP && isTwoFinger) {
+            isTwoFinger = false
+            return
+        }
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                lastTrackpadX = event.x; lastTrackpadY = event.y
+                // Long-press for right-click
+                isLongPress = false
+                longPressRunnable = Runnable {
+                    isLongPress = true
+                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 4))
+                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                }
+                longPressHandler.postDelayed(longPressRunnable!!, 500)
+            }
             MotionEvent.ACTION_MOVE -> {
+                cancelLongPress()
                 val dx = (event.x - lastTrackpadX).toInt()
                 val dy = (event.y - lastTrackpadY).toInt()
                 virtualCursorX = (virtualCursorX + dx).coerceIn(0, client.width - 1)
@@ -449,11 +573,20 @@ class VncActivity : AppCompatActivity() {
                 pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
             }
             MotionEvent.ACTION_UP -> {
-                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 1))
-                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                cancelLongPress()
+                if (!isLongPress) {
+                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 1))
+                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                }
+                isLongPress = false
             }
         }
     }
 
-    override fun onDestroy() { super.onDestroy(); running = false; rfbClient?.close() }
+    override fun onDestroy() {
+        super.onDestroy()
+        running = false
+        rfbClient?.close()
+        scope.coroutineContext[Job]?.cancel()
+    }
 }

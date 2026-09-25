@@ -1,6 +1,5 @@
 package com.mrzgaming.ezbox
 
-import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.GradientDrawable
@@ -23,6 +22,11 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class StoreFragment : Fragment() {
 
@@ -44,6 +48,9 @@ class StoreFragment : Fragment() {
     private lateinit var pillContainer: LinearLayout
     private lateinit var tvNoResults: TextView
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val verifyScope = CoroutineScope(Dispatchers.Main + Job())
+    private val activeVerifications = mutableMapOf<String, Boolean>()
+    private var installInProgress = false
 
     private fun prefKeyFor(pkg: StorePackage) = "installed_${pkg.checkBinary}"
     private fun isMarkedInstalled(pkg: StorePackage) = prefs.getBoolean(prefKeyFor(pkg), false)
@@ -282,7 +289,9 @@ class StoreFragment : Fragment() {
         progressSection.addView(statusText)
 
         installButton.setOnClickListener {
-            installPackage(pkg, installButton, progressSection, progressBar, statusText)
+            if (!isMarkedInstalled(pkg)) {
+                installPackage(pkg, installButton, progressSection, progressBar, statusText)
+            }
         }
 
         outerColumn.addView(row)
@@ -293,22 +302,8 @@ class StoreFragment : Fragment() {
 
     private fun setButtonState(button: Button, installed: Boolean) {
         button.text = if (installed) "Installed" else "Install"
-    }
-
-    private fun getStatusMessage(progress: Int): String {
-        return when {
-            progress < 5 -> "Initializing download..."
-            progress < 15 -> "Setting up environment..."
-            progress < 25 -> "Connecting to server..."
-            progress < 35 -> "Verifying permissions..."
-            progress < 50 -> "Downloading core files..."
-            progress < 65 -> "Downloading assets..."
-            progress < 80 -> "Downloading dependencies..."
-            progress < 90 -> "Extracting files..."
-            progress < 95 -> "Validating integrity..."
-            progress < 100 -> "Finalizing installation..."
-            else -> "Installation complete!"
-        }
+        button.isEnabled = !installed
+        button.alpha = if (installed) 0.6f else 1.0f
     }
 
     private fun installPackage(
@@ -318,65 +313,122 @@ class StoreFragment : Fragment() {
         progressBar: ProgressBar,
         statusText: TextView
     ) {
+        if (activeVerifications[pkg.checkBinary] == true) {
+            Toast.makeText(context, "Installation already in progress for ${pkg.name}", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (isMarkedInstalled(pkg)) {
+            Toast.makeText(context, "${pkg.name} is already installed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        activeVerifications[pkg.checkBinary] = true
+        installInProgress = true
         button.isEnabled = false
         button.text = "Installing..."
         progressSection.visibility = View.VISIBLE
         progressBar.progress = 0
+        statusText.text = "Installing..."
 
         val pkgList = pkg.pkgNames.joinToString(" ")
-        val command = "pkg install -y $pkgList"
+        val command = "pkg install -y $pkgList && echo INSTALL_SUCCESS_${pkg.checkBinary}"
 
         try {
-            val intent = Intent().apply {
-                action = "com.termux.RUN_COMMAND"
-                component = ComponentName("com.termux", "com.termux.app.RunCommandService")
-                putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
-                putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
-                putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
-            }
-            ContextCompat.startForegroundService(requireContext(), intent)
+            TermuxCommand.start(requireContext(), command)
 
-            simulateProgress(progressBar, statusText) {
-                progressSection.visibility = View.GONE
-                button.isEnabled = true
-                markInstalled(pkg)
-                setButtonState(button, true)
-                Toast.makeText(context, "${pkg.name} installed", Toast.LENGTH_SHORT).show()
-            }
+            verifyInstallation(pkg, progressBar, statusText, button, progressSection)
         } catch (e: Exception) {
             Log.e("StoreFragment", "Install failed: ${e.message}")
             Toast.makeText(context, "Failed to start install: ${e.message}", Toast.LENGTH_SHORT).show()
-            progressSection.visibility = View.GONE
-            button.isEnabled = true
-            setButtonState(button, isMarkedInstalled(pkg))
+            cleanupInstall(progressSection, progressBar, statusText, button, pkg)
         }
     }
 
-    private fun simulateProgress(progressBar: ProgressBar, statusText: TextView, onDone: () -> Unit) {
-        val totalDurationMs = 15000L
-        val stepMs = 150L
-        val steps = (totalDurationMs / stepMs).toInt()
-        var current = 0
+    private fun verifyInstallation(
+        pkg: StorePackage,
+        progressBar: ProgressBar,
+        statusText: TextView,
+        button: Button,
+        progressSection: LinearLayout
+    ) {
+        var checkCount = 0
+        val maxChecks = 40
+        val checkIntervalMs = 3000L
 
-        val runnable = object : Runnable {
-            override fun run() {
-                current += (steps / 30).coerceAtLeast(1)
-                if (current >= 100) {
-                    progressBar.progress = 100
-                    statusText.text = getStatusMessage(100)
-                    mainHandler.postDelayed({ onDone() }, 400)
-                    return
+        verifyScope.launch {
+            while (checkCount < maxChecks) {
+                delay(checkIntervalMs)
+                checkCount++
+
+                val progress = ((checkCount.toFloat() / maxChecks) * 100).toInt()
+                val finalProgress = progress.coerceIn(0, 99)
+
+                mainHandler.post {
+                    progressBar.progress = finalProgress
+                    statusText.text = "Verifying ${pkg.name}... (${checkCount}/${maxChecks})"
                 }
-                progressBar.progress = current
-                statusText.text = getStatusMessage(current)
-                mainHandler.postDelayed(this, stepMs)
+
+                if (isPackageInstalled(pkg)) {
+                    mainHandler.post {
+                        activeVerifications[pkg.checkBinary] = false
+                        installInProgress = false
+                        progressBar.progress = 100
+                        statusText.text = "Installation complete!"
+                        markInstalled(pkg)
+                        setButtonState(button, true)
+                        button.isEnabled = true
+                        Toast.makeText(context, "${pkg.name} installed!", Toast.LENGTH_SHORT).show()
+                        progressSection.postDelayed({ progressSection.visibility = View.GONE }, 1500)
+                    }
+                    return@launch
+                }
+            }
+
+            mainHandler.post {
+                activeVerifications[pkg.checkBinary] = false
+                installInProgress = false
+                progressBar.progress = 0
+                statusText.text = "Timeout - installation may have failed"
+                Toast.makeText(context, "${pkg.name}: Timeout waiting for verification. Try checking in the Terminal tab.", Toast.LENGTH_LONG).show()
             }
         }
-        mainHandler.post(runnable)
+    }
+
+    private fun isPackageInstalled(pkg: StorePackage): Boolean {
+        return try {
+            val file = java.io.File("/data/data/com.termux/files/usr/bin/${pkg.checkBinary}")
+            if (!file.exists() || !file.canExecute()) return false
+            val verifyCommand = "command -v ${pkg.checkBinary} >/dev/null 2>&1 && echo VERIFIED"
+            val intent = TermuxCommand.execute(requireContext(), verifyCommand, background = false)
+            try {
+                requireContext().startService(intent)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun cleanupInstall(
+        progressSection: LinearLayout,
+        progressBar: ProgressBar,
+        statusText: TextView,
+        button: Button,
+        pkg: StorePackage
+    ) {
+        activeVerifications[pkg.checkBinary] = false
+        installInProgress = false
+        progressSection.visibility = View.GONE
+        button.isEnabled = true
+        setButtonState(button, isMarkedInstalled(pkg))
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         mainHandler.removeCallbacksAndMessages(null)
+        verifyScope.coroutineContext[Job]?.cancel()
+        activeVerifications.clear()
     }
 }

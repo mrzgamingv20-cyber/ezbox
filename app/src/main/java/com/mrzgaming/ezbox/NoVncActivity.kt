@@ -10,6 +10,10 @@ class NoVncActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
+        val prefs = getSharedPreferences("EZBoxPrefs", MODE_PRIVATE)
+        val vncPassword = prefs.getString("vnc_password", "ezbox123")
+        val port = intent.getIntExtra("vnc_port", 6080)
+
         val webView = WebView(this)
         setContentView(webView)
 
@@ -20,7 +24,7 @@ class NoVncActivity : AppCompatActivity() {
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
-        val url = "file:///android_asset/novnc/index.html?host=localhost&port=6080&password=ezbox123&resize=scale&reconnect=true&reconnect_delay=2000&autoconnect=true"
+        val url = "file:///android_asset/novnc/index.html?host=localhost&port=$port&password=$vncPassword&resize=scale&reconnect=true&reconnect_delay=2000&autoconnect=true"
         webView.loadUrl(url)
     }
 

@@ -1,17 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.EZBox" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="android:windowBackground">@color/ezos_bg_black</item>
-        <item name="colorPrimary">@color/ezos_accent</item>
-        <item name="colorAccent">@color/ezos_accent</item>
+        <item name="android:windowBackground">@color/ezos_bg_base</item>
+        <item name="colorPrimary">@color/ezos_accent_gradient_start</item>
+        <item name="colorPrimaryVariant">@color/ezos_accent_gradient_end</item>
+        <item name="colorOnPrimary">@color/ezos_text_primary</item>
+        <item name="colorSecondary">@color/ezos_accent</item>
+        <item name="colorOnSecondary">@color/ezos_text_primary</item>
         <item name="android:textColorPrimary">@color/ezos_text_primary</item>
         <item name="android:textColorSecondary">@color/ezos_text_secondary</item>
         <item name="bottomNavigationStyle">@style/EZBox.BottomNav</item>
+        <item name="colorControlNormal">@color/ezos_text_secondary</item>
+        <item name="colorControlActivated">@color/ezos_accent</item>
+        <item name="colorControlHighlight">@color/ezos_accent</item>
+        <item name="android:statusBarColor">@color/ezos_bg_base</item>
+        <item name="android:navigationBarColor">@color/ezos_bg_base</item>
     </style>
 
     <style name="EZBox.BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemIconTint">@color/nav_icon_tint</item>
         <item name="itemTextColor">@color/nav_icon_tint</item>
         <item name="itemRippleColor">@color/ezos_accent</item>
+        <item name="android:background">@drawable/nav_pill_bg</item>
+    </style>
+
+    <style name="EZBox.GlassCard" parent="ShapeAppearance.MaterialComponents.Card">
+        <item name="shapeAppearanceOverlay">@style/EZBox.GlassCard.Shape</item>
+    </style>
+
+    <style name="EZBox.GlassCard.Shape" parent="">
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="EZBox.GlassButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/ezos_accent_gradient_start</item>
+        <item name="android:textColor">@color/ezos_bg_base</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="EZBox.GlassButtonOutline" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="strokeColor">@color/ezos_glass_border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/ezos_text_primary</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="EZBox.SplashTheme" parent="Theme.EZBox">
+        <item name="android:windowBackground">@color/ezos_bg_base</item>
+        <item name="android:statusBarColor">@color/ezos_bg_base</item>
     </style>
 </resources>

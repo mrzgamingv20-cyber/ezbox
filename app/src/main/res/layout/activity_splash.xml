@@ -4,16 +4,24 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/ezos_bg_black">
+    android:background="@color/ezos_bg_base">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@mipmap/ic_launcher"
+        android:alpha="0.9"
+        android:layout_marginBottom="20dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="EZBox"
-        android:textColor="@color/ezos_accent"
+        android:textColor="@color/ezos_accent_gradient_start"
         android:textSize="42sp"
         android:textStyle="bold"
-        android:letterSpacing="0.02" />
+        android:letterSpacing="0.02"
+        android:fontFamily="sans-serif-medium" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -27,6 +35,6 @@
     <ProgressBar
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:indeterminateTint="@color/ezos_accent" />
+        android:indeterminateTint="@color/ezos_accent_gradient_start" />
 
 </LinearLayout>

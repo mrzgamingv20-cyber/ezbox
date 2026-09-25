@@ -89,7 +89,7 @@ class SettingsFragment : Fragment() {
             inputPassword.hint = "Default: ezbox123"
         }
         switchKeepAwake.isChecked = prefs.getBoolean("keep_awake", false)
-        switchAutoStop.isChecked = prefs.getBoolean("auto_stop_background", true)
+        switchAutoStop.isChecked = prefs.getBoolean("auto_stop_background", false)
 
         checkViewOnly.isChecked = prefs.getBoolean("view_only_mode", false)
         checkDisableClipboard.isChecked = prefs.getBoolean("disable_clipboard", false)
@@ -141,6 +141,15 @@ class SettingsFragment : Fragment() {
                 prefs.edit().putString("vnc_password", pw).apply()
             }
         }
+
+        inputPassword.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val pw = s?.toString()?.ifBlank { "ezbox123" } ?: "ezbox123"
+                prefs.edit().putString("vnc_password", pw).apply()
+            }
+        })
 
         switchKeepAwake.setOnCheckedChangeListener { _, checked ->
             prefs.edit().putBoolean("keep_awake", checked).apply()
@@ -203,7 +212,7 @@ class SettingsFragment : Fragment() {
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
-            ContextCompat.startForegroundService(requireContext(), intent)
+            requireContext().startService(intent)
             android.widget.Toast.makeText(context, "Desktop reset. Next launch will set up a fresh environment.", android.widget.Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             android.widget.Toast.makeText(context, "Reset failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()

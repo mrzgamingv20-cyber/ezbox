@@ -28,13 +28,24 @@
 **EZBox** is an Android app that runs a full Linux desktop environment (XFCE4) directly on your phone using a Termux backend — similar to Winlator, but built on native Termux instead of proot-distro, chroot, or full virtualization.
 
 - **Package:** `com.mrzgaming.ezbox`
-- **Version:** `1.0 "La Peace"`
+- **Version:** `1.1`
 - **Target:** Android ARM64 (aarch64), minSdk 24, targetSdk 34
 
 ---
 
-🚨 This repository has been temporarily suspended.
+## 📝 Changelog
 
+### v1.1
+- Fixed: Software Store now performs actual `pkg install` via Termux with real verification polling
+- Fixed: Shortcut intent "Launch Desktop" now properly triggers desktop launch
+- Fixed: NoVncActivity uses password from settings instead of hardcoded value
+- Fixed: Background stop only kills desktop when app truly leaves foreground
+- Refactored: Extracted Termux command execution to `TermuxCommand` helper
+- Added: ProGuard rules and release build configuration
+- Fixed: Deprecated `Environment.getExternalStoragePublicDirectory` usage
+- Fixed: RFB protocol `skipFully` negative skip handling
+
+### v1.0 "La Peace"
 
 ## ✨ Features
 

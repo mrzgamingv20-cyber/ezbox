@@ -1,25 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ezos_bg_black">#000000</color>
-    <color name="ezos_card_bg">#121417</color>
-    <color name="ezos_card_border">#1F2937</color>
+    <!-- Glassmorphism Palette -->
+    <color name="ezos_bg_base">#080C14</color>
+    <color name="ezos_bg_black">#080C14</color>
+    <color name="ezos_bg_dark">#0A0F1A</color>
+    <color name="ezos_surface">#0E1525</color>
+    <color name="ezos_surface_light">#141C2E</color>
+    <color name="ezos_card_bg">#0E1525</color>
+    <color name="ezos_card_border">#1E2D4A</color>
+    <color name="ezos_card_glass">#1A2540</color>
 
-    <color name="ezos_accent">#22D3EE</color>
+    <!-- Gradient Accent -->
+    <color name="ezos_accent">#5B8FFF</color>
+    <color name="ezos_accent_end">#8B5CF6</color>
     <color name="ezos_accent_glow">#0E7490</color>
     <color name="ezos_accent_soft">#164E4F</color>
+    <color name="ezos_accent_gradient_start">#5B8FFF</color>
+    <color name="ezos_accent_gradient_end">#8B5CF6</color>
 
-    <color name="ezos_text_primary">#F5F5F7</color>
-    <color name="ezos_text_secondary">#8B939E</color>
+    <!-- Typography -->
+    <color name="ezos_text_primary">#F0F4FF</color>
+    <color name="ezos_text_secondary">#8892B0</color>
+    <color name="ezos_text_muted">#4A6080</color>
     <color name="ezos_success">#4ADE80</color>
 
-    <!-- Aksen warna sekunder untuk badge ikon per-package di Store, biar variatif kayak referensi -->
-    <color name="ezos_icon_cyan">#22D3EE</color>
+    <!-- Icon Badges -->
+    <color name="ezos_icon_cyan">#5B8FFF</color>
     <color name="ezos_icon_blue">#60A5FA</color>
     <color name="ezos_icon_green">#4ADE80</color>
     <color name="ezos_icon_amber">#FBBF24</color>
     <color name="ezos_icon_rose">#FB7185</color>
 
-    <!-- Alias kompatibilitas dengan layout lama -->
-    <color name="ezos_bg_dark">#000000</color>
-    <color name="ezos_primary">#22D3EE</color>
+    <!-- Glass Effect -->
+    <color name="ezos_glass_bg">#0E1525</color>
+    <color name="ezos_glass_border">#2D4270</color>
+    <color name="ezos_glass_highlight">#1A2540</color>
+
+    <!-- Compatibility -->
+    <color name="ezos_bg_dark">#080C14</color>
+    <color name="ezos_primary">#5B8FFF</color>
 </resources>

@@ -12,12 +12,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper --gradle-version=8.5
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
       - name: Build APK
-        run: ./gradlew clean assembleDebug
+        run: |
+          chmod +x gradlew 2>/dev/null || true
+          if [ -f gradlew ]; then ./gradlew clean assembleDebug; else gradle clean assembleDebug; fi
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

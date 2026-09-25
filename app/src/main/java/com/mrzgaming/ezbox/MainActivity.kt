@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavRef: BottomNavigationView
     private lateinit var btnHamburger: ImageButton
-    private var menuOpen = false
 
     fun navigateTo(itemId: Int) {
         bottomNavRef.selectedItemId = itemId
@@ -83,6 +82,11 @@ class MainActivity : AppCompatActivity() {
         when (intent?.getStringExtra("shortcut_action")) {
             "launch_desktop" -> {
                 navigateTo(R.id.nav_home)
+                // Trigger launch after fragment is restored
+                window.decorView.postDelayed({
+                    val homeFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? HomeFragment
+                    homeFragment?.performLaunch()
+                }, 200)
             }
             "open_store" -> {
                 navigateTo(R.id.nav_store)
@@ -189,6 +193,14 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(true)
                     .show()
             }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Delegate to active fragments
+        for (fragment in supportFragmentManager.fragments) {
+            fragment.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
 }

@@ -15,12 +15,22 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     private lateinit var output: DataOutputStream
     private val writeLock = Any()
 
+    /** Teks clipboard terakhir yang dikirim dari desktop ke Android */
+    var serverClipboardText: String? = null
+        private set
+
+    fun clearServerClipboard() { serverClipboardText = null }
+
     var width: Int = 0
     var height: Int = 0
     var bitsPerPixel: Int = 32
 
     lateinit var bitmap: Bitmap
         private set
+
+    // Reusable buffer untuk Hextile decoding — menghindari ribuan heap allocation per frame
+    private val tileBuf = IntArray(16 * 16)
+    private val tileRowBytes = ByteArray(16 * 2) // max tile width * 2 bytes per pixel (RGB565)
 
     fun connect(): Boolean {
         try {
@@ -254,16 +264,14 @@ class RfbClient(private val host: String, private val port: Int, private val pas
 
                 when {
                     subEncoding and 0x01 != 0 -> {
-                        // Raw tile
-                        val pixels = IntArray(tileWidth * tileHeight)
-                        val rowBytes = ByteArray(tileWidth * 2)
+                        // Raw tile — pakai reusable buffer
                         for (row in 0 until tileHeight) {
-                            input.readFully(rowBytes)
+                            input.readFully(tileRowBytes, 0, tileWidth * 2)
                             for (col in 0 until tileWidth) {
-                                pixels[row * tileWidth + col] = rgb565ToArgb(rowBytes, col * 2)
+                                tileBuf[row * tileWidth + col] = rgb565ToArgb(tileRowBytes, col * 2)
                             }
                         }
-                        bitmap.setPixels(pixels, 0, tileWidth, tileX, tileY, tileWidth, tileHeight)
+                        bitmap.setPixels(tileBuf, 0, tileWidth, tileX, tileY, tileWidth, tileHeight)
                     }
                     else -> {
                         if (subEncoding and 0x02 != 0) {
@@ -277,8 +285,8 @@ class RfbClient(private val host: String, private val port: Int, private val pas
                             fgColor = rgb565ToArgb(c, 0)
                         }
 
-                        // Fill tile dengan bgColor dulu
-                        val pixels = IntArray(tileWidth * tileHeight) { bgColor }
+                        // Fill tile dengan bgColor dulu — pakai reusable buffer
+                        java.util.Arrays.fill(tileBuf, 0, tileWidth * tileHeight, bgColor)
 
                         if (subEncoding and 0x08 != 0) {
                             val numSubrects = input.readUnsignedByte()
@@ -301,13 +309,13 @@ class RfbClient(private val host: String, private val port: Int, private val pas
 
                                 for (row in sy until minOf(sy + sh, tileHeight)) {
                                     for (col in sx until minOf(sx + sw, tileWidth)) {
-                                        pixels[row * tileWidth + col] = color
+                                        tileBuf[row * tileWidth + col] = color
                                     }
                                 }
                             }
                         }
 
-                        bitmap.setPixels(pixels, 0, tileWidth, tileX, tileY, tileWidth, tileHeight)
+                        bitmap.setPixels(tileBuf, 0, tileWidth, tileX, tileY, tileWidth, tileHeight)
                     }
                 }
 
@@ -336,7 +344,7 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         var remaining = n
         while (remaining > 0) {
             val skipped = input.skipBytes(remaining)
-            if (skipped <= 0) {
+            if (skipped < 0) {
                 if (input.read() == -1) throw java.io.EOFException("Unexpected end of stream while skipping")
                 remaining -= 1
             } else {
@@ -357,7 +365,13 @@ class RfbClient(private val host: String, private val port: Int, private val pas
         // pertama TEKS sebagai length, bikin stream desync total (freeze).
         skipFully(3)
         val length = input.readInt()
-        skipFully(length)
+        if (length in 1..1_000_000) {
+            val textBytes = ByteArray(length)
+            input.readFully(textBytes)
+            serverClipboardText = String(textBytes, Charsets.ISO_8859_1)
+        } else if (length > 0) {
+            skipFully(length)
+        }
     }
 
     fun sendPointerEvent(x: Int, y: Int, buttonMask: Int) {
