@@ -37,6 +37,5 @@
     <color name="ezos_glass_highlight">#1A2540</color>
 
     <!-- Compatibility -->
-    <color name="ezos_bg_dark">#080C14</color>
     <color name="ezos_primary">#5B8FFF</color>
 </resources>
