@@ -404,9 +404,9 @@ class HomeFragment : Fragment() {
         statusPollRunnable?.let { statusPollHandler.removeCallbacks(it) }
         launchWaitRunnable?.let { launchWaitHandler.removeCallbacks(it) }
     }
-
-    private enum class ContainerAction { LAUNCH, EDIT, DELETE }
 }
+
+enum class ContainerAction { LAUNCH, EDIT, DELETE }
 
 class ContainerAdapter(
     private val containers: List<Container>,

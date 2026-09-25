@@ -59,7 +59,9 @@ class FileManagerFragment : Fragment() {
             tvEmpty?.text = "Path not found: $path"
             return
         }
-        val files = dir.listFiles()?.sortedWith(compareBy { !it.isDirectory }.thenBy { it.name }) ?: emptyList()
+        val files: List<File> = dir.listFiles()?.sortedWith(
+            compareBy<File> { !it.isDirectory }.thenBy { it.name }
+        ) ?: emptyList()
         if (files.isEmpty()) {
             recyclerFiles?.visibility = View.GONE
             tvEmpty?.visibility = View.VISIBLE
@@ -89,8 +91,8 @@ class FileManagerFragment : Fragment() {
                 when (which) {
                     0 -> {
                         val clip = android.content.ClipData.newPlainText("path", file.absolutePath)
-                        requireContext().getSystemService(Context.CLIPBOARD_SERVICE)
-                            ?.let { it.setPrimaryClip(clip) }
+                        (requireContext().getSystemService(Context.CLIPBOARD_SERVICE)
+                            as android.content.ClipboardManager).setPrimaryClip(clip)
                     }
                     1 -> {
                         val size = if (file.length() > 0) formatSize(file.length()) else "Directory"

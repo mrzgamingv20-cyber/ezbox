@@ -43,6 +43,15 @@ class SettingsFragment : Fragment() {
     private lateinit var chevronVnc: TextView
     private lateinit var panelVncSub: LinearLayout
 
+    private fun Spinner.onItemSelectedListenerCompat(onSelected: (Int) -> Unit) {
+        onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                onSelected(position)
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
         prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
@@ -252,11 +261,3 @@ class SettingsFragment : Fragment() {
     }
 }
 
-private fun Spinner.setOnItemSelectedListenerCompat(onSelected: (Int) -> Unit) {
-    this.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-            onSelected(position)
-        }
-        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-    }
-}

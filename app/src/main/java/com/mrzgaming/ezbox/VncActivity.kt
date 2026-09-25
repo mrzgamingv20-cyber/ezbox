@@ -8,6 +8,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.InputDevice
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -64,6 +65,7 @@ class VncActivity : AppCompatActivity() {
 
     private val KEY_CTRL_L = 0xFFE3
     private val KEY_ALT_L = 0xFFE9
+    private val KEY_ENTER = 0xFF0D
     private val KEY_ESC = 0xFF1B
     private val KEY_TAB = 0xFF09
     private val KEY_UP = 0xFF52
