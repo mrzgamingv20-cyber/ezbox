@@ -28,12 +28,24 @@
 **EZBox** is an Android app that runs a full Linux desktop environment (XFCE4) directly on your phone using a Termux backend — similar to Winlator, but built on native Termux instead of proot-distro, chroot, or full virtualization.
 
 - **Package:** `com.mrzgaming.ezbox`
-- **Version:** `1.1`
+- **Version:** `1.2`
 - **Target:** Android ARM64 (aarch64), minSdk 24, targetSdk 34
 
 ---
 
 ## 📝 Changelog
+
+### v1.2
+- Added: Container-based navigation with RecyclerView (Home tab)
+- Added: Apps Library tab with grid of installed Linux apps
+- Added: Files Manager tab with storage browser
+- Added: Graphics settings (Renderer, Scale, VSync, Render Quality)
+- Added: Gamepad/controller support (DPAD, analog sticks, A/B/X/Y buttons)
+- Added: VNC status notification channel (running/idle)
+- Added: Splash screen animation (scale + fade)
+- UI Refresh: Glassmorphism design across all layouts, colors, themes, drawables
+- Added: `ic_nav_files`, `ic_home`, `ic_add` vector icons
+- Refactored: `EZBoxNotificationManager` for notification lifecycle
 
 ### v1.1
 - Fixed: Software Store now performs actual `pkg install` via Termux with real verification polling
