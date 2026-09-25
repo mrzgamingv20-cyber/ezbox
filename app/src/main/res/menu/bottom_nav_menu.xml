@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_nav_apps"
         android:title="Apps" />
     <item
+        android:id="@+id/nav_files"
+        android:icon="@drawable/ic_nav_files"
+        android:title="Files" />
+    <item
         android:id="@+id/nav_store"
         android:icon="@drawable/ic_nav_store"
         android:title="Store" />

@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.InputMethodManager
+import android.view.InputDevice
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -22,6 +22,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.mrzgaming.ezbox.EZBoxNotificationManager
 
 class VncActivity : AppCompatActivity() {
     private lateinit var vncScreen: ImageView
@@ -40,6 +41,8 @@ class VncActivity : AppCompatActivity() {
     private var typedBuffer = StringBuilder()
     private var rfbClient: RfbClient? = null
     private var running = false
+    private val notificationManager = EZBoxNotificationManager(this)
+    private var gamepadConnected = false
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var mouseMode = "direct"
     private var lastTrackpadX = 0f
@@ -116,6 +119,7 @@ class VncActivity : AppCompatActivity() {
         btnExpandKeys.setOnClickListener { toggleExtraKeysBar() }
 
         connectAndRender()
+        notificationManager.showRunningNotification(intent.getStringExtra("container_name") ?: "EZBox")
         setupKeyboardInput()
         setupExtraKeys()
         setupClipboardAndScreenshot()
@@ -165,6 +169,7 @@ class VncActivity : AppCompatActivity() {
         } finally {
             running = false
             rfbClient?.close()
+            notificationManager.cancel()
             finish()
         }
     }
@@ -583,10 +588,45 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP -> sendKeysym(KEY_UP)
+            KeyEvent.KEYCODE_DPAD_DOWN -> sendKeysym(KEY_DOWN)
+            KeyEvent.KEYCODE_DPAD_LEFT -> sendKeysym(KEY_LEFT)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> sendKeysym(KEY_RIGHT)
+            KeyEvent.KEYCODE_ENTER -> sendKeysym(KEY_ENTER)
+            KeyEvent.KEYCODE_BUTTON_A -> sendKeysym(KEY_ENTER)
+            KeyEvent.KEYCODE_BUTTON_B -> sendKeysym(KEY_ESC)
+            KeyEvent.KEYCODE_BUTTON_X -> sendKeysym(KEY_TAB)
+            KeyEvent.KEYCODE_BUTTON_Y -> sendKeysym(KEY_F1)
+            KeyEvent.KEYCODE_BUTTON_L1 -> sendKeysym(KEY_CTRL_L)
+            KeyEvent.KEYCODE_BUTTON_R1 -> sendKeysym(KEY_ALT_L)
+            KeyEvent.KEYCODE_BACK -> return false
+            else -> return super.onKeyDown(keyCode, event)
+        }
+        return true
+    }
+
+    override fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+        if (event?.source?.and(InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+            val x = event.getAxisValue(MotionEvent.AXIS_X)
+            val y = event.getAxisValue(MotionEvent.AXIS_Y)
+            val rx = event.getAxisValue(MotionEvent.AXIS_Z)
+            val ry = event.getAxisValue(MotionEvent.AXIS_RZ)
+            if (Math.abs(y) > 0.5f) sendKeysym(if (y < 0) KEY_UP else KEY_DOWN)
+            if (Math.abs(x) > 0.5f) sendKeysym(if (x < 0) KEY_LEFT else KEY_RIGHT)
+            if (Math.abs(rx) > 0.5f) sendKeysym(KEY_F1)
+            if (Math.abs(ry) > 0.5f) sendKeysym(KEY_F2)
+            return true
+        }
+        return super.onGenericMotionEvent(event)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         running = false
         rfbClient?.close()
         scope.coroutineContext[Job]?.cancel()
+        notificationManager.cancel()
     }
 }
