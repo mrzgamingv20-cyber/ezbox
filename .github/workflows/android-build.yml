@@ -15,21 +15,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: wzieczorek15/setup-android@v2
-        with:
-          android-sdk-version: '34.0.0'
-          build-tools-version: '34.0.0'
-          ndk-version: '25.1.8937393'
+      - uses: android-actions/setup-android@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build APK
-        run: ./gradlew clean assembleDebug
+        run: ./gradlew assembleDebug
         env:
-          JAVA_OPTS: "-Xmx4096m"
-          ANDROID_SDK_ROOT: $ANDROID_HOME
+          JAVA_OPTS: "-Xmx4g"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
