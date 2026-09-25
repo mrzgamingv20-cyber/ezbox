@@ -24,27 +24,6 @@
         <item name="android:background">@drawable/nav_pill_bg</item>
     </style>
 
-    <style name="EZBox.GlassCard" parent="ShapeAppearance.MaterialComponents.Card">
-        <item name="shapeAppearanceOverlay">@style/EZBox.GlassCard.Shape</item>
-    </style>
-
-    <style name="EZBox.GlassCard.Shape" parent="">
-        <item name="cornerSize">14dp</item>
-    </style>
-
-    <style name="EZBox.GlassButton" parent="Widget.MaterialComponents.Button">
-        <item name="backgroundTint">@color/ezos_accent_gradient_start</item>
-        <item name="android:textColor">@color/ezos_bg_base</item>
-        <item name="cornerSize">12dp</item>
-    </style>
-
-    <style name="EZBox.GlassButtonOutline" parent="Widget.MaterialComponents.Button.TextButton">
-        <item name="strokeColor">@color/ezos_glass_border</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="android:textColor">@color/ezos_text_primary</item>
-        <item name="cornerSize">12dp</item>
-    </style>
-
     <style name="EZBox.SplashTheme" parent="Theme.EZBox">
         <item name="android:windowBackground">@color/ezos_bg_base</item>
         <item name="android:statusBarColor">@color/ezos_bg_base</item>
