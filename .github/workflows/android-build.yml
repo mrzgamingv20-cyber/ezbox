@@ -15,17 +15,22 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-        with:
-          sdk-version: '34.0.0'
-          ndk-version: '25.1.8937393'
-          build-tools-version: '34.0.0'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK command-line tools
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest/bin
+          sdkmanager --licenses || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;25.1.8937393"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build APK
         run: ./gradlew clean assembleDebug
+        env:
+          JAVA_OPTS: "-Xmx4096m"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
