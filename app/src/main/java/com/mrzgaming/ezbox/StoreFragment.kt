@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.CoroutineScope
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -48,7 +49,9 @@ class StoreFragment : Fragment() {
     private lateinit var pillContainer: LinearLayout
     private lateinit var tvNoResults: TextView
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val verifyScope = CoroutineScope(Dispatchers.Main + Job())
+    // Recreated on each onCreateView: cancelling the Job without replacing it left every
+    // later verifyScope.launch as an immediate no-op, so installs could never be verified.
+    private var verifyScope = CoroutineScope(Dispatchers.Main + Job())
     private val activeVerifications = mutableMapOf<String, Boolean>()
     private var installInProgress = false
 
@@ -57,6 +60,7 @@ class StoreFragment : Fragment() {
     private fun markInstalled(pkg: StorePackage) = prefs.edit().putBoolean(prefKeyFor(pkg), true).apply()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        verifyScope = CoroutineScope(Dispatchers.Main + Job())
         prefs = requireContext().getSharedPreferences("ezbox_store", 0)
         val view = inflater.inflate(R.layout.fragment_store, container, false)
         itemContainer = view.findViewById(R.id.storeItemContainer)
@@ -394,19 +398,32 @@ class StoreFragment : Fragment() {
         }
     }
 
+    /**
+     * Verifies via a marker file in shared storage, because /data/data/com.termux is mode
+     * 0700 owned by Termux: File.exists() there is always false from this uid, so the
+     * "Installation complete!" branch used to be unreachable and every install ended in
+     * "Timeout" even on success. getExternalFilesDir is the one location both apps can
+     * reach - EZBox owns it, and Termux (targetSdk 28) is not scoped-storage blocked.
+     */
+    private fun probeMarker(pkg: StorePackage): File {
+        val root = requireContext().getExternalFilesDir(null) ?: File("/storage/emulated/0/Download")
+        return File(File(root, "ezbox_install_probes"), pkg.checkBinary)
+    }
+
     private fun isPackageInstalled(pkg: StorePackage): Boolean {
+        val marker = probeMarker(pkg)
+        if (marker.exists()) {
+            marker.delete()
+            return true
+        }
         return try {
-            val file = java.io.File("/data/data/com.termux/files/usr/bin/${pkg.checkBinary}")
-            if (!file.exists() || !file.canExecute()) return false
-            val verifyCommand = "command -v ${pkg.checkBinary} >/dev/null 2>&1 && echo VERIFIED"
-            val intent = TermuxCommand.execute(requireContext(), verifyCommand, background = false)
-            try {
-                requireContext().startService(intent)
-                true
-            } catch (e: Exception) {
-                false
-            }
+            marker.parentFile?.mkdirs()
+            val verifyCommand = "command -v ${pkg.checkBinary} >/dev/null 2>&1 && " +
+                "touch '${marker.absolutePath}'"
+            requireContext().startService(TermuxCommand.execute(requireContext(), verifyCommand, background = false))
+            false
         } catch (e: Exception) {
+            Log.e("EZBox", "Install verification failed: ${e.message}")
             false
         }
     }

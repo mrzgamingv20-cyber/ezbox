@@ -82,23 +82,36 @@ class HomeFragment : Fragment() {
     private fun loadContainers() {
         val prefs = requireActivity().getSharedPreferences("EZBoxContainers", Context.MODE_PRIVATE)
         val json = prefs.getString("container_list", null)
-        if (!json.isNullOrEmpty()) {
-            try {
-                val map = com.google.gson.Gson().fromJson(json, Map::class.java) as? Map<String, *>
-                if (map != null) {
-                    containerList.clear()
-                    for ((_, value) in map) {
-                        val containerMap = value as? Map<String, *>
-                        if (containerMap != null) {
-                            containerList.add(Container.fromMap(containerMap))
+        containerList.clear()
+        if (json.isNullOrEmpty()) {
+            containerList.add(Container.defaultContainer())
+            return
+        }
+        try {
+            // Stored as an ordered array, not a map: a HashMap has no order, so
+            // containerList[0] (the one performLaunch opens) changed between runs, and
+            // two containers sharing an id silently dropped one.
+            val list = com.google.gson.Gson().fromJson(json, com.google.gson.JsonArray::class.java)
+            for (element in list) {
+                val obj = element.asJsonObject
+                val map = HashMap<String, Any?>()
+                obj.entrySet().forEach { map[it.key] = it.value?.let { v ->
+                    if (v.isJsonPrimitive) {
+                        when {
+                            v.asJsonPrimitive.isBoolean -> v.asBoolean
+                            v.asJsonPrimitive.isNumber -> v.asDouble
+                            else -> v.asString
                         }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("EZBox", "Failed to load containers: ${e.message}")
-                containerList.add(Container.defaultContainer())
+                    } else null
+                } }
+                containerList.add(Container.fromMap(map))
             }
-        } else {
+        } catch (e: Exception) {
+            Log.e("EZBox", "Failed to load containers: ${e.message}")
+            containerList.clear()
+            containerList.add(Container.defaultContainer())
+        }
+        if (containerList.isEmpty()) {
             containerList.add(Container.defaultContainer())
         }
         containerAdapter?.notifyDataSetChanged()
@@ -106,11 +119,22 @@ class HomeFragment : Fragment() {
 
     private fun saveContainers() {
         val prefs = requireActivity().getSharedPreferences("EZBoxContainers", Context.MODE_PRIVATE)
-        val map = HashMap<String, Container>()
+        // Ordered array, not a map: a HashMap has no order, so containerList[0] (the one
+        // performLaunch opens) changed between runs, and two containers sharing an id
+        // silently dropped one.
+        val array = com.google.gson.JsonArray()
         for (container in containerList) {
-            map[container.id] = container
+            val obj = com.google.gson.JsonObject()
+            for ((k, v) in container.toMap()) {
+                when (v) {
+                    is Number -> obj.addProperty(k, v)
+                    is Boolean -> obj.addProperty(k, v)
+                    else -> obj.addProperty(k, v.toString())
+                }
+            }
+            array.add(obj)
         }
-        prefs.edit().putString("container_list", com.google.gson.Gson().toJson(map)).apply()
+        prefs.edit().putString("container_list", com.google.gson.Gson().toJson(array)).apply()
     }
 
     private fun setupRecycler() {
@@ -148,8 +172,11 @@ class HomeFragment : Fragment() {
         prefs.edit().putLong("desktop_launch_time", System.currentTimeMillis()).apply()
 
         val statusPath = downloadsDir?.let { File(it, "ezbox_backend_status.txt").absolutePath } ?: "/storage/emulated/0/Download/ezbox_backend_status.txt"
+        // A password containing ' would otherwise break out of the quotes and inject
+        // arbitrary shell into the Termux command.
+        val safePassword = vncPassword.orEmpty().replace("'", "'\\''")
         val command = "echo running > $statusPath; " +
-            "EZBOX_RES=$resolution EZBOX_DE=$de EZBOX_VNC_PASSWORD='$vncPassword' ezos-run EZOS; " +
+            "EZBOX_RES=$resolution EZBOX_DE=$de EZBOX_VNC_PASSWORD='$safePassword' ezos-run EZOS; " +
             "echo idle > $statusPath"
 
         TermuxCommand.start(requireContext(), command)
@@ -344,7 +371,9 @@ class HomeFragment : Fragment() {
             val totalMb = memInfo.totalMem / (1024 * 1024)
             val availMb = memInfo.availMem / (1024 * 1024)
             val usedMb = totalMb - availMb
-            val usedPercent = ((usedMb.toDouble() / totalMb.toDouble()) * 100).toInt()
+            // totalMb can be 0, which made this -Infinity.toInt() = Int.MIN_VALUE,
+            // so the ring rendered "-2147483648%".
+            val usedPercent = if (totalMb > 0) ((usedMb.toDouble() / totalMb.toDouble()) * 100).toInt() else 0
             ringRam?.progress = usedPercent
             tvRamPercent?.text = "$usedPercent%"
             tvRamDetail?.text = "${usedMb}MB / ${totalMb}MB used"
@@ -403,6 +432,17 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         statusPollRunnable?.let { statusPollHandler.removeCallbacks(it) }
         launchWaitRunnable?.let { launchWaitHandler.removeCallbacks(it) }
+        // Drop view refs, otherwise they outlive the inflated hierarchy.
+        tvBackendStatus = null; tvUptime = null; ringRam = null
+        tvRamPercent = null; tvRamDetail = null; tvGreeting = null
+        fabAdd = null; recyclerContainers = null; containerAdapter = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // MainActivity builds a new fragment per nav tap, so an unshut executor
+        // would leave one idle non-daemon thread behind on every tab switch.
+        checkExecutor.shutdownNow()
     }
 }
 

@@ -30,6 +30,12 @@ object TermuxCommand {
         errorCallbacks += callback
     }
 
+    /** Removes a previously registered callback. Without this the static list pins every
+     *  Activity that ever registered, for the life of the process. */
+    fun removeErrorListener(callback: (String) -> Unit) {
+        errorCallbacks -= callback
+    }
+
     private val errorCallbacks = mutableListOf<(String) -> Unit>()
 
     private fun ensureReceiver(context: Context) {

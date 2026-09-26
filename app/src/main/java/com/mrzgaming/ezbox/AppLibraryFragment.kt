@@ -46,11 +46,16 @@ class AppLibraryFragment : Fragment() {
             val json = containerPrefs.getString("container_list", null)
             val container = if (!json.isNullOrEmpty()) {
                 try {
-                    val map = com.google.gson.Gson().fromJson(json, Map::class.java) as? Map<String, *>
-                    map?.values?.firstOrNull() as? Map<String, *>
+                    // Ordered array, matching HomeFragment.saveContainers().
+                    val list = com.google.gson.Gson().fromJson(json, com.google.gson.JsonArray::class.java)
+                    list.firstOrNull()?.asJsonObject
                 } catch (e: Exception) { null }
             } else null
-            val firstContainer = container?.let { Container.fromMap(it as Map<String, *>) }
+            val firstContainer = container?.let { obj ->
+                val map = HashMap<String, Any?>()
+                obj.entrySet().forEach { e -> map[e.key] = e.value?.asString }
+                Container.fromMap(map)
+            }
 
             if (firstContainer != null) {
                 val intent = Intent(requireContext(), VncActivity::class.java)

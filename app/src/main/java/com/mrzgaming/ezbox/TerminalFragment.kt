@@ -19,15 +19,17 @@ class TerminalFragment : Fragment() {
 
     private val termuxPackage = "com.termux"
     private val termuxFdroidUrl = "https://f-droid.org/packages/com.termux/"
-    private val debugLogPath: String
-        get() {
-            val dir = try {
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            } catch (e: Exception) {
-                requireContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return ""
+    private var debugLogPath: String = ""
+    private fun resolveDebugLogPath() {
+        val dir = try {
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        } catch (e: Exception) {
+            context?.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: run {
+                debugLogPath = ""; return
             }
-            return File(dir, "ezbox_debug.log").absolutePath
         }
+        debugLogPath = File(dir, "ezbox_debug.log").absolutePath
+    }
 
     private var terminalOutput: TextView? = null
     private val refreshHandler = Handler(Looper.getMainLooper())
@@ -94,15 +96,35 @@ class TerminalFragment : Fragment() {
         }
     }
 
+    /** Reads at most the last [n] lines without loading the whole file. */
+    private fun tailLines(file: File, n: Int): String {
+        val maxBytes = 64L * 1024
+        val start = maxOf(0L, file.length() - maxBytes)
+        java.io.RandomAccessFile(file, "r").use { raf ->
+            raf.seek(start)
+            val bytes = ByteArray((raf.length() - start).toInt())
+            raf.readFully(bytes)
+            val text = String(bytes, Charsets.UTF_8)
+            val lines = text.lines()
+            // A partial first line is expected when we started mid-file.
+            return lines.drop(if (start > 0) 1 else 0).takeLast(n).joinToString("\n")
+        }
+    }
+
     private fun loadDebugLog() {
-        // Baca file di background thread supaya tidak ANR kalau log besar
+        // Resolve the path on the main thread first: this getter used to call
+        // requireContext() from the executor, which throws IllegalStateException on
+        // detach and was swallowed by the catch below, so the pane failed forever.
+        resolveDebugLogPath()
+        val path = debugLogPath
         logExecutor.execute {
             try {
-                val file = File(debugLogPath)
+                val file = File(path)
                 val text = if (file.exists()) {
-                    val lines = file.readLines()
-                    val recent = lines.takeLast(80).joinToString("\n")
-                    if (recent.isBlank()) "Log is empty." else recent
+                    // readLines() materialised the whole (unbounded) log before takeLast,
+                    // so a large ezbox_debug.log OOM'd the process on a background thread.
+                    val tail = tailLines(file, 80)
+                    if (tail.isBlank()) "Log is empty." else tail
                 } else {
                     "No logs yet."
                 }
@@ -125,5 +147,11 @@ class TerminalFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         stopAutoRefresh()
+        terminalOutput = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        logExecutor.shutdownNow()
     }
 }

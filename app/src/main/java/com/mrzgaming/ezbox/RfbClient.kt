@@ -93,6 +93,7 @@ class RfbClient(private val host: String, private val port: Int, private val pas
             return true
         } catch (e: Exception) {
             Log.e("RfbClient", "Connection failed: ${e.message}")
+            close()
             return false
         }
     }
@@ -408,7 +409,11 @@ class RfbClient(private val host: String, private val port: Int, private val pas
 
     fun close() {
         try {
-            socket.close()
+            // connect() assigns socket late; if the constructor itself threw, closing here
+            // would raise UninitializedPropertyAccessException instead of cleaning up.
+            if (::socket.isInitialized) {
+                socket.close()
+            }
         } catch (e: Exception) {
             Log.e("RfbClient", "Error closing socket: ${e.message}")
         }

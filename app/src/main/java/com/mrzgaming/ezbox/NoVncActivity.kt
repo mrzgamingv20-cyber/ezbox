@@ -6,6 +6,11 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 
 class NoVncActivity : AppCompatActivity() {
+
+    // Held as a field so onDestroy can reach it. As a local val it was impossible to
+    // destroy, so the reconnect=true JS loop kept polling every 2s forever.
+    private var webView: WebView? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -14,10 +19,11 @@ class NoVncActivity : AppCompatActivity() {
         val vncPassword = prefs.getString("vnc_password", "ezbox123")
         val port = intent.getIntExtra("vnc_port", 6080)
 
-        val webView = WebView(this)
-        setContentView(webView)
+        val wv = WebView(this)
+        webView = wv
+        setContentView(wv)
 
-        webView.settings.apply {
+        wv.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
             cacheMode = WebSettings.LOAD_NO_CACHE
@@ -25,10 +31,28 @@ class NoVncActivity : AppCompatActivity() {
         }
 
         val url = "file:///android_asset/novnc/index.html?host=localhost&port=$port&password=$vncPassword&resize=scale&reconnect=true&reconnect_delay=2000&autoconnect=true"
-        webView.loadUrl(url)
+        wv.loadUrl(url)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        webView?.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        webView?.onResume()
     }
 
     override fun onDestroy() {
+        webView?.apply {
+            stopLoading()
+            loadUrl("about:blank")
+            clearHistory()
+            removeAllViews()
+            destroy()
+        }
+        webView = null
         super.onDestroy()
     }
 }

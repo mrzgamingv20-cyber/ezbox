@@ -83,11 +83,16 @@ class VncActivity : AppCompatActivity() {
     private val KEY_PGDN = 0xFF56
     private val KEY_DEL = 0xFFFF
 
-    private val pointerChannel = Channel<Triple<Int, Int, Int>>(Channel.CONFLATED)
+    // UNLIMITED, not CONFLATED: a conflated channel keeps exactly one element, so the
+    // press/release pair sent back-to-back lost the press and every tap, scroll and
+    // long-press right-click reached the server as a release with no button held.
+    private val pointerChannel = Channel<Triple<Int, Int, Int>>(Channel.UNLIMITED)
+
+    private val termuxErrorListener: (String) -> Unit = { showTermuxError(it) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        TermuxCommand.onError(::showTermuxError)
+        TermuxCommand.onError(termuxErrorListener)
         supportActionBar?.hide()
         setContentView(R.layout.activity_vnc)
         val prefs = getSharedPreferences("EZBoxPrefs", MODE_PRIVATE)
@@ -407,6 +412,8 @@ class VncActivity : AppCompatActivity() {
                 renderLoop(client)
                 return
             }
+            // Leaked one socket + two 64KB buffers per retry otherwise.
+            client.close()
             retryCount++
             if (retryCount < maxRetries) {
                 delay((retryCount * 2000L).coerceAtMost(10000L))
@@ -442,6 +449,9 @@ class VncActivity : AppCompatActivity() {
                     }
                 }
                 if (frameDelayMs > 0) delay(frameDelayMs)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // delay() throws this on scope cancel; it is not a lost connection.
+                throw e
             } catch (e: Exception) {
                 running = false
                 showErrorState("Connection lost.\nTap retry to reconnect.")
@@ -540,6 +550,14 @@ class VncActivity : AppCompatActivity() {
                     pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
                 }
                 isLongPress = false
+            }
+            // Without this a cancelled gesture (incoming call, system edge-swipe) leaves
+            // button 1 held down on the remote desktop indefinitely.
+            MotionEvent.ACTION_CANCEL -> {
+                cancelLongPress()
+                pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                isLongPress = false
+                isTwoFinger = false
             }
         }
     }
@@ -649,6 +667,8 @@ class VncActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         running = false
+        cancelLongPress()
+        TermuxCommand.removeErrorListener(termuxErrorListener)
         rfbClient?.close()
         scope.coroutineContext[Job]?.cancel()
         notificationManager.cancel()

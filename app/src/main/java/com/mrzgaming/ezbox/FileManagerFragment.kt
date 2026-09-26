@@ -38,11 +38,13 @@ class FileManagerFragment : Fragment() {
         recyclerFiles = view.findViewById(R.id.recyclerFiles)
         fabGoHome = view.findViewById(R.id.fabGoHome)
 
-        currentPath = rootPaths[0]
+        // Default to shared storage. /data/data/com.termux is mode 0700 owned by Termux,
+        // so from this uid it never resolves and the tab opened on "Path not found".
+        currentPath = rootPaths.firstOrNull { File(it).isDirectory } ?: rootPaths[0]
         loadFiles(currentPath)
 
         fabGoHome?.setOnClickListener {
-            currentPath = rootPaths[0]
+            currentPath = rootPaths.firstOrNull { File(it).isDirectory } ?: rootPaths[0]
             loadFiles(currentPath)
         }
 
@@ -59,9 +61,20 @@ class FileManagerFragment : Fragment() {
             tvEmpty?.text = "Path not found: $path"
             return
         }
-        val files: List<File> = dir.listFiles()?.sortedWith(
-            compareBy<File> { !it.isDirectory }.thenBy { it.name }
-        ) ?: emptyList()
+        val listed = dir.listFiles()
+        if (listed == null) {
+            // null means EACCES/IO error, not an empty directory.
+            recyclerFiles?.visibility = View.GONE
+            tvEmpty?.visibility = View.VISIBLE
+            tvEmpty?.text = "Cannot read this folder (permission denied)"
+            return
+        }
+        // Memoize isDirectory: compareBy's selector is not cached, so every one of the
+        // ~n·log2(n) comparisons used to trigger two extra stat() calls through FUSE.
+        val files: List<File> = listed
+            .map { it to it.isDirectory }
+            .sortedWith(compareBy<Pair<File, Boolean>> { !it.second }.thenBy { it.first.name })
+            .map { it.first }
         if (files.isEmpty()) {
             recyclerFiles?.visibility = View.GONE
             tvEmpty?.visibility = View.VISIBLE
@@ -81,29 +94,30 @@ class FileManagerFragment : Fragment() {
     }
 
     private fun showFileOptions(file: File) {
-        val options = mutableListOf<String>()
-        options.add("Copy path")
-        if (file.canRead()) options.add("View details")
-        options.add("Go to containing folder")
+        // Bind each action to its label: the previous index-based when() shifted by one
+        // whenever canRead() was false, so "Go to containing folder" silently did nothing.
+        val actions = mutableListOf<Pair<String, () -> Unit>>()
+        actions.add("Copy path" to {
+            val clip = android.content.ClipData.newPlainText("path", file.absolutePath)
+            (requireContext().getSystemService(Context.CLIPBOARD_SERVICE)
+                as android.content.ClipboardManager).setPrimaryClip(clip)
+        })
+        if (file.canRead()) {
+            actions.add("View details" to {
+                val size = if (file.length() > 0) formatSize(file.length()) else "Directory"
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Details")
+                    .setMessage("Name: ${file.name}\nPath: ${file.absolutePath}\nSize: $size\nModified: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(java.util.Date(file.lastModified()))}")
+                    .setPositiveButton("OK", null)
+                    .show()
+            })
+        }
+        actions.add("Go to containing folder" to { loadFiles(file.parent ?: "/") })
+
         AlertDialog.Builder(requireContext())
             .setTitle(file.name)
-            .setItems(options.toTypedArray()) { _, which ->
-                when (which) {
-                    0 -> {
-                        val clip = android.content.ClipData.newPlainText("path", file.absolutePath)
-                        (requireContext().getSystemService(Context.CLIPBOARD_SERVICE)
-                            as android.content.ClipboardManager).setPrimaryClip(clip)
-                    }
-                    1 -> {
-                        val size = if (file.length() > 0) formatSize(file.length()) else "Directory"
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Details")
-                            .setMessage("Name: ${file.name}\nPath: ${file.absolutePath}\nSize: $size\nModified: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(java.util.Date(file.lastModified()))}")
-                            .setPositiveButton("OK", null)
-                            .show()
-                    }
-                    2 -> loadFiles(file.parent ?: "/")
-                }
+            .setItems(actions.map { it.first }.toTypedArray()) { _, which ->
+                actions.getOrNull(which)?.second?.invoke()
             }
             .show()
     }

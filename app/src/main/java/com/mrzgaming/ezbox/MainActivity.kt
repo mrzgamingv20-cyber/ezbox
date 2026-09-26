@@ -37,8 +37,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        requestTermuxPermissionIfNeeded()
-        requestAllFilesAccessIfNeeded()
+        // Sequential: firing both in onCreate stacked two dialogs, and the
+        // non-cancelable first one could not be dismissed until the second resolved.
+        requestTermuxPermissionIfNeeded { requestAllFilesAccessIfNeeded() }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavRef = bottomNav
@@ -108,16 +109,7 @@ class MainActivity : AppCompatActivity() {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(R.layout.dialog_menu)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.window?.setLayout(
-            (resources.displayMetrics.widthPixels * 0.82).toInt(),
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        dialog.window?.setGravity(Gravity.TOP or Gravity.END)
         dialog.window?.setWindowAnimations(android.R.style.Animation_Dialog)
-        dialog.window?.attributes = dialog.window?.attributes?.apply {
-            y = 90
-            x = 16
-        }
 
         dialog.findViewById<TextView>(R.id.menuItemTutorial).setOnClickListener {
             dialog.dismiss()
@@ -160,9 +152,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
+        // Must be applied after show(): the decor is attached there, and setLayout before
+        // that gets overwritten, so the menu rendered full-width and centered.
+        dialog.window?.apply {
+            setLayout((resources.displayMetrics.widthPixels * 0.82).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+            setGravity(Gravity.TOP or Gravity.END)
+            attributes = attributes?.apply { y = 90; x = 16 }
+        }
     }
 
-    private fun requestTermuxPermissionIfNeeded() {
+    private fun requestTermuxPermissionIfNeeded(then: () -> Unit) {
         if (ContextCompat.checkSelfPermission(this, TERMUX_PERMISSION)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -176,8 +175,11 @@ class MainActivity : AppCompatActivity() {
                         TERMUX_PERMISSION_REQUEST_CODE
                     )
                 }
+                .setNegativeButton("Not now") { _, _ -> then() }
                 .setCancelable(false)
                 .show()
+        } else {
+            then()
         }
     }
 
@@ -207,7 +209,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Delegate to active fragments
+        if (requestCode == TERMUX_PERMISSION_REQUEST_CODE) {
+            // Handled here. Forwarding this to fragments used to collide with
+            // HomeFragment's own requestCode (1001) and auto-launch the desktop with
+            // no user action, contradicting this dialog's own text.
+            requestAllFilesAccessIfNeeded()
+            return
+        }
         for (fragment in supportFragmentManager.fragments) {
             fragment.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
