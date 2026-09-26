@@ -87,6 +87,7 @@ class VncActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TermuxCommand.onError(::showTermuxError)
         supportActionBar?.hide()
         setContentView(R.layout.activity_vnc)
         val prefs = getSharedPreferences("EZBoxPrefs", MODE_PRIVATE)
@@ -159,6 +160,27 @@ class VncActivity : AppCompatActivity() {
             extraKeysBar.alpha = 0f
             extraKeysBar.visibility = View.VISIBLE
             extraKeysBar.animate().alpha(1f).setDuration(150).start()
+        }
+    }
+
+    private fun showTermuxError(message: String) {
+        if (isFinishing || isDestroyed) return
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            val setupMissing = TermuxCommand.needsTermuxSetup(message)
+            val text = if (setupMissing) {
+                "EZBox tidak bisa menjalankan perintah di Termux.\n\n" +
+                    "Buka ~/.termux/termux.properties lalu tambahkan:\n\n" +
+                    "allow-external-apps = true\n\n" +
+                    "Setelah itu force-stop Termux, lalu coba lagi."
+            } else {
+                "Perintah Termux gagal:\n\n$message"
+            }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(if (setupMissing) "Termux belum siap" else "Kesalahan Termux")
+                .setMessage(text)
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 
