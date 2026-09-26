@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             AlertDialog.Builder(this)
                 .setTitle("About EZBox")
-                .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\nVersion 1.0")
+                .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 .setPositiveButton("OK", null)
                 .show()
         }
