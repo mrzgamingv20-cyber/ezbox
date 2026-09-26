@@ -43,7 +43,9 @@ class SettingsFragment : Fragment() {
     private lateinit var chevronVnc: TextView
     private lateinit var panelVncSub: LinearLayout
 
-    private fun Spinner.onItemSelectedListenerCompat(onSelected: (Int) -> Unit) {
+    // Must not be named setXxx: Kotlin reads `spinner.setXxx(...)` as the
+    // synthetic setter for property `xxx` and never considers the extension.
+    private fun Spinner.bindSelection(onSelected: (Int) -> Unit) {
         onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 onSelected(position)
@@ -142,7 +144,7 @@ class SettingsFragment : Fragment() {
             chevronVnc.text = if (expand) "⌃" else "⌄"
         }
 
-        spinnerMouseMode.setOnItemSelectedListenerCompat { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
+        spinnerMouseMode.bindSelection { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
 
         inputPassword.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -198,10 +200,10 @@ class SettingsFragment : Fragment() {
         switchVsync.isChecked = savedVsync
         switchRenderQuality.isChecked = savedRenderQuality
 
-        spRenderer.onItemSelectedListenerCompat { index ->
+        spRenderer.bindSelection { index ->
             prefs.edit().putString("graphics_renderer", rendererModes[index]).apply()
         }
-        spScale.onItemSelectedListenerCompat { index ->
+        spScale.bindSelection { index ->
             prefs.edit().putString("graphics_scale", scaleModes[index]).apply()
         }
         switchVsync.setOnCheckedChangeListener { _, checked ->
