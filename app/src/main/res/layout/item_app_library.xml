@@ -30,7 +30,7 @@
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
-                android:background="@drawable/card_glow_bg"
+                android:background="@drawable/ez_card"
                 android:gravity="center" />
         </FrameLayout>
 

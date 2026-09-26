@@ -24,6 +24,11 @@
         <item name="android:background">@drawable/nav_pill_bg</item>
     </style>
 
+    <style name="EZBox.NavLabel" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
     <style name="EZBox.SplashTheme" parent="Theme.EZBox">
         <item name="android:windowBackground">@color/ezos_bg_base</item>
         <item name="android:statusBarColor">@color/ezos_bg_base</item>

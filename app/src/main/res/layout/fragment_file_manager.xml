@@ -13,7 +13,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="16dp"
-        android:background="@drawable/card_glow_bg"
+        android:background="@drawable/ez_card"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="12dp">
@@ -37,7 +37,7 @@
         android:layout_height="52dp"
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
-        android:layout_marginBottom="90dp"
+        android:layout_marginBottom="16dp"
         android:src="@drawable/ic_home"
         android:backgroundTint="@color/ezos_accent"
         app:elevation="8dp"

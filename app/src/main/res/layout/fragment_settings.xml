@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/ez_card"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -403,7 +403,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/ez_card"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -498,7 +498,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/ez_card"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -592,7 +592,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/ez_card"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -656,7 +656,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/ez_card"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -745,7 +745,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg"
+            android:background="@drawable/ez_card"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
