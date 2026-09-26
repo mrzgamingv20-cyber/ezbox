@@ -17,11 +17,14 @@ class EZBoxNotificationManager(private val context: Context) {
         const val NOTIFICATION_ID = 1001
     }
 
-    init {
-        createChannel()
-    }
+    // Not created in an init block: getSystemService() throws
+    // "System services not available to Activities before onCreate()", and this object is
+    // built from an Activity field initializer, which runs before onCreate.
+    private var channelCreated = false
 
-    private fun createChannel() {
+    private fun ensureChannel() {
+        if (channelCreated) return
+        channelCreated = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -37,6 +40,7 @@ class EZBoxNotificationManager(private val context: Context) {
     }
 
     fun showRunningNotification(containerName: String) {
+        ensureChannel()
         val intent = Intent(context, VncActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         val pendingIntent = PendingIntent.getActivity(
