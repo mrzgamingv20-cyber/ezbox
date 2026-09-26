@@ -85,6 +85,33 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
+
+            <!-- Enter/Stop live on Home so the desktop is reachable without first
+                 opening a VNC session, and stoppable without being inside one. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEnterDesktop"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Masuk"
+                    android:textColor="@color/ezos_accent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStopDesktop"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Stop"
+                    android:textColor="@color/ezos_icon_rose" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

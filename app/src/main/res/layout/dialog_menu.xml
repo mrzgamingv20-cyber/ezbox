@@ -19,6 +19,18 @@
         android:focusable="true" />
 
     <TextView
+        android:id="@+id/menuItemStopDesktop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="⏻  Stop Desktop"
+        android:textColor="@color/ezos_icon_rose"
+        android:textSize="15sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
         android:id="@+id/menuItemTerminal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

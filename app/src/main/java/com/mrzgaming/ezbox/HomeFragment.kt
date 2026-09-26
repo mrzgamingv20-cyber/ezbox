@@ -46,6 +46,8 @@ class HomeFragment : Fragment() {
     private var tvGreeting: TextView? = null
     private var fabAdd: FloatingActionButton? = null
     private var recyclerContainers: RecyclerView? = null
+    private var btnEnterDesktop: com.google.android.material.button.MaterialButton? = null
+    private var btnStopDesktop: com.google.android.material.button.MaterialButton? = null
     private var containerAdapter: ContainerAdapter? = null
     private var containerList: MutableList<Container> = mutableListOf()
 
@@ -68,7 +70,13 @@ class HomeFragment : Fragment() {
         tvRamPercent = view.findViewById(R.id.tvRamPercent)
         tvRamDetail = view.findViewById(R.id.tvRamDetail)
         recyclerContainers = view.findViewById(R.id.recyclerContainers)
+        btnEnterDesktop = view.findViewById(R.id.btnEnterDesktop)
+        btnStopDesktop = view.findViewById(R.id.btnStopDesktop)
         fabAdd = view.findViewById(R.id.fabAdd)
+
+        btnEnterDesktop?.setOnClickListener { enterDesktop() }
+        btnStopDesktop?.setOnClickListener { stopDesktop() }
+        btnStopDesktop?.isEnabled = false
 
         setGreeting()
         ringRam?.ringColor = ContextCompat.getColor(requireContext(), R.color.ezos_success)
@@ -157,6 +165,39 @@ class HomeFragment : Fragment() {
             containerAdapter?.notifyItemInserted(0)
             recyclerContainers?.smoothScrollToPosition(0)
             Toast.makeText(context, "New container created", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Stops the backend. Usable without an open VNC session, unlike the one in
+     *  VncActivity, which is only reachable from inside the session itself. */
+    fun stopDesktop() {
+        isWaitingForLaunch = false
+        launchWaitRunnable?.let { launchWaitHandler.removeCallbacks(it) }
+        statusPollRunnable?.let { statusPollHandler.removeCallbacks(it) }
+        TermuxCommand.start(
+            requireContext(),
+            "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'xfce4-session'; pkill -9 -f 'ezos-run'"
+        )
+        isDesktopRunning = false
+        getDownloadDir()?.let { File(it, "ezbox_backend_status.txt").delete() }
+        tvBackendStatus?.text = "Stopped"
+        tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_icon_rose))
+        tvUptime?.visibility = View.GONE
+        btnEnterDesktop?.isEnabled = true
+        btnStopDesktop?.isEnabled = false
+    }
+
+    /** Opens an existing session, or starts one if the backend is down. */
+    fun enterDesktop() {
+        if (containerList.isEmpty()) {
+            Toast.makeText(requireContext(), "No container yet. Tap + to create one.", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (isDesktopRunning) {
+            val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
+            openDesktop(prefs.getString("vnc_password", "ezbox123"), containerList[0])
+        } else {
+            checkPermissionAndLaunch()
         }
     }
 
@@ -349,6 +390,9 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             tvBackendStatus?.text = "Unknown"
         }
+        // Keep the Enter/Stop buttons in sync with what the status card reports.
+        btnEnterDesktop?.isEnabled = true
+        btnStopDesktop?.isEnabled = isDesktopRunning
         updateRamUsage()
     }
 
@@ -436,6 +480,7 @@ class HomeFragment : Fragment() {
         tvBackendStatus = null; tvUptime = null; ringRam = null
         tvRamPercent = null; tvRamDetail = null; tvGreeting = null
         fabAdd = null; recyclerContainers = null; containerAdapter = null
+        btnEnterDesktop = null; btnStopDesktop = null
     }
 
     override fun onDestroy() {

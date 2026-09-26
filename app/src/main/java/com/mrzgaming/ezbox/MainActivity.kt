@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.view.Window
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -117,6 +118,21 @@ class MainActivity : AppCompatActivity() {
                 .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                 .replace(R.id.fragmentContainer, TutorialFragment())
                 .commit()
+        }
+
+        dialog.findViewById<TextView>(R.id.menuItemStopDesktop).setOnClickListener {
+            dialog.dismiss()
+            val home = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? HomeFragment
+            if (home != null) {
+                home.stopDesktop()
+            } else {
+                // Not on the Home tab, so there is no fragment to ask. Kill it directly.
+                TermuxCommand.start(
+                    this,
+                    "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'xfce4-session'; pkill -9 -f 'ezos-run'"
+                )
+                Toast.makeText(this, "Desktop stopped", Toast.LENGTH_SHORT).show()
+            }
         }
 
         dialog.findViewById<TextView>(R.id.menuItemTerminal).setOnClickListener {
