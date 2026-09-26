@@ -12,14 +12,13 @@
         android:id="@+id/nav_files"
         android:icon="@drawable/ic_nav_files"
         android:title="Files" />
+    <!-- BottomNavigationView hard-caps at 5 items (NavigationBarMenu.addInternal
+         throws past that, crashing activity_main on inflate). Terminal lives in
+         the hamburger menu instead. Keep this file at 5 items or fewer. -->
     <item
         android:id="@+id/nav_store"
         android:icon="@drawable/ic_nav_store"
         android:title="Store" />
-    <item
-        android:id="@+id/nav_terminal"
-        android:icon="@drawable/ic_nav_terminal"
-        android:title="Terminal" />
     <item
         android:id="@+id/nav_settings"
         android:icon="@drawable/ic_nav_settings"

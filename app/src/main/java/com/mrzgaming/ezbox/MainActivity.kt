@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_apps -> AppLibraryFragment()
                 R.id.nav_files -> FileManagerFragment()
                 R.id.nav_store -> StoreFragment()
-                R.id.nav_terminal -> TerminalFragment()
                 R.id.nav_settings -> SettingsFragment()
                 else -> HomeFragment()
             }
@@ -125,6 +124,14 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                 .replace(R.id.fragmentContainer, TutorialFragment())
+                .commit()
+        }
+
+        dialog.findViewById<TextView>(R.id.menuItemTerminal).setOnClickListener {
+            dialog.dismiss()
+            supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                .replace(R.id.fragmentContainer, TerminalFragment())
                 .commit()
         }
 
