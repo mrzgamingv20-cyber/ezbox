@@ -22,11 +22,12 @@
         android:layout_gravity="top|end"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/stepper_btn_bg"
+        android:background="@drawable/fab_bg"
         android:src="@drawable/ic_hamburger"
         android:padding="10dp"
         android:contentDescription="Menu"
-        android:elevation="10dp" />
+        android:elevation="10dp"
+        app:tint="@android:color/white" />
 
     <!-- Bottom Nav with glass pill -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

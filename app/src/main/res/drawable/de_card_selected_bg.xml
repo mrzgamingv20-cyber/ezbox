@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/ezos_card_bg" />
+    <gradient
+        android:startColor="#0E1525"
+        android:endColor="#1A2540"
+        android:angle="135" />
     <corners android:radius="16dp" />
     <stroke android:width="2dp" android:color="@color/ezos_accent" />
 </shape>

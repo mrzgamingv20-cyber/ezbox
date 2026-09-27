@@ -11,30 +11,48 @@
         android:padding="20dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Settings"
-            android:textColor="@color/ezos_text_primary"
-            android:textSize="26sp"
+            android:text="⚙ Settings"
+            android:textColor="@android:color/white"
+            android:textSize="28sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/header_gradient"
+            android:padding="16dp"
+            android:elevation="2dp" />
 
         <!-- Desktop section -->
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Desktop"
-            android:textColor="@color/ezos_accent"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <View
+                android:layout_width="36dp"
+                android:layout_height="3dp"
+                android:background="@drawable/section_accent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Desktop"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="10dp"
+                android:letterSpacing="0.05" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card"
+            android:background="@drawable/card_accent_bg"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -237,31 +255,38 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="10dp" />
 
-            <LinearLayout
-                android:id="@+id/deXfceCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/de_card_selected_bg"
-                android:padding="12dp"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true">
+             <LinearLayout
+                 android:id="@+id/deXfceCard"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:gravity="center_vertical"
+                 android:background="@drawable/de_card_selected_bg"
+                 android:padding="12dp"
+                 android:layout_marginBottom="10dp"
+                 android:clickable="true"
+                 android:focusable="true">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                 <ImageView
+                     android:layout_width="64dp"
+                     android:layout_height="48dp"
+                     android:scaleType="centerCrop"
+                     android:src="@drawable/de_preview_xfce"
+                     android:layout_marginEnd="12dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="XFCE"
-                        android:textColor="@color/ezos_text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     android:orientation="vertical">
+
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:text="XFCE"
+                         android:textColor="@color/ezos_text_primary"
+                         android:textSize="14sp"
+                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -283,19 +308,26 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/deLxqtCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/de_card_unselected_bg"
-                android:padding="12dp"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true">
+             <LinearLayout
+                 android:id="@+id/deLxqtCard"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:gravity="center_vertical"
+                 android:background="@drawable/de_card_unselected_bg"
+                 android:padding="12dp"
+                 android:layout_marginBottom="10dp"
+                 android:clickable="true"
+                 android:focusable="true">
 
-                 <LinearLayout
+                 <ImageView
+                     android:layout_width="64dp"
+                     android:layout_height="48dp"
+                     android:scaleType="centerCrop"
+                     android:src="@drawable/de_preview_lxqt"
+                     android:layout_marginEnd="12dp" />
+
+                  <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -387,7 +419,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card"
+            android:background="@drawable/card_accent_bg"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -482,7 +514,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card"
+            android:background="@drawable/card_accent_bg"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -566,21 +598,35 @@
         </LinearLayout>
 
         <!-- Behavior section -->
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Behavior"
-            android:textColor="@color/ezos_accent"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <View
+                android:layout_width="36dp"
+                android:layout_height="3dp"
+                android:background="@drawable/section_accent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Behavior"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="10dp"
+                android:letterSpacing="0.05" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card"
+            android:background="@drawable/card_glow_bg_success"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -588,8 +634,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:gravity="center_vertical">
 
                 <TextView
                     android:layout_width="0dp"
@@ -644,7 +689,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card"
+            android:background="@drawable/card_glow_bg_success"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -733,7 +778,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card"
+            android:background="@drawable/card_glow_bg_success"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 

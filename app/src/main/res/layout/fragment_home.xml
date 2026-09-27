@@ -12,8 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
+        android:background="@drawable/header_gradient"
+        android:paddingTop="20dp"
+        android:paddingBottom="12dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp">
 
@@ -22,7 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Good morning"
-            android:textColor="@color/ezos_text_primary"
+            android:textColor="@android:color/white"
             android:textSize="26sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
@@ -31,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Containers"
-            android:textColor="@color/ezos_text_secondary"
+            android:textColor="#CCFFFFFF"
             android:textSize="13sp"
             android:layout_marginTop="4dp" />
     </LinearLayout>
@@ -42,22 +43,22 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@drawable/ez_card"
+        android:background="@drawable/card_accent_bg"
         android:padding="16dp"
         android:layout_marginHorizontal="20dp"
         android:layout_marginBottom="16dp"
-        android:elevation="1dp">
+        android:elevation="2dp">
 
         <FrameLayout
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="12dp">
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="14dp">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_desktop_monitor"
-                app:tint="@color/ezos_accent"
+                app:tint="@android:color/white"
                 android:layout_gravity="center" />
         </FrameLayout>
 
@@ -72,7 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Idle"
-                android:textColor="@color/ezos_text_primary"
+                android:textColor="@android:color/white"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -99,33 +100,54 @@
                     android:id="@+id/btnEnterDesktop"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:text="Masuk"
-                    android:textColor="@color/ezos_accent" />
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/btn_primary_ripple"
+                    android:textSize="13sp"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnStopDesktop"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:layout_marginStart="8dp"
                     android:text="Stop"
-                    android:textColor="@color/ezos_icon_rose" />
+                    android:textColor="@color/ezos_icon_rose"
+                    android:background="@drawable/btn_danger_ripple"
+                    android:textSize="13sp"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
     <!-- Container List -->
-    <TextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Your Containers"
-        android:textColor="@color/ezos_text_primary"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:paddingHorizontal="20dp"
-        android:layout_marginBottom="12dp"
-        android:fontFamily="sans-serif-medium" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Containers"
+            android:textColor="@color/ezos_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <View
+            android:layout_width="36dp"
+            android:layout_height="3dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/section_accent" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerContainers"
@@ -141,11 +163,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@drawable/ez_card"
-        android:padding="16dp"
+        android:background="@drawable/card_glow_bg_success"
+        android:padding="18dp"
         android:layout_marginHorizontal="20dp"
         android:layout_marginBottom="16dp"
-        android:elevation="1dp">
+        android:elevation="2dp">
 
         <FrameLayout
             android:layout_width="56dp"
@@ -186,8 +208,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Calculating..."
-                android:textColor="@color/ezos_text_primary"
-                android:textSize="14sp"
+                android:textColor="@color/ezos_success"
+                android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -201,7 +223,7 @@
         android:layout_margin="20dp"
         android:layout_marginBottom="16dp"
         android:src="@drawable/ic_add"
-        android:backgroundTint="@color/ezos_accent"
+        android:background="@drawable/fab_bg"
         app:elevation="8dp"
         app:borderWidth="0dp" />
 

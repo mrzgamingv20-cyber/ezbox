@@ -21,16 +21,16 @@
         android:layout_centerInParent="true"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="@drawable/ez_card"
-        android:padding="28dp"
-        android:elevation="6dp">
+        android:background="@drawable/card_accent_bg"
+        android:padding="24dp"
+        android:elevation="8dp">
 
         <ProgressBar
             android:id="@+id/vncStatusSpinner"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:indeterminateTint="@color/ezos_accent"
-            android:layout_marginBottom="14dp" />
+            android:layout_marginBottom="12dp" />
 
         <TextView
             android:id="@+id/vncStatusIcon"
@@ -44,7 +44,7 @@
             android:id="@+id/vncStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/ezos_text_primary"
+            android:textColor="@android:color/white"
             android:textSize="15sp"
             android:gravity="center"
             android:text="Connecting to EZOS desktop..." />
@@ -56,7 +56,7 @@
             android:text="Retry"
             android:textSize="13sp"
             android:background="@drawable/btn_primary_bg"
-            android:textColor="@color/ezos_bg_base"
+            android:textColor="@android:color/white"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:layout_marginTop="16dp"
@@ -64,51 +64,52 @@
 
     </LinearLayout>
 
-    <!-- Glass Stop Desktop Button -->
+    <!-- Stop Desktop Button -->
     <Button
         android:id="@+id/btnStopDesktop"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="14dp"
-        android:alpha="0.5"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:padding="0dp"
         android:minWidth="0dp"
         android:minHeight="0dp"
-        android:background="#661E2D4A"
+        android:background="@drawable/btn_primary_bg"
+        android:textColor="@android:color/white"
         android:text="⏻" />
 
     <!-- Glass Expand Extra Keys Button -->
     <Button
         android:id="@+id/btnExpandKeys"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_margin="14dp"
         android:layout_toStartOf="@id/btnToggleKeyboard"
-        android:alpha="0.5"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:padding="0dp"
         android:minWidth="0dp"
         android:minHeight="0dp"
-        android:background="#661E2D4A"
+        android:background="@drawable/btn_primary_bg"
+        android:textColor="@android:color/white"
         android:text="⋯" />
 
-    <!-- Extra Keys Bar - Glass -->
+    <!-- Extra Keys Bar - Glass, visible by default -->
     <HorizontalScrollView
         android:id="@+id/extraKeysBar"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_alignParentBottom="true"
         android:layout_toStartOf="@id/btnToggleKeyboard"
-        android:background="#CC1E2D4A"
+        android:background="@drawable/header_gradient"
         android:scrollbars="none"
-        android:visibility="gone"
         android:overScrollMode="never"
-        android:elevation="4dp">
+        android:elevation="8dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp">
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -369,8 +370,8 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/extraKeysBar"
         android:layout_toStartOf="@id/btnToggleKeyboard"
-        android:background="#CC1E2D4A"
-        android:textColor="@color/ezos_accent"
+        android:background="@drawable/header_gradient"
+        android:textColor="@android:color/white"
         android:textSize="14sp"
         android:padding="12dp"
         android:minHeight="44dp"
@@ -378,7 +379,7 @@
         android:maxLines="1"
         android:ellipsize="start"
         android:visibility="gone"
-        android:elevation="2dp" />
+        android:elevation="4dp" />
 
     <EditText
         android:id="@+id/hiddenInput"
@@ -392,18 +393,19 @@
         android:inputType="textMultiLine"
         android:imeOptions="actionNone|flagNoExtractUi" />
 
-    <!-- Toggle Keyboard - Glass -->
+    <!-- Toggle Keyboard -->
     <Button
         android:id="@+id/btnToggleKeyboard"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:alpha="0.6"
         android:text="⌨"
-        android:background="#661E2D4A"
+        android:textSize="20sp"
+        android:background="@drawable/btn_primary_bg"
+        android:textColor="@android:color/white" />
         android:elevation="4dp" />
 
 </RelativeLayout>
