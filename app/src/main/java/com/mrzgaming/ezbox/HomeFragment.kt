@@ -146,7 +146,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecycler() {
-        containerAdapter = ContainerAdapter(containerList) { container, action ->
+        val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
+        containerAdapter = ContainerAdapter(containerList,
+            prefs.getString("desktop_environment", "xfce") ?: "xfce",
+            prefs.getString("resolution", "960x540") ?: "960x540") { container, action ->
             when (action) {
                 ContainerAction.LAUNCH -> launchContainer(container)
                 ContainerAction.EDIT -> showContainerEditor(container)
@@ -485,6 +488,8 @@ enum class ContainerAction { LAUNCH, EDIT, DELETE }
 
 class ContainerAdapter(
     private val containers: List<Container>,
+    private val de: String,
+    private val res: String,
     private val onAction: (Container, ContainerAction) -> Unit
 ) : RecyclerView.Adapter<ContainerAdapter.ViewHolder>() {
 
@@ -505,9 +510,6 @@ class ContainerAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val container = containers[position]
         holder.name.text = container.name
-        val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
-        val de = prefs.getString("desktop_environment", "xfce") ?: "xfce"
-        val res = prefs.getString("resolution", "960x540") ?: "960x540"
         holder.de.text = when (de) { "xfce" -> "XFCE4" else -> "LXQt" }
         holder.res.text = res
 
