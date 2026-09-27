@@ -62,6 +62,7 @@ class VncActivity : AppCompatActivity() {
     private var viewOnlyMode = false
     private var disableClipboard = false
     private var lowBandwidthMode = false
+    private var vsyncEnabled = true
 
     private val KEY_CTRL_L = 0xFFE3
     private val KEY_ALT_L = 0xFFE9
@@ -104,10 +105,7 @@ class VncActivity : AppCompatActivity() {
         viewOnlyMode = prefs.getBoolean("view_only_mode", false)
         disableClipboard = prefs.getBoolean("disable_clipboard", false)
         lowBandwidthMode = prefs.getBoolean("low_bandwidth_mode", false)
-        // These two Settings switches had no reader, so toggling them did nothing.
-        // vsync off = stop redrawing untouched frames; render quality off = low bandwidth.
-        val quality = prefs.getBoolean("graphics_render_quality", true)
-        if (!quality) lowBandwidthMode = true
+        vsyncEnabled = prefs.getBoolean("graphics_vsync", true)
 
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
@@ -438,7 +436,11 @@ class VncActivity : AppCompatActivity() {
      * Normal: tanpa jeda (secepat mungkin). Low bandwidth: ~10fps (100ms jeda).
      */
     private suspend fun renderLoop(client: RfbClient) {
-        val frameDelayMs = if (lowBandwidthMode) 100L else 16L  // minimal 16ms (~60fps) untuk hemat CPU
+        val frameDelayMs = when {
+            lowBandwidthMode -> 100L
+            !vsyncEnabled -> 0L  // unlimited: vsync off means no frame cap
+            else -> 16L
+        }  // renderLoop: vsync on = ~60fps cap, vsync off = unlimited, low bandwidth = ~10fps
         // Set bitmap sekali saja, setelahnya cukup invalidate karena bitmap di-mutate in-place
         vncScreen.setImageBitmap(client.bitmap)
         while (running) {

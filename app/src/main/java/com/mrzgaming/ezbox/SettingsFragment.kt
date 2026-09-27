@@ -221,6 +221,12 @@ class SettingsFragment : Fragment() {
         view.findViewById<View>(R.id.spRenderer).visibility = View.GONE
         view.findViewById<View>(R.id.labelScale).visibility = View.GONE
         view.findViewById<View>(R.id.spScale).visibility = View.GONE
+        // graphics_render_quality is intentionally a no-op now: the VNC
+        // client always renders the full framebuffer, there is no separate
+        // quality level, and toggling it previously silently flipped bandwidth.
+        view.findViewById<View>(R.id.labelRenderQuality).visibility = View.GONE
+        view.findViewById<View>(R.id.switchRenderQuality).visibility = View.GONE
+        view.findViewById<View>(R.id.rowRenderQuality).visibility = View.GONE
 
         return view
     }

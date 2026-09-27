@@ -556,6 +556,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/rowRenderQuality"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -567,6 +568,7 @@
                     android:layout_height="wrap_content" />
 
                 <TextView
+                    android:id="@+id/labelRenderQuality"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
