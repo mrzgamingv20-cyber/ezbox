@@ -6,6 +6,7 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.IOException
 import java.net.Socket
 
 class RfbClient(private val host: String, private val port: Int, private val password: String) {
@@ -76,12 +77,18 @@ class RfbClient(private val host: String, private val port: Int, private val pas
 
             width = input.readUnsignedShort()
             height = input.readUnsignedShort()
+            if (width <= 0 || height <= 0 || width > 8192 || height > 8192) {
+                throw IOException("Server gave bad framebuffer ${width}x${height}")
+            }
 
             bitsPerPixel = input.readUnsignedByte()
             input.skipBytes(15)
 
             val nameLength = input.readInt()
-            val nameBytes = ByteArray(nameLength)
+            // nameLength comes straight off the wire as a signed int. A negative value
+            // threw NegativeArraySizeException, and a large one allocated whatever it
+            // liked. Clamp to something a desktop name can plausibly be.
+            val nameBytes = ByteArray(nameLength.coerceIn(0, 1024))
             input.readFully(nameBytes)
             Log.d("RfbClient", "Connected to desktop '${String(nameBytes)}' (${width}x${height})")
 
@@ -199,6 +206,17 @@ class RfbClient(private val host: String, private val port: Int, private val pas
             val h = input.readUnsignedShort()
             val encodingType = input.readInt()
 
+            // x/y/w/h are server-supplied and reach IntArray(w * h) and getPixels
+            // unchanged. A bogus 65535x65535 rect is a 17GB request: that raises
+            // OutOfMemoryError, which is an Error and so escapes every catch(e: Exception)
+            // in this class and in VncActivity. Validated here once, for every encoding.
+            if (w == 0 || h == 0 || w > bitmap.width || h > bitmap.height) {
+                throw IOException("Rect ${w}x$h at $x,$y outside bitmap ${bitmap.width}x${bitmap.height}")
+            }
+            if (x + w > bitmap.width || y + h > bitmap.height) {
+                throw IOException("Rect at $x,$y size ${w}x$h overflows bitmap ${bitmap.width}x${bitmap.height}")
+            }
+
             when (encodingType) {
                 0 -> readRawRectangle(x, y, w, h)
                 1 -> readCopyRect(x, y, w, h)
@@ -244,6 +262,12 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     private fun readCopyRect(x: Int, y: Int, w: Int, h: Int) {
         val srcX = input.readUnsignedShort()
         val srcY = input.readUnsignedShort()
+        // Rect size is already validated by the caller. The source rect is unique to
+        // this encoding, and getPixels throws IllegalArgumentException when it runs
+        // off the bitmap.
+        if (srcX + w > bitmap.width || srcY + h > bitmap.height) {
+            throw IOException("Copy rect source $srcX,$srcY ${w}x$h outside bitmap")
+        }
 
         val pixels = IntArray(w * h)
         bitmap.getPixels(pixels, 0, w, srcX, srcY, w, h)

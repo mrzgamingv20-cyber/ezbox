@@ -34,37 +34,9 @@
         android:paddingHorizontal="14dp"
         android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif"
-        android:hint="Container name" />
+         android:hint="Container name" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Desktop Environment"
-        android:textColor="@color/ezos_text_secondary"
-        android:textSize="12sp"
-        android:layout_marginBottom="4dp" />
-
-    <Spinner
-        android:id="@+id/spDe"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Resolution"
-        android:textColor="@color/ezos_text_secondary"
-        android:textSize="12sp"
-        android:layout_marginBottom="4dp" />
-
-    <Spinner
-        android:id="@+id/spRes"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginBottom="24dp" />
-
-    <LinearLayout
+     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

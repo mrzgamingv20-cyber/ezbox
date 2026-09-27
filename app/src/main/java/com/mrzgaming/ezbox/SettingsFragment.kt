@@ -213,6 +213,15 @@ class SettingsFragment : Fragment() {
             prefs.edit().putBoolean("graphics_render_quality", checked).apply()
         }
 
+        // The renderer/scale spinners have no consumer anywhere: ezos-run only reads
+        // EZBOX_DE, EZBOX_RES and EZBOX_VNC_PASSWORD, and the VNC client always draws
+        // the raw framebuffer. Showing them let the user change a value that did nothing.
+        // Hidden rather than deleted so the layout stays intact if support ever lands.
+        view.findViewById<View>(R.id.labelRenderer).visibility = View.GONE
+        view.findViewById<View>(R.id.spRenderer).visibility = View.GONE
+        view.findViewById<View>(R.id.labelScale).visibility = View.GONE
+        view.findViewById<View>(R.id.spScale).visibility = View.GONE
+
         return view
     }
 

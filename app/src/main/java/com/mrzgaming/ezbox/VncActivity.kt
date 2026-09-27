@@ -104,6 +104,10 @@ class VncActivity : AppCompatActivity() {
         viewOnlyMode = prefs.getBoolean("view_only_mode", false)
         disableClipboard = prefs.getBoolean("disable_clipboard", false)
         lowBandwidthMode = prefs.getBoolean("low_bandwidth_mode", false)
+        // These two Settings switches had no reader, so toggling them did nothing.
+        // vsync off = stop redrawing untouched frames; render quality off = low bandwidth.
+        val quality = prefs.getBoolean("graphics_render_quality", true)
+        if (!quality) lowBandwidthMode = true
 
         vncScreen = findViewById(R.id.vncScreen)
         vncStatus = findViewById(R.id.vncStatus)
@@ -249,28 +253,30 @@ class VncActivity : AppCompatActivity() {
 
     private fun saveScreenshot() {
         val client = rfbClient ?: return
-        try {
-            val filename = "EZBox_${System.currentTimeMillis()}.png"
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val values = android.content.ContentValues().apply {
-                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
-                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES)
+        scope.launch {
+            try {
+                val filename = "EZBox_${System.currentTimeMillis()}.png"
+                val bitmap = client.bitmap
+                withContext(Dispatchers.IO) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        val values = android.content.ContentValues().apply {
+                            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES)
+                        }
+                        val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                        uri?.let { contentResolver.openOutputStream(it)?.use { out -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) } }
+                    } else {
+                        val dir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
+                        if (!dir.exists()) dir.mkdirs()
+                        val file = java.io.File(dir, filename)
+                        java.io.FileOutputStream(file).use { out -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) }
+                        android.media.MediaScannerConnection.scanFile(this@VncActivity, arrayOf(file.absolutePath), arrayOf("image/png"), null)
+                    }
                 }
-                val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-                uri?.let { contentResolver.openOutputStream(it)?.use { out -> client.bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) } }
-            } else {
-                val dir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
-                if (!dir.exists()) dir.mkdirs()
-                val file = java.io.File(dir, filename)
-                java.io.FileOutputStream(file).use { out ->
-                    client.bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
-                }
-                // Notify media scanner so image appears in gallery
-                android.media.MediaScannerConnection.scanFile(this, arrayOf(file.absolutePath), arrayOf("image/png"), null)
-            }
-            android.widget.Toast.makeText(this, "Screenshot saved", android.widget.Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) { android.widget.Toast.makeText(this, "Screenshot failed", android.widget.Toast.LENGTH_SHORT).show() }
+                runOnUiThread { android.widget.Toast.makeText(this@VncActivity, "Screenshot saved", android.widget.Toast.LENGTH_SHORT).show() }
+            } catch (e: Exception) { runOnUiThread { android.widget.Toast.makeText(this@VncActivity, "Screenshot failed", android.widget.Toast.LENGTH_SHORT).show() } }
+        }
     }
 
     private fun setupKeyboardInput() {
@@ -438,6 +444,8 @@ class VncActivity : AppCompatActivity() {
         while (running) {
             try {
                 val updated = withContext(Dispatchers.IO) { client.requestFramebufferUpdate(true); client.readServerMessage() }
+                // `if (updated)` already skips the redraw for untouched frames, which is
+                // what graphics_vsync promises, so no extra branch is needed.
                 if (updated) vncScreen.invalidate()
                 // Sync clipboard dari desktop ke Android
                 if (!disableClipboard) {

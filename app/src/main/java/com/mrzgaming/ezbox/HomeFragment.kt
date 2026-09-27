@@ -204,8 +204,13 @@ class HomeFragment : Fragment() {
     private fun launchContainer(container: Container) {
         val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
         val vncPassword = prefs.getString("vnc_password", "ezbox123")
-        val resolution = container.resolution
-        val de = container.desktopEnvironment
+        // Resolution and desktop environment are global: ezos-run takes them as
+        // EZBOX_RES/EZBOX_DE for the whole session, so they never made sense per
+        // container. Both this and the Settings screen used to set them, Settings wrote
+        // keys nothing read, and the container fields always held a non-blank default
+        // which made any fallback unreachable. Settings is now the only writer.
+        val resolution = prefs.getString("resolution", "960x540") ?: "960x540"
+        val de = prefs.getString("desktop_environment", "xfce") ?: "xfce"
 
         deployBackendScript()
         val downloadsDir = getDownloadDir()
@@ -279,25 +284,10 @@ class HomeFragment : Fragment() {
         dialog.window?.setGravity(Gravity.BOTTOM)
 
         val etName = dialog.findViewById<EditText>(R.id.etContainerName)
-        val spDe = dialog.findViewById<android.widget.Spinner>(R.id.spDe)
-        val spRes = dialog.findViewById<android.widget.Spinner>(R.id.spRes)
         etName.setText(container.name)
-
-        val deOptions = listOf("xfce", "lxqt")
-        val resOptions = listOf("960x540", "1280x720", "1600x900")
-        spDe.adapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, deOptions).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spRes.adapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, resOptions).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spDe.setSelection(deOptions.indexOf(container.desktopEnvironment).coerceAtLeast(0))
-        spRes.setSelection(resOptions.indexOf(container.resolution).coerceAtLeast(0))
 
         dialog.findViewById<Button>(R.id.btnContainerSave)?.setOnClickListener {
             container.name = etName.text.toString().ifBlank { "Container" }
-            container.desktopEnvironment = spDe.selectedItem?.toString() ?: "xfce"
-            container.resolution = spRes.selectedItem?.toString() ?: "960x540"
             saveContainers()
             containerAdapter?.notifyDataSetChanged()
             dialog.dismiss()
@@ -515,8 +505,11 @@ class ContainerAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val container = containers[position]
         holder.name.text = container.name
-        holder.de.text = when (container.desktopEnvironment) { "xfce" -> "XFCE4" else -> "LXQt" }
-        holder.res.text = container.resolution
+        val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
+        val de = prefs.getString("desktop_environment", "xfce") ?: "xfce"
+        val res = prefs.getString("resolution", "960x540") ?: "960x540"
+        holder.de.text = when (de) { "xfce" -> "XFCE4" else -> "LXQt" }
+        holder.res.text = res
 
         holder.btnLaunch.setOnClickListener { onAction(container, ContainerAction.LAUNCH) }
         holder.card.setOnLongClickListener {
