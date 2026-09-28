@@ -1,68 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- EZBox Design System v2 — Dominant Palette -->
-    <!-- Base: deep space navy. Accent: varied per section (Indigo, Rose, Emerald, Amber, Cyan). -->
+    <!-- EZBox Design System — GitHub Primer Dark + Winlator Glass -->
+    <!-- Accents: #2f81f7 (Primer Blue). Themes: Classic Dark / AMOLED / Ocean -->
 
-    <!-- Base Layer -->
-    <color name="ez_bg">#060A14</color>
-    <color name="ez_bg_surface">#0C1120</color>
-    <color name="ez_bg_elevated">#12182E</color>
-    <color name="ez_bg_overlay">#182040</color>
+    <!-- Canvas -->
+    <color name="ez_bg">#0d1117</color>
+    <color name="ez_bg_surface">#161b22</color>
+    <color name="ez_bg_elevated">#21262d</color>
+    <color name="ez_bg_overlay">#1a1e24</color>
 
-    <!-- Primary Accent — Indigo (modern, energetic) -->
-    <color name="ez_primary">#6366F1</color>
-    <color name="ez_primary_dim">#4338CA</color>
-    <color name="ez_primary_glow">#818CF8</color>
-    <color name="ez_primary_gradient_start">#6366F1</color>
-    <color name="ez_primary_gradient_end">#A78BFA</color>
-    <color name="ez_primary_soft">#312E81</color>
+    <!-- Border -->
+    <color name="ez_border">#30363d</color>
+    <color name="ez_border_focus">#2f81f7</color>
 
-    <!-- Secondary — Rose (warm, urgent) -->
-    <color name="ez_secondary">#F43F5E</color>
-    <color name="ez_secondary_dim">#E11D48</color>
-    <color name="ez_secondary_glow">#FB7185</color>
-    <color name="ez_secondary_soft">#881337</color>
-
-    <!-- Tertiary — Emerald (success, alive) -->
-    <color name="ez_tertiary">#10B981</color>
-    <color name="ez_tertiary_dim">#059669</color>
-    <color name="ez_tertiary_glow">#34D399</color>
-    <color name="ez_tertiary_soft">#064E3B</color>
-
-    <!-- Warm — Amber (attention, gold) -->
-    <color name="ez_warm">#F59E0B</color>
-    <color name="ez_warm_dim">#D97706</color>
-    <color name="ez_warm_glow">#FBBF24</color>
-    <color name="ez_warm_soft">#78350F</color>
-
-    <!-- Cool — Cyan (info, calm) -->
-    <color name="ez_cool">#06B6D4</color>
-    <color name="ez_cool_dim">#0891B2</color>
-    <color name="ez_cool_glow">#22D3EE</color>
-    <color name="ez_cool_soft">#164E63</color>
-
-    <!-- Typography -->
-    <color name="ez_text">#F1F5F9</color>
-    <color name="ez_text_secondary">#94A3B8</color>
-    <color name="ez_text_muted">#64748B</color>
-    <color name="ez_text_inverse">#0F172A</color>
+    <!-- Accent — GitHub Primer Blue -->
+    <color name="ez_primary">#2f81f7</color>
+    <color name="ez_primary_dim">#1f6fe0</color>
+    <color name="ez_primary_glow">#58a6ff</color>
+    <color name="ez_primary_soft">#1a3a6b</color>
+    <color name="ez_primary_gradient_start">#2f81f7</color>
+    <color name="ez_primary_gradient_end">#58a6ff</color>
 
     <!-- Semantic -->
-    <color name="ez_success">#10B981</color>
-    <color name="ez_warning">#F59E0B</color>
-    <color name="ez_error">#F43F5E</color>
-    <color name="ez_info">#06B6D4</color>
+    <color name="ez_success">#238636</color>
+    <color name="ez_warning">#d29922</color>
+    <color name="ez_error">#da3633</color>
+    <color name="ez_info">#0969da</color>
 
-    <!-- Borders -->
-    <color name="ez_border">#1E293B</color>
-    <color name="ez_border_focus">#6366F1</color>
+    <!-- Typography -->
+    <color name="ez_text">#e6edf3</color>
+    <color name="ez_text_secondary">#8b949e</color>
+    <color name="ez_text_muted">#6e7681</color>
+    <color name="ez_text_inverse">#0d1117</color>
 
     <!-- Glass -->
-    <color name="ez_glass">#12182E80</color>
-    <color name="ez_glass_border">#2D3B5260</color>
-    <color name="ez_glass_highlight">#FFFFFF18</color>
+    <color name="ez_glass">#161b2280</color>
+    <color name="ez_glass_border">#30363d60</color>
+    <color name="ez_glass_highlight">#ffffff18</color>
 
-    <!-- === Backward compatibility aliases (ezos_*) === -->
+    <!-- Ripple -->
+    <color name="ez_ripple">#2f81f720</color>
+
+    <!-- Backward compatibility aliases (ezos_*) -->
     <color name="ezos_bg_base">@color/ez_bg</color>
     <color name="ezos_bg_black">@color/ez_bg</color>
     <color name="ezos_bg_dark">@color/ez_bg_surface</color>
@@ -73,7 +52,7 @@
     <color name="ezos_card_glass">@color/ez_bg_overlay</color>
     <color name="ezos_accent">@color/ez_primary</color>
     <color name="ezos_accent_end">@color/ez_primary_gradient_end</color>
-    <color name="ezos_accent_glow">@color/ez_cool</color>
+    <color name="ezos_accent_glow">@color/ez_primary_glow</color>
     <color name="ezos_accent_soft">@color/ez_primary_soft</color>
     <color name="ezos_accent_gradient_start">@color/ez_primary_gradient_start</color>
     <color name="ezos_accent_gradient_end">@color/ez_primary_gradient_end</color>
@@ -81,11 +60,11 @@
     <color name="ezos_text_secondary">@color/ez_text_secondary</color>
     <color name="ezos_text_muted">@color/ez_text_muted</color>
     <color name="ezos_success">@color/ez_success</color>
-    <color name="ezos_icon_cyan">@color/ez_cool</color>
+    <color name="ezos_icon_cyan">@color/ez_primary</color>
     <color name="ezos_icon_blue">@color/ez_primary</color>
-    <color name="ezos_icon_green">@color/ez_tertiary</color>
-    <color name="ezos_icon_amber">@color/ez_warm</color>
-    <color name="ezos_icon_rose">@color/ez_secondary</color>
+    <color name="ezos_icon_green">@color/ez_success</color>
+    <color name="ezos_icon_amber">@color/ez_warning</color>
+    <color name="ezos_icon_rose">@color/ez_error</color>
     <color name="ezos_glass_bg">@color/ez_bg_surface</color>
     <color name="ezos_glass_border">@color/ez_border</color>
     <color name="ezos_glass_highlight">@color/ez_glass_highlight</color>

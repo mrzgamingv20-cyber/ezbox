@@ -2,4 +2,19 @@
 <resources>
     <dimen name="theme_dot_size">12dp</dimen>
     <dimen name="theme_dot_gap">12dp</dimen>
+    <dimen name="spacing_1">4dp</dimen>
+    <dimen name="spacing_2">8dp</dimen>
+    <dimen name="spacing_3">12dp</dimen>
+    <dimen name="spacing_4">16dp</dimen>
+    <dimen name="spacing_5">20dp</dimen>
+    <dimen name="spacing_6">24dp</dimen>
+    <dimen name="spacing_7">32dp</dimen>
+    <dimen name="spacing_8">40dp</dimen>
+    <dimen name="spacing_10">64dp</dimen>
+    <dimen name="card_radius">12dp</dimen>
+    <dimen name="card_radius_large">16dp</dimen>
+    <dimen name="button_radius">12dp</dimen>
+    <dimen name="section_divider">1dp</dimen>
+    <dimen name="nav_icon_size">22dp</dimen>
+    <dimen name="nav_label_size">11sp</dimen>
 </resources>

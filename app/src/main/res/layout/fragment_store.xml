@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/ezos_bg_black">
+    android:background="@color/ezos_bg_base"
+    android:padding="20dp">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -12,24 +13,25 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Store"
-                android:textColor="@color/ezos_text_primary"
-                android:textSize="26sp"
-                android:textStyle="bold" />
+                android:text="🛒 Store"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="20dp"
                 android:text="Install additional tools into your Termux environment"
                 android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="16dp" />
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/inputSearchStore"
@@ -41,7 +43,7 @@
                 android:textSize="14sp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:background="@drawable/pill_unselected_bg"
+                android:background="@drawable/ez_card"
                 android:inputType="text"
                 android:imeOptions="actionSearch"
                 android:singleLine="true"
@@ -79,5 +81,7 @@
                 android:visibility="gone" />
 
         </LinearLayout>
+
     </ScrollView>
+
 </LinearLayout>

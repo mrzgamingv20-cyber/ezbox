@@ -20,11 +20,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.drawerlayout.widget.DrawerLayout
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavRef: BottomNavigationView
     private lateinit var btnHamburger: ImageButton
+    private lateinit var drawerLayout: DrawerLayout
 
     fun navigateTo(itemId: Int) {
         bottomNavRef.selectedItemId = itemId
@@ -38,10 +40,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Sequential: firing both in onCreate stacked two dialogs, and the
-        // non-cancelable first one could not be dismissed until the second resolved.
         requestTermuxPermissionIfNeeded { requestAllFilesAccessIfNeeded() }
 
+        drawerLayout = findViewById(R.id.drawerLayout)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavRef = bottomNav
         bottomNav.setOnItemSelectedListener { item ->
@@ -65,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnHamburger = findViewById(R.id.btnHamburger)
-        btnHamburger.setOnClickListener { showMenuDialog() }
+        btnHamburger.setOnClickListener { openDrawer() }
 
         handleShortcutIntent(intent)
     }
@@ -76,16 +77,10 @@ class MainActivity : AppCompatActivity() {
         handleShortcutIntent(intent)
     }
 
-    /**
-     * Menangani Intent dari App Shortcuts (long-press icon launcher).
-     * "launch_desktop" -> langsung ke Home lalu trigger tombol Launch Environment.
-     * "open_store" -> langsung pindah ke tab Store.
-     */
     private fun handleShortcutIntent(intent: Intent?) {
         when (intent?.getStringExtra("shortcut_action")) {
             "launch_desktop" -> {
                 navigateTo(R.id.nav_home)
-                // Trigger launch after fragment is restored
                 window.decorView.postDelayed({
                     val homeFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? HomeFragment
                     homeFragment?.performLaunch()
@@ -97,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showMenuDialog() {
+    private fun openDrawer() {
         btnHamburger.animate()
             .rotation(90f)
             .setDuration(180)
@@ -106,82 +101,82 @@ class MainActivity : AppCompatActivity() {
             }
             .start()
 
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_menu)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.window?.setWindowAnimations(android.R.style.Animation_Dialog)
+        drawerLayout.openDrawer(Gravity.END)
 
-        dialog.findViewById<TextView>(R.id.menuItemTutorial).setOnClickListener {
-            dialog.dismiss()
-            supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-                .replace(R.id.fragmentContainer, TutorialFragment())
-                .commit()
-        }
-
-        dialog.findViewById<TextView>(R.id.menuItemStopDesktop).setOnClickListener {
-            dialog.dismiss()
-            val home = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? HomeFragment
-            if (home != null) {
-                home.stopDesktop()
-            } else {
-                // Not on the Home tab, so there is no fragment to ask. Kill it directly.
-                TermuxCommand.start(
-                    this,
-                    "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'xfce4-session'; pkill -9 -f 'ezos-run'"
-                )
-                Toast.makeText(this, "Desktop stopped", Toast.LENGTH_SHORT).show()
+        drawerLayout.addDrawerListener(object : androidx.drawerlayout.widget.DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerClosed(drawerView: android.view.View) {
+                btnHamburger.animate()
+                    .rotation(0f)
+                    .setDuration(180)
+                    .withEndAction {
+                        btnHamburger.setImageResource(R.drawable.ic_hamburger)
+                    }
+                    .start()
+                drawerLayout.removeDrawerListener(this)
             }
+        })
+
+        setupDrawerMenu()
+    }
+
+    private fun setupDrawerMenu() {
+        val header = drawerLayout.findViewById<LinearLayout>(R.id.drawerHeader)
+        if (header == null) {
+            val headerView = layoutInflater.inflate(R.layout.drawer_header, null)
+            drawerLayout.addView(headerView)
         }
 
-        dialog.findViewById<TextView>(R.id.menuItemTerminal).setOnClickListener {
-            dialog.dismiss()
-            supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-                .replace(R.id.fragmentContainer, TerminalFragment())
-                .commit()
-        }
-
-        dialog.findViewById<TextView>(R.id.menuItemSettings).setOnClickListener {
-            dialog.dismiss()
-            navigateTo(R.id.nav_settings)
-        }
-
-        dialog.findViewById<TextView>(R.id.menuItemTheme).setOnClickListener {
-            dialog.dismiss()
-            supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-                .replace(R.id.fragmentContainer, ThemeFragment())
-                .commit()
-        }
-
-        dialog.findViewById<TextView>(R.id.menuItemAbout).setOnClickListener {
-            dialog.dismiss()
-            AlertDialog.Builder(this)
-                .setTitle("About EZBox")
-                .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                .setPositiveButton("OK", null)
-                .show()
-        }
-
-        dialog.setOnDismissListener {
-            btnHamburger.animate()
-                .rotation(0f)
-                .setDuration(180)
-                .withEndAction {
-                    btnHamburger.setImageResource(R.drawable.ic_hamburger)
+        val menuItems = listOf(
+            R.id.menuItemTutorial to {
+                drawerLayout.closeDrawers()
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                    .replace(R.id.fragmentContainer, TutorialFragment())
+                    .commit()
+            },
+            R.id.menuItemStopDesktop to {
+                drawerLayout.closeDrawers()
+                val home = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? HomeFragment
+                if (home != null) {
+                    home.stopDesktop()
+                } else {
+                    TermuxCommand.start(
+                        this,
+                        "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'xfce4-session'; pkill -9 -f 'ezos-run'"
+                    )
+                    Toast.makeText(this, "Desktop stopped", Toast.LENGTH_SHORT).show()
                 }
-                .start()
-        }
+            },
+            R.id.menuItemTerminal to {
+                drawerLayout.closeDrawers()
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                    .replace(R.id.fragmentContainer, TerminalFragment())
+                    .commit()
+            },
+            R.id.menuItemSettings to {
+                drawerLayout.closeDrawers()
+                navigateTo(R.id.nav_settings)
+            },
+            R.id.menuItemTheme to {
+                drawerLayout.closeDrawers()
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                    .replace(R.id.fragmentContainer, ThemeFragment())
+                    .commit()
+            },
+            R.id.menuItemAbout to {
+                drawerLayout.closeDrawers()
+                AlertDialog.Builder(this)
+                    .setTitle("About EZBox")
+                    .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        )
 
-        dialog.show()
-        // Must be applied after show(): the decor is attached there, and setLayout before
-        // that gets overwritten, so the menu rendered full-width and centered.
-        dialog.window?.apply {
-            setLayout((resources.displayMetrics.widthPixels * 0.82).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
-            setGravity(Gravity.TOP or Gravity.END)
-            attributes = attributes?.apply { y = 90; x = 16 }
+        for ((id, action) in menuItems) {
+            drawerLayout.findViewById<TextView>(id)?.setOnClickListener { action() }
         }
     }
 
@@ -234,9 +229,6 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == TERMUX_PERMISSION_REQUEST_CODE) {
-            // Handled here. Forwarding this to fragments used to collide with
-            // HomeFragment's own requestCode (1001) and auto-launch the desktop with
-            // no user action, contradicting this dialog's own text.
             requestAllFilesAccessIfNeeded()
             return
         }

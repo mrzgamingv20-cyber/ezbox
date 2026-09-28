@@ -12,7 +12,7 @@
         <item name="bottomNavigationStyle">@style/EZBox.BottomNav</item>
         <item name="colorControlNormal">@color/ezos_text_secondary</item>
         <item name="colorControlActivated">@color/ezos_accent</item>
-        <item name="colorControlHighlight">@color/ezos_accent</item>
+        <item name="colorControlHighlight">@color/ez_ripple</item>
         <item name="android:statusBarColor">@color/ezos_bg_base</item>
         <item name="android:navigationBarColor">@color/ezos_bg_base</item>
     </style>
@@ -32,5 +32,43 @@
     <style name="EZBox.SplashTheme" parent="Theme.EZBox">
         <item name="android:windowBackground">@color/ezos_bg_base</item>
         <item name="android:statusBarColor">@color/ezos_bg_base</item>
+    </style>
+
+    <!-- Typography -->
+    <style name="EZBox.TextDisplay" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/ezos_text_primary</item>
+    </style>
+
+    <style name="EZBox.TextH2" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/ezos_text_primary</item>
+    </style>
+
+    <style name="EZBox.TextBody" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/ezos_text_primary</item>
+    </style>
+
+    <style name="EZBox.TextCaption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/ezos_text_secondary</item>
+    </style>
+
+    <style name="EZBox.TextMono" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColor">@color/ezos_accent</item>
+    </style>
+
+    <!-- Winlator-style ContentDialog -->
+    <style name="EZBox.ContentDialog" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 </resources>

@@ -4,24 +4,20 @@ import android.content.Context
 
 object ThemeManager {
     enum class Theme(val displayName: String, val accentRes: Int, val accentEndRes: Int) {
-        INDIGO("Indigo", R.color.ez_primary, R.color.ez_primary_gradient_end),
-        ROSE("Rose", R.color.ez_secondary, R.color.ez_secondary_glow),
-        EMERALD("Emerald", R.color.ez_tertiary, R.color.ez_tertiary_glow),
-        AMBER("Amber", R.color.ez_warm, R.color.ez_warm_glow),
-        CYAN("Cyan", R.color.ez_cool, R.color.ez_cool_glow)
+        CLASSIC_DARK("Classic Dark", R.color.ez_primary, R.color.ez_primary_gradient_end),
+        AMOLED("AMOLED", R.color.ez_primary, R.color.ez_primary_gradient_end),
+        OCEAN("Ocean", R.color.ez_info, R.color.ez_primary_gradient_end)
     }
 
-    val ALL: List<Theme> = listOf(
-        Theme.INDIGO, Theme.ROSE, Theme.EMERALD, Theme.AMBER, Theme.CYAN
-    )
+    val ALL: List<Theme> = listOf(CLASSIC_DARK, AMOLED, OCEAN)
 
     private const val KEY_THEME = "theme_preference"
-    private var current: Theme = Theme.INDIGO
+    private var current: Theme = CLASSIC_DARK
 
     fun init(context: Context) {
         val name = context.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
-            .getString(KEY_THEME, "Indigo") ?: "Indigo"
-        current = ALL.firstOrNull { it.displayName == name } ?: Theme.INDIGO
+            .getString(KEY_THEME, "Classic Dark") ?: "Classic Dark"
+        current = ALL.firstOrNull { it.displayName == name } ?: CLASSIC_DARK
     }
 
     fun getCurrent(): Theme = current

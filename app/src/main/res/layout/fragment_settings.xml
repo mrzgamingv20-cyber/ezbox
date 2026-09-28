@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ezos_bg_black">
+    android:background="@color/ezos_bg_base">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,68 +10,58 @@
         android:orientation="vertical"
         android:padding="20dp">
 
+        <!-- Header -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="⚙ Settings"
             android:textColor="@android:color/white"
-            android:textSize="28sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/header_gradient"
-            android:padding="16dp"
-            android:elevation="2dp" />
+            android:padding="16dp" />
 
-        <!-- Desktop section -->
-        <LinearLayout
+        <!-- Section: Desktop Environment -->
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-
-            <View
-                android:layout_width="36dp"
-                android:layout_height="3dp"
-                android:background="@drawable/section_accent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Desktop"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginStart="10dp"
-                android:letterSpacing="0.05" />
-        </LinearLayout>
+            android:text="Desktop Environment"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"
+            android:letterSpacing="0.05" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card_settings"
-            android:padding="20dp"
+            android:background="@color/ez_bg_elevated"
+            android:padding="0dp"
             android:layout_marginBottom="20dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Resolution"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="10dp" />
-
             <LinearLayout
+                android:id="@+id/deXfceCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:background="@drawable/de_card_selected_bg"
+                android:padding="14dp"
+                android:layout_marginBottom="1dp"
+                android:clickable="true"
+                android:focusable="true">
 
-                <!-- Width stepper -->
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="36dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/de_preview_xfce"
+                    android:layout_marginEnd="12dp" />
+
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -81,219 +71,17 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Width"
-                        android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="4dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <Button
-                            android:id="@+id/btnWidthMinus"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:text="−"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="18sp"
-                            android:background="@drawable/stepper_btn_bg" />
-
-                        <TextView
-                            android:id="@+id/tvWidthValue"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:layout_marginEnd="6dp"
-                            android:gravity="center"
-                            android:text="960"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:background="@drawable/stepper_value_bg" />
-
-                        <Button
-                            android:id="@+id/btnWidthPlus"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:text="+"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="18sp"
-                            android:background="@drawable/stepper_btn_bg" />
-
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="×"
-                    android:textColor="@color/ezos_text_secondary"
-                    android:textSize="16sp"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="16dp" />
-
-                <!-- Height stepper -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                        android:text="XFCE"
+                        android:textColor="@color/ezos_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Height"
+                        android:text="Default • Lightweight"
                         android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="4dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <Button
-                            android:id="@+id/btnHeightMinus"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:text="−"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="18sp"
-                            android:background="@drawable/stepper_btn_bg" />
-
-                        <TextView
-                            android:id="@+id/tvHeightValue"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:layout_marginEnd="6dp"
-                            android:gravity="center"
-                            android:text="540"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:background="@drawable/stepper_value_bg" />
-
-                        <Button
-                            android:id="@+id/btnHeightPlus"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:text="+"
-                            android:textColor="@color/ezos_text_primary"
-                            android:textSize="18sp"
-                            android:background="@drawable/stepper_btn_bg" />
-
-                    </LinearLayout>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Mouse Mode"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp" />
-
-            <Spinner
-                android:id="@+id/spinnerMouseMode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="VNC Password"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp" />
-
-            <EditText
-                android:id="@+id/inputVncPassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="min. 6 characters"
-                android:inputType="textPassword"
-                android:textColor="@color/ezos_text_primary"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Applies next time you launch the desktop"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="11sp"
-                android:textStyle="italic" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Desktop Environment"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="10dp" />
-
-             <LinearLayout
-                 android:id="@+id/deXfceCard"
-                 android:layout_width="match_parent"
-                 android:layout_height="wrap_content"
-                 android:orientation="horizontal"
-                 android:gravity="center_vertical"
-                 android:background="@drawable/de_card_selected_bg"
-                 android:padding="12dp"
-                 android:layout_marginBottom="10dp"
-                 android:clickable="true"
-                 android:focusable="true">
-
-                 <ImageView
-                     android:layout_width="64dp"
-                     android:layout_height="48dp"
-                     android:scaleType="centerCrop"
-                     android:src="@drawable/de_preview_xfce"
-                     android:layout_marginEnd="12dp" />
-
-                 <LinearLayout
-                     android:layout_width="0dp"
-                     android:layout_height="wrap_content"
-                     android:layout_weight="1"
-                     android:orientation="vertical">
-
-                     <TextView
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:text="XFCE"
-                         android:textColor="@color/ezos_text_primary"
-                         android:textSize="14sp"
-                         android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Default • Lightweight, familiar layout"
-                        android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -308,26 +96,26 @@
 
             </LinearLayout>
 
-             <LinearLayout
-                 android:id="@+id/deLxqtCard"
-                 android:layout_width="match_parent"
-                 android:layout_height="wrap_content"
-                 android:orientation="horizontal"
-                 android:gravity="center_vertical"
-                 android:background="@drawable/de_card_unselected_bg"
-                 android:padding="12dp"
-                 android:layout_marginBottom="10dp"
-                 android:clickable="true"
-                 android:focusable="true">
+            <LinearLayout
+                android:id="@+id/deLxqtCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/de_card_unselected_bg"
+                android:padding="14dp"
+                android:layout_marginBottom="1dp"
+                android:clickable="true"
+                android:focusable="true">
 
-                 <ImageView
-                     android:layout_width="64dp"
-                     android:layout_height="48dp"
-                     android:scaleType="centerCrop"
-                     android:src="@drawable/de_preview_lxqt"
-                     android:layout_marginEnd="12dp" />
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="36dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/de_preview_lxqt"
+                    android:layout_marginEnd="12dp" />
 
-                  <LinearLayout
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -344,9 +132,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Lightweight • Minimal, fast"
+                        android:text="Lightweight • Minimal"
                         android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -368,11 +156,11 @@
                 android:gravity="center_vertical"
                 android:background="@drawable/de_card_unselected_bg"
                 android:alpha="0.5"
-                android:padding="12dp">
+                android:padding="14dp">
 
                 <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="48dp"
+                    android:layout_width="48dp"
+                    android:layout_height="36dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/de_preview_kde"
                     android:layout_marginEnd="12dp" />
@@ -394,9 +182,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Not available in native mode"
+                        android:text="Not available"
                         android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -404,170 +192,216 @@
 
         </LinearLayout>
 
-        <!-- Display Backend section -->
+        <!-- Section: Display -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Display Backend"
-            android:textColor="@color/ezos_accent"
-            android:textSize="13sp"
+            android:text="Display"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"
+            android:letterSpacing="0.05" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card_settings"
-            android:padding="20dp"
+            android:background="@color/ez_bg_elevated"
+            android:padding="16dp"
             android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resolution"
+                android:textColor="@color/ezos_text_secondary"
+                android:textSize="13sp"
+                android:layout_marginBottom="10dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/de_card_selected_bg"
-                android:padding="12dp"
-                android:layout_marginBottom="10dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="VNC (Built-in)"
-                        android:textColor="@color/ezos_text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Default • No additional app required"
-                        android:textColor="@color/ezos_text_secondary"
-                        android:textSize="11sp" />
-
-                </LinearLayout>
+                android:gravity="center_vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="12dp"
-                    android:text="✓"
-                    android:textColor="@color/ezos_accent"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/chevronVnc"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:gravity="center"
-                    android:text="⌄"
-                    android:textColor="@color/ezos_text_secondary"
-                    android:textSize="16sp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/panelVncSub"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/de_card_unselected_bg"
-                android:padding="14dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="VNC runs entirely inside EZBox, no additional app required. For render quality options (view-only, clipboard, low bandwidth), see the 'Advanced VNC' section further down this page."
+                    android:text="Width"
                     android:textColor="@color/ezos_text_secondary"
                     android:textSize="12sp" />
 
+                <TextView
+                    android:id="@+id/tvWidthValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:text="960"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/stepper_value_bg"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+
+                <Button
+                    android:id="@+id/btnWidthMinus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:text="−"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="18sp"
+                    android:background="@drawable/stepper_btn_bg" />
+
+                <Button
+                    android:id="@+id/btnWidthPlus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:text="+"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="18sp"
+                    android:background="@drawable/stepper_btn_bg" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="×"
+                    android:textColor="@color/ezos_text_secondary"
+                    android:textSize="16sp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Height"
+                    android:textColor="@color/ezos_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvHeightValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:text="540"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/stepper_value_bg"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+
+                <Button
+                    android:id="@+id/btnHeightMinus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:text="−"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="18sp"
+                    android:background="@drawable/stepper_btn_bg" />
+
+                <Button
+                    android:id="@+id/btnHeightPlus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:text="+"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="18sp"
+                    android:background="@drawable/stepper_btn_bg" />
+
             </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mouse Mode"
+                android:textColor="@color/ezos_text_secondary"
+                android:textSize="13sp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="6dp" />
+
+            <Spinner
+                android:id="@+id/spinnerMouseMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VNC Password"
+                android:textColor="@color/ezos_text_secondary"
+                android:textSize="13sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/inputVncPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="min. 6 characters"
+                android:inputType="textPassword"
+                android:textColor="@color/ezos_text_primary" />
 
         </LinearLayout>
 
-        <!-- Graphics section -->
+        <!-- Section: Graphics -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Graphics"
-            android:textColor="@color/ezos_accent"
-            android:textSize="13sp"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"
+            android:letterSpacing="0.05" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/ez_card_settings"
-            android:padding="20dp"
+            android:background="@color/ez_bg_elevated"
+            android:padding="16dp"
             android:layout_marginBottom="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/labelRenderer"
-                android:text="Renderer"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp" />
-
-            <Spinner
-                android:id="@+id/spRenderer"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="14dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/labelScale"
-                android:text="Scale"
-                android:textColor="@color/ezos_text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp" />
-
-            <Spinner
-                android:id="@+id/spScale"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="14dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="VSync"
+                    android:textColor="@color/ezos_text_primary"
+                    android:textSize="14sp" />
 
                 <Switch
                     android:id="@+id/switchVsync"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:text="VSync"
-                    android:textColor="@color/ezos_text_primary"
-                    android:textSize="14sp" />
 
             </LinearLayout>
 
@@ -576,7 +410,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:visibility="gone">
 
                 <Switch
                     android:id="@+id/switchRenderQuality"
@@ -584,7 +419,6 @@
                     android:layout_height="wrap_content" />
 
                 <TextView
-                    android:id="@+id/labelRenderQuality"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -597,37 +431,24 @@
 
         </LinearLayout>
 
-        <!-- Behavior section -->
-        <LinearLayout
+        <!-- Section: Behavior -->
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-
-            <View
-                android:layout_width="36dp"
-                android:layout_height="3dp"
-                android:background="@drawable/section_accent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Behavior"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginStart="10dp"
-                android:letterSpacing="0.05" />
-        </LinearLayout>
+            android:text="Behavior"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"
+            android:letterSpacing="0.05" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg_success"
-            android:padding="20dp"
+            android:background="@color/ez_bg_elevated"
+            android:padding="16dp"
             android:layout_marginBottom="20dp">
 
             <LinearLayout
@@ -640,7 +461,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Keep screen awake while using desktop"
+                    android:text="Keep screen awake"
                     android:textColor="@color/ezos_text_primary"
                     android:textSize="14sp" />
 
@@ -655,13 +476,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Stop desktop automatically when leaving EZBox (saves battery)"
+                    android:text="Auto stop on background"
                     android:textColor="@color/ezos_text_primary"
                     android:textSize="14sp" />
 
@@ -674,23 +496,24 @@
 
         </LinearLayout>
 
-        <!-- Advanced VNC section -->
+        <!-- Section: Advanced VNC -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Advanced VNC"
-            android:textColor="@color/ezos_accent"
-            android:textSize="13sp"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"
+            android:letterSpacing="0.05" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg_success"
-            android:padding="20dp"
+            android:background="@color/ez_bg_elevated"
+            android:padding="16dp"
             android:layout_marginBottom="20dp">
 
             <LinearLayout
@@ -698,7 +521,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="12dp">
 
                 <CheckBox
                     android:id="@+id/checkViewOnly"
@@ -710,7 +533,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="View-only mode (disable touch/keyboard input)"
+                    android:text="View-only mode"
                     android:textColor="@color/ezos_text_primary"
                     android:textSize="14sp" />
 
@@ -721,7 +544,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="12dp">
 
                 <CheckBox
                     android:id="@+id/checkDisableClipboard"
@@ -755,7 +578,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Low bandwidth mode (reduce render quality)"
+                    android:text="Low bandwidth mode"
                     android:textColor="@color/ezos_text_primary"
                     android:textSize="14sp" />
 
@@ -763,31 +586,31 @@
 
         </LinearLayout>
 
-        <!-- Danger zone -->
+        <!-- Danger Zone -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Danger Zone"
             android:textColor="@color/ezos_icon_rose"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="12dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_glow_bg_success"
-            android:padding="20dp"
+            android:background="@color/ez_bg_elevated"
+            android:padding="16dp"
             android:layout_marginBottom="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Resetting will erase all desktop files, installed apps, and settings inside EZOS. This cannot be undone."
+                android:text="Resetting will erase all desktop files, installed apps, and settings. This cannot be undone."
                 android:textColor="@color/ezos_text_secondary"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -795,19 +618,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:text="Reset Desktop"
-                android:textColor="@color/ezos_icon_rose"
-                android:background="@drawable/btn_danger_ripple" />
+                android:textColor="@android:color/white"
+                android:background="@drawable/btn_danger_bg" />
 
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="EZBox • Android desktop environment powered by Termux"
+            android:text="EZBox • Android desktop powered by Termux"
             android:textColor="@color/ezos_text_secondary"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:gravity="center"
-            android:layout_gravity="center_horizontal"
             android:layout_marginTop="8dp" />
 
     </LinearLayout>

@@ -3,39 +3,36 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/card_tutorial_bg"
-    android:padding="18dp"
-    android:layout_marginBottom="14dp">
+    android:background="@color/ez_bg_elevated"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
 
     <TextView
         android:id="@+id/tvCardTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/ezos_text_primary"
+        android:text="Step Title"
+        android:textColor="@android:color/white"
         android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="6dp" />
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvCardBody"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Step description"
         android:textColor="@color/ezos_text_secondary"
-        android:textSize="13sp"
-        android:lineSpacingExtra="2dp"
-        android:layout_marginBottom="14dp" />
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="12dp" />
 
     <Button
         android:id="@+id/btnCardAction"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
-        android:minWidth="0dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:textColor="@color/ezos_bg_black"
+        android:text="Next"
+        android:textColor="@android:color/white"
         android:textSize="13sp"
-        android:textAllCaps="false"
-        android:textStyle="bold"
-        android:background="@drawable/btn_tutorial_more" />
+        android:background="@drawable/btn_primary_bg" />
 
 </LinearLayout>

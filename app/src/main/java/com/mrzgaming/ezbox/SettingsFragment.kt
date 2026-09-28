@@ -43,8 +43,6 @@ class SettingsFragment : Fragment() {
     private lateinit var chevronVnc: TextView
     private lateinit var panelVncSub: LinearLayout
 
-    // Must not be named setXxx: Kotlin reads `spinner.setXxx(...)` as the
-    // synthetic setter for property `xxx` and never considers the extension.
     private fun Spinner.bindSelection(onSelected: (Int) -> Unit) {
         onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -181,7 +179,7 @@ class SettingsFragment : Fragment() {
 
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
 
-        // Graphics settings
+        // Graphics settings (hidden by default)
         val spRenderer = view.findViewById<Spinner>(R.id.spRenderer)
         val spScale = view.findViewById<Spinner>(R.id.spScale)
         val switchVsync = view.findViewById<Switch>(R.id.switchVsync)
@@ -213,17 +211,10 @@ class SettingsFragment : Fragment() {
             prefs.edit().putBoolean("graphics_render_quality", checked).apply()
         }
 
-        // The renderer/scale spinners have no consumer anywhere: ezos-run only reads
-        // EZBOX_DE, EZBOX_RES and EZBOX_VNC_PASSWORD, and the VNC client always draws
-        // the raw framebuffer. Showing them let the user change a value that did nothing.
-        // Hidden rather than deleted so the layout stays intact if support ever lands.
         view.findViewById<View>(R.id.labelRenderer).visibility = View.GONE
         view.findViewById<View>(R.id.spRenderer).visibility = View.GONE
         view.findViewById<View>(R.id.labelScale).visibility = View.GONE
         view.findViewById<View>(R.id.spScale).visibility = View.GONE
-        // graphics_render_quality is intentionally a no-op now: the VNC
-        // client always renders the full framebuffer, there is no separate
-        // quality level, and toggling it previously silently flipped bandwidth.
         view.findViewById<View>(R.id.labelRenderQuality).visibility = View.GONE
         view.findViewById<View>(R.id.switchRenderQuality).visibility = View.GONE
         view.findViewById<View>(R.id.rowRenderQuality).visibility = View.GONE
@@ -277,4 +268,3 @@ class SettingsFragment : Fragment() {
         }
     }
 }
-

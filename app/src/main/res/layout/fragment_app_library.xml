@@ -5,25 +5,16 @@
     android:orientation="vertical"
     android:background="@color/ezos_bg_base">
 
-    <!-- Search bar placeholder -->
-    <LinearLayout
+    <TextView
+        android:id="@+id/tvEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:text="No apps installed yet.\nInstall from the Store tab."
+        android:textColor="@color/ezos_text_secondary"
+        android:textSize="14sp"
+        android:gravity="center"
         android:padding="20dp"
-        android:paddingBottom="4dp">
-
-        <TextView
-            android:id="@+id/tvEmpty"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="No apps installed yet.\nInstall from the Store tab."
-            android:textColor="@color/ezos_text_secondary"
-            android:textSize="14sp"
-            android:gravity="center"
-            android:visibility="gone" />
-    </LinearLayout>
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerApps"
@@ -33,4 +24,5 @@
         android:layout_marginHorizontal="16dp"
         android:clipToPadding="false"
         android:paddingBottom="16dp" />
+
 </LinearLayout>

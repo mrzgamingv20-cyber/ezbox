@@ -13,10 +13,11 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="16dp"
-        android:background="@drawable/ez_card"
+        android:background="@color/ez_bg_elevated"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="12dp"
+        android:elevation="2dp">
 
         <TextView
             android:id="@+id/tvPath"
