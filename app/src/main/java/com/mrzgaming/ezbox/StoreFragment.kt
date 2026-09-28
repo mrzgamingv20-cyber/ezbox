@@ -21,6 +21,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.CoroutineScope
@@ -212,7 +213,7 @@ class StoreFragment : Fragment() {
             oval.shape = GradientDrawable.OVAL
             oval.setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
             oval.alpha = 40
-            iv.background = oval
+            ViewCompat.setBackground(iv, oval)
             iv.clipToOutline = true
             iv.outlineProvider = object : android.view.ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: android.graphics.Outline) {
@@ -229,7 +230,10 @@ class StoreFragment : Fragment() {
             oval.shape = GradientDrawable.OVAL
             oval.setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
             oval.alpha = 60
-            iv.background = oval
+            ViewCompat.setBackground(iv, oval)
+            iv.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            iv
+        }
             iv.scaleType = ImageView.ScaleType.CENTER_INSIDE
             iv
         }
