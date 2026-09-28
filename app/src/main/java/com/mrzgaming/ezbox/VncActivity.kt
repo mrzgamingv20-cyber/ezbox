@@ -684,7 +684,7 @@ class VncActivity : AppCompatActivity() {
         cancelLongPress()
         TermuxCommand.removeErrorListener(termuxErrorListener)
         rfbClient?.close()
-        scope.cancel()
+        scope.coroutineContext[Job]?.cancel()
         notificationManager.cancel()
     }
 }
