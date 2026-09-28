@@ -203,36 +203,17 @@ class StoreFragment : Fragment() {
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        val iconBadge: View = if (pkg.iconRes != null) {
-            android.widget.ImageView(requireContext()).apply {
-                setImageResource(pkg.iconRes)
-                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
-                    alpha = 40
-                }
-                clipToOutline = true
-                outlineProvider = object : android.view.ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: android.graphics.Outline) {
-                        outline.setOval(0, 0, view.width, view.height)
-                    }
-                }
-                val pad = 16
-                setPadding(pad, pad, pad, pad)
+        val iconBadge = ImageView(requireContext()).apply {
+            setImageResource(pkg.iconRes ?: pkg.fallbackIconRes)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
+                alpha = 60
             }
-        } else {
-            ImageView(requireContext()).apply {
-                setImageResource(pkg.iconRes)
-                layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
-                    alpha = 60
-                }
-                scaleType = ImageView.ScaleType.CENTER_INSIDE
-            }
+            val pad = 16
+            setPadding(pad, pad, pad, pad)
         }
 
         val textContainer = LinearLayout(requireContext()).apply {
