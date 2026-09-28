@@ -384,7 +384,7 @@ class VncActivity : AppCompatActivity() {
         if (isFinishing || isDestroyed) return
         vncStatusSpinner.visibility = View.GONE
         vncStatusIcon.visibility = View.VISIBLE
-        vncStatusIcon.setImageResource(R.drawable.ic_triangle_alert)
+        (vncStatusIcon as TextView).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_triangle_alert, 0, 0, 0)
         btnRetryConnection.visibility = View.VISIBLE
         vncStatus.text = message
         findViewById<View>(R.id.vncStatusCard).visibility = View.VISIBLE

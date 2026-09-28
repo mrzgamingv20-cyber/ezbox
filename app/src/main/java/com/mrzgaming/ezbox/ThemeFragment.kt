@@ -1,6 +1,6 @@
 package com.mrzgaming.ezbox
 
-import android.graphics.PorterDuffMode
+import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -70,7 +70,7 @@ class ThemeFragment : Fragment() {
 
         val check = ImageView(requireContext())
         check.setImageResource(R.drawable.ic_circle_check)
-        check.setColorFilter(ContextCompat.getColor(requireContext(), R.color.ez_primary), PorterDuffMode.SRC_IN)
+        check.setColorFilter(ContextCompat.getColor(requireContext(), R.color.ez_primary), PorterDuff.Mode.SRC_IN)
         check.visibility = if (isCurrent) View.VISIBLE else View.GONE
         check.layoutParams = LinearLayout.LayoutParams(24, 24).apply { gravity = Gravity.CENTER_VERTICAL }
 
