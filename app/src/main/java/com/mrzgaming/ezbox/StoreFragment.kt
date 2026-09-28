@@ -21,7 +21,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.CoroutineScope
@@ -205,34 +204,35 @@ class StoreFragment : Fragment() {
         }
 
         val iconBadge: View = if (pkg.iconRes != null) {
-            val iv = android.widget.ImageView(requireContext())
-            iv.setImageResource(pkg.iconRes)
-            iv.scaleType = ImageView.ScaleType.CENTER_CROP
-            iv.layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
-            val oval = GradientDrawable()
-            oval.shape = GradientDrawable.OVAL
-            oval.setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
-            oval.alpha = 40
-            ViewCompat.setBackground(iv, oval)
-            iv.clipToOutline = true
-            iv.outlineProvider = object : android.view.ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: android.graphics.Outline) {
-                    outline.setOval(0, 0, view.width, view.height)
+            android.widget.ImageView(requireContext()).apply {
+                setImageResource(pkg.iconRes)
+                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
+                    alpha = 40
                 }
+                clipToOutline = true
+                outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: android.graphics.Outline) {
+                        outline.setOval(0, 0, view.width, view.height)
+                    }
+                }
+                val pad = 16
+                setPadding(pad, pad, pad, pad)
             }
-            iv.setPadding(16, 16, 16, 16)
-            iv
         } else {
-            val iv = ImageView(requireContext())
-            iv.setImageResource(pkg.iconRes)
-            iv.layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
-            val oval = GradientDrawable()
-            oval.shape = GradientDrawable.OVAL
-            oval.setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
-            oval.alpha = 60
-            ViewCompat.setBackground(iv, oval)
-            iv.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            iv
+            ImageView(requireContext()).apply {
+                setImageResource(pkg.iconRes)
+                layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
+                    alpha = 60
+                }
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
+            }
         }
 
         val textContainer = LinearLayout(requireContext()).apply {
