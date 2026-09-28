@@ -13,9 +13,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,10 +32,8 @@ class VncActivity : AppCompatActivity() {
     private lateinit var hiddenInput: EditText
     private lateinit var btnToggleKeyboard: Button
     private lateinit var btnStopDesktop: Button
-    private lateinit var btnCtrl: ToggleButton
-    private lateinit var btnAlt: ToggleButton
-    private lateinit var extraKeysBar: android.widget.HorizontalScrollView
-    private lateinit var btnExpandKeys: Button
+    private lateinit var extraKeysPanel: android.widget.FrameLayout
+    private lateinit var btnEditKeys: Button
     private lateinit var typingPreviewBar: TextView
     private var typedBuffer = StringBuilder()
     private var rfbClient: RfbClient? = null
@@ -48,6 +44,7 @@ class VncActivity : AppCompatActivity() {
     private var mouseMode = "direct"
     private var lastTrackpadX = 0f
     private var lastTrackpadY = 0f
+    private lateinit var extraKeys: ExtraKeysPanel
     private var virtualCursorX = 0
     private var virtualCursorY = 0
 
@@ -119,21 +116,22 @@ class VncActivity : AppCompatActivity() {
         hiddenInput = findViewById(R.id.hiddenInput)
         btnToggleKeyboard = findViewById(R.id.btnToggleKeyboard)
         btnStopDesktop = findViewById(R.id.btnStopDesktop)
-        btnCtrl = findViewById(R.id.btnCtrl)
-        btnAlt = findViewById(R.id.btnAlt)
-        extraKeysBar = findViewById(R.id.extraKeysBar)
-        btnExpandKeys = findViewById(R.id.btnExpandKeys)
+        extraKeysPanel = findViewById(R.id.extraKeysPanel)
+        btnEditKeys = findViewById(R.id.btnEditKeys)
         typingPreviewBar = findViewById(R.id.typingPreviewBar)
 
         btnStopDesktop.setOnClickListener { stopDesktop() }
-        btnExpandKeys.setOnClickListener { toggleExtraKeysBar() }
+        btnEditKeys.setOnClickListener { editExtraKeys() }
 
         connectAndRender()
         notificationManager.showRunningNotification(intent.getStringExtra("container_name") ?: "EZBox")
         setupKeyboardInput()
-        setupExtraKeys()
+        extraKeys = ExtraKeysPanel(this, prefs, extraKeysPanel) { k -> sendKey(k) }
+        extraKeys.load()
+        extraKeys.render()
         setupClipboardAndScreenshot()
         startPointerSender()
+
         applyViewOnlyMode()
 
         vncScreen.setOnTouchListener { _, event ->
@@ -150,24 +148,29 @@ class VncActivity : AppCompatActivity() {
     private fun applyViewOnlyMode() {
         if (viewOnlyMode) {
             btnToggleKeyboard.visibility = View.GONE
-            btnExpandKeys.visibility = View.GONE
-            extraKeysBar.visibility = View.GONE
+            btnEditKeys.visibility = View.GONE
+            extraKeysPanel.visibility = View.GONE
         }
     }
 
     // Toggle toolbar SAJA tanpa animasi margin - layout_above di XML handle otomatis
     // supaya user bisa akses Ctrl/Alt/Esc/dll tanpa harus buka keyboard sekaligus
-    private fun toggleExtraKeysBar() {
-        if (extraKeysBar.visibility == View.VISIBLE) {
-            extraKeysBar.animate().alpha(0f).setDuration(150).withEndAction {
-                extraKeysBar.visibility = View.GONE
-                typingPreviewBar.visibility = View.GONE
-            }.start()
-        } else {
-            extraKeysBar.alpha = 0f
-            extraKeysBar.visibility = View.VISIBLE
-            extraKeysBar.animate().alpha(1f).setDuration(150).start()
+    /** Menu tombol "Keys": tambah tombol, atau bersihkan panel. */
+    private fun editExtraKeys() {
+        if (extraKeys.isEmpty) {
+            extraKeys.showPicker { extraKeys.addKey(it) }
+            return
         }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Tombol custom")
+            .setItems(arrayOf("Tambah tombol", "Hapus semua tombol")) { _, which ->
+                when (which) {
+                    0 -> extraKeys.showPicker { extraKeys.addKey(it) }
+                    1 -> extraKeys.clearAll()
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun showTermuxError(message: String) {
@@ -203,25 +206,6 @@ class VncActivity : AppCompatActivity() {
             notificationManager.cancel()
             finish()
         }
-    }
-
-    private fun setupExtraKeys() {
-        findViewById<Button>(R.id.btnEsc).setOnClickListener { sendKeysym(KEY_ESC) }
-        findViewById<Button>(R.id.btnTab).setOnClickListener { sendKeysym(KEY_TAB) }
-        findViewById<Button>(R.id.btnUp).setOnClickListener { sendKeysym(KEY_UP) }
-        findViewById<Button>(R.id.btnDown).setOnClickListener { sendKeysym(KEY_DOWN) }
-        findViewById<Button>(R.id.btnLeft).setOnClickListener { sendKeysym(KEY_LEFT) }
-        findViewById<Button>(R.id.btnRight).setOnClickListener { sendKeysym(KEY_RIGHT) }
-        findViewById<Button>(R.id.btnSuper).setOnClickListener { sendKeysym(KEY_SUPER) }
-        findViewById<Button>(R.id.btnF1).setOnClickListener { sendKeysym(KEY_F1) }
-        findViewById<Button>(R.id.btnF2).setOnClickListener { sendKeysym(KEY_F2) }
-        findViewById<Button>(R.id.btnF3).setOnClickListener { sendKeysym(KEY_F3) }
-        findViewById<Button>(R.id.btnF4).setOnClickListener { sendKeysym(KEY_F4) }
-        findViewById<Button>(R.id.btnHome).setOnClickListener { sendKeysym(KEY_HOME) }
-        findViewById<Button>(R.id.btnEnd).setOnClickListener { sendKeysym(KEY_END) }
-        findViewById<Button>(R.id.btnPgUp).setOnClickListener { sendKeysym(KEY_PGUP) }
-        findViewById<Button>(R.id.btnPgDn).setOnClickListener { sendKeysym(KEY_PGDN) }
-        findViewById<Button>(R.id.btnDel).setOnClickListener { sendKeysym(KEY_DEL) }
     }
 
     private fun setupClipboardAndScreenshot() {
@@ -343,8 +327,8 @@ class VncActivity : AppCompatActivity() {
     private fun sendModifiedChar(c: Char) {
         if (viewOnlyMode) return
         val client = rfbClient ?: return
-        val ctrlOn = btnCtrl.isChecked
-        val altOn = btnAlt.isChecked
+        val ctrlOn = extraKeys.isModActive("ctrl")
+        val altOn = extraKeys.isModActive("alt")
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -355,8 +339,7 @@ class VncActivity : AppCompatActivity() {
                     if (altOn) client.sendKeyEvent(KEY_ALT_L, false)
                     if (ctrlOn) client.sendKeyEvent(KEY_CTRL_L, false)
                 }
-                if (ctrlOn) runOnUiThread { btnCtrl.isChecked = false }
-                if (altOn) runOnUiThread { btnAlt.isChecked = false }
+                if (ctrlOn || altOn) runOnUiThread { extraKeys.clearMods() }
             } catch (e: Exception) { Log.e("VncActivity", "Key failed: ${e.message}") }
         }
     }
@@ -427,6 +410,22 @@ class VncActivity : AppCompatActivity() {
             }
         }
         if (!isFinishing && !isDestroyed) showErrorState("Failed to connect after ${maxRetries} attempts.\nTap retry to try again.")
+    }
+
+    private fun sendKey(k: ExtraKey) {
+        if (viewOnlyMode) return
+        if (k.mod != null) {
+            extraKeys.toggleMod(k.mod)
+            return
+        }
+        if (k.char != null) {
+            sendModifiedChar(k.char[0])
+            return
+        }
+        if (k.keysym != 0) {
+            sendKeysym(k.keysym)
+            return
+        }
     }
 
     private fun showRetryButton() {
