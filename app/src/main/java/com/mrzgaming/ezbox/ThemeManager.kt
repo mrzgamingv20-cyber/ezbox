@@ -17,7 +17,7 @@ object ThemeManager {
     fun init(context: Context) {
         val name = context.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
             .getString(KEY_THEME, "Indigo") ?: "Indigo"
-        current = Theme.values().firstOrNull { it.name == name } ?: Theme.INDIGO
+        current = Theme.values().firstOrNull { it.displayName == name } ?: Theme.INDIGO
     }
 
     fun getCurrent(): Theme = current
@@ -25,6 +25,6 @@ object ThemeManager {
     fun setTheme(context: Context, theme: Theme) {
         current = theme
         context.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
-            .edit().putString(KEY_THEME, theme.name).apply()
+            .edit().putString(KEY_THEME, theme.displayName).apply()
     }
 }

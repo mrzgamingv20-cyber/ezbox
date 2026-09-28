@@ -76,7 +76,7 @@ class ThemeFragment : Fragment() {
         card.setOnClickListener {
             ThemeManager.setTheme(requireContext(), theme)
             updateIndicator(theme)
-            cardsLayout.forEach { c ->
+            for (c in cardsLayout) {
                 (c as? LinearLayout)?.getChildAt(2)?.visibility = View.GONE
             }
             check.visibility = View.VISIBLE
@@ -90,7 +90,7 @@ class ThemeFragment : Fragment() {
     }
 
     private fun updateIndicator(theme: ThemeManager.Theme) {
-        val idx = ThemeManager.Theme.entries.indexOfFirst { it == theme }
+        val idx = ThemeManager.Theme.values().indexOfFirst { it == theme }
         if (idx < 0) return
         val colors = resources.getIntArray(R.array.theme_accents)
         val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
@@ -102,7 +102,7 @@ class ThemeFragment : Fragment() {
     }
 
     private fun updateDot(dot: View, theme: ThemeManager.Theme) {
-        val idx = ThemeManager.Theme.entries.indexOfFirst { it == theme }
+        val idx = ThemeManager.Theme.values().indexOfFirst { it == theme }
         if (idx < 0) return
         val colors = resources.getIntArray(R.array.theme_accents)
         val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
