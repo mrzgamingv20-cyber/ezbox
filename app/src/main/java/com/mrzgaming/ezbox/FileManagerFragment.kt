@@ -144,7 +144,7 @@ class FileAdapter(
 ) : RecyclerView.Adapter<FileAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val icon: TextView = view.findViewById(R.id.tvFileIcon)
+        val icon: ImageView = view.findViewById(R.id.tvFileIcon)
         val name: TextView = view.findViewById(R.id.tvFileName)
         val info: TextView = view.findViewById(R.id.tvFileInfo)
     }
