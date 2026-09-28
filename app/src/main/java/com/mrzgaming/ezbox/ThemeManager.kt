@@ -11,13 +11,15 @@ object ThemeManager {
         CYAN("Cyan", R.color.ez_cool, R.color.ez_cool_glow)
     }
 
+    val ALL: List<Theme> = listOf(INDIGO, ROSE, EMERALD, AMBER, CYAN)
+
     private const val KEY_THEME = "theme_preference"
-    private var current: Theme = Theme.INDIGO
+    private var current: Theme = INDIGO
 
     fun init(context: Context) {
         val name = context.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
             .getString(KEY_THEME, "Indigo") ?: "Indigo"
-        current = Theme.entries.firstOrNull { it.displayName == name } ?: Theme.INDIGO
+        current = ALL.firstOrNull { it.displayName == name } ?: INDIGO
     }
 
     fun getCurrent(): Theme = current

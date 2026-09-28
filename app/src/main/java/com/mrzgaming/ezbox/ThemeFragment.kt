@@ -33,7 +33,7 @@ class ThemeFragment : Fragment() {
         currentDot = view.findViewById(R.id.themeCurrentDot)
         currentName = view.findViewById(R.id.themeCurrentName)
 
-        for (theme in ThemeManager.Theme.entries) {
+        for (theme in ThemeManager.ALL) {
             cardsLayout.addView(createCard(theme, theme == ThemeManager.getCurrent()))
         }
         updateIndicator(ThemeManager.getCurrent())
@@ -91,7 +91,7 @@ class ThemeFragment : Fragment() {
     }
 
     private fun updateIndicator(theme: ThemeManager.Theme) {
-        val idx = ThemeManager.Theme.entries.indexOfFirst { it == theme }
+        val idx = ThemeManager.ALL.indexOfFirst { it == theme }
         if (idx < 0) return
         val colors = resources.getIntArray(R.array.theme_accents)
         val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
@@ -103,7 +103,7 @@ class ThemeFragment : Fragment() {
     }
 
     private fun updateDot(dot: View, theme: ThemeManager.Theme) {
-        val idx = ThemeManager.Theme.entries.indexOfFirst { it == theme }
+        val idx = ThemeManager.ALL.indexOfFirst { it == theme }
         if (idx < 0) return
         val colors = resources.getIntArray(R.array.theme_accents)
         val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
