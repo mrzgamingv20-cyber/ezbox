@@ -1,5 +1,6 @@
 package com.mrzgaming.ezbox
 
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
@@ -32,8 +33,7 @@ class ThemeFragment : Fragment() {
         currentName = view.findViewById(R.id.themeCurrentName)
 
         for (theme in ThemeManager.Theme.entries) {
-            val isCurrent = theme == ThemeManager.getCurrent()
-            cards.addView(createCard(theme, isCurrent))
+            cards.addView(createCard(theme, theme == ThemeManager.getCurrent()))
         }
         updateIndicator(ThemeManager.getCurrent())
     }
@@ -45,46 +45,41 @@ class ThemeFragment : Fragment() {
         val params = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.bottomMargin = 12
+        ).apply { bottomMargin = 12 }
         card.layoutParams = params
         card.setBackgroundResource(R.drawable.ez_card)
         card.setPadding(48, 16, 48, 16)
-        card.tag = theme
 
         val dot = View(requireContext())
         val size = resources.getDimensionPixelSize(R.dimen.theme_dot_size)
         val gap = resources.getDimensionPixelSize(R.dimen.theme_dot_gap)
-        val dotParams = ViewGroup.LayoutParams(size, size)
-        dotParams.rightMargin = gap
+        val dotParams = LinearLayout.LayoutParams(size, size).apply { rightMargin = gap }
         dot.layoutParams = dotParams
         updateDot(dot, theme)
 
         val name = TextView(requireContext())
-        name.text = theme.name
+        name.text = theme.displayName
         name.setTextColor(ContextCompat.getColor(requireContext(), R.color.ez_text))
         name.textSize = 16f
-        name.textStyle = android.graphics.Typeface.BOLD
-        val nameParams = LinearLayout.LayoutParams(
-            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
-        )
+        name.setTypeface(null, Typeface.BOLD)
+        val nameParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         name.layoutParams = nameParams
 
         val check = TextView(requireContext())
         check.text = "✓"
         check.setTextColor(ContextCompat.getColor(requireContext(), R.color.ez_primary))
         check.textSize = 20f
-        check.textStyle = android.graphics.Typeface.BOLD
+        check.setTypeface(null, Typeface.BOLD)
         check.visibility = if (isCurrent) View.VISIBLE else View.GONE
 
         card.setOnClickListener {
             ThemeManager.setTheme(requireContext(), theme)
             updateIndicator(theme)
-            cards.children.forEach { c ->
+            cards.forEach { c ->
                 (c as? LinearLayout)?.getChildAt(2)?.visibility = View.GONE
             }
             check.visibility = View.VISIBLE
-            Toast.makeText(requireContext(), "Tema ${theme.name} aktif", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Tema ${theme.displayName} aktif", Toast.LENGTH_SHORT).show()
         }
 
         card.addView(dot)
@@ -97,22 +92,21 @@ class ThemeFragment : Fragment() {
         val idx = ThemeManager.Theme.entries.indexOfFirst { it == theme }
         if (idx < 0) return
         val colors = resources.getIntArray(R.array.theme_accents)
-        val dot = currentDot
+        val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
         val bg = GradientDrawable()
         bg.shape = GradientDrawable.OVAL
-        val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
         bg.setColor(intArrayOf(colors[idx], accentEnd))
-        dot.background = bg
-        currentName.text = theme.name
+        currentDot.background = bg
+        currentName.text = theme.displayName
     }
 
     private fun updateDot(dot: View, theme: ThemeManager.Theme) {
         val idx = ThemeManager.Theme.entries.indexOfFirst { it == theme }
         if (idx < 0) return
         val colors = resources.getIntArray(R.array.theme_accents)
+        val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
         val bg = GradientDrawable()
         bg.shape = GradientDrawable.OVAL
-        val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
         bg.setColor(intArrayOf(colors[idx], accentEnd))
         dot.background = bg
     }

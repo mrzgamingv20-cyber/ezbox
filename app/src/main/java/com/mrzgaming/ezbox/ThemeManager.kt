@@ -3,7 +3,7 @@ package com.mrzgaming.ezbox
 import android.content.Context
 
 object ThemeManager {
-    enum class Theme(val name: String, val accentRes: Int, val accentEndRes: Int) {
+    enum class Theme(val displayName: String, val accentRes: Int, val accentEndRes: Int) {
         INDIGO("Indigo", R.color.ez_primary, R.color.ez_primary_gradient_end),
         ROSE("Rose", R.color.ez_secondary, R.color.ez_secondary_glow),
         EMERALD("Emerald", R.color.ez_tertiary, R.color.ez_tertiary_glow),
