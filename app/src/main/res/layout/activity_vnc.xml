@@ -72,7 +72,6 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="14dp"
-        android:textSize="18sp"
         android:padding="0dp"
         android:minWidth="0dp"
         android:minHeight="0dp"
