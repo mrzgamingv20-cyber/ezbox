@@ -93,11 +93,10 @@ class ThemeFragment : Fragment() {
     private fun updateIndicator(theme: ThemeManager.Theme) {
         val idx = ThemeManager.ALL.indexOfFirst { it == theme }
         if (idx < 0) return
-        val colors = resources.getIntArray(R.array.theme_accents)
         val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
         val bg = GradientDrawable()
         bg.shape = GradientDrawable.OVAL
-        bg.setColor(intArrayOf(colors[idx], accentEnd))
+        bg.setColor(accentEnd)
         currentDot.background = bg
         currentName.text = theme.displayName
     }
@@ -105,11 +104,10 @@ class ThemeFragment : Fragment() {
     private fun updateDot(dot: View, theme: ThemeManager.Theme) {
         val idx = ThemeManager.ALL.indexOfFirst { it == theme }
         if (idx < 0) return
-        val colors = resources.getIntArray(R.array.theme_accents)
         val accentEnd = ContextCompat.getColor(requireContext(), theme.accentEndRes)
         val bg = GradientDrawable()
         bg.shape = GradientDrawable.OVAL
-        bg.setColor(intArrayOf(colors[idx], accentEnd))
+        bg.setColor(accentEnd)
         dot.background = bg
     }
 }
