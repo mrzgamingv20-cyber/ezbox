@@ -76,13 +76,12 @@
         android:padding="0dp"
         android:minWidth="0dp"
         android:minHeight="0dp"
-        android:background="@drawable/btn_primary_bg"
-        android:textColor="@android:color/white"
-        android:text="STOP"
         android:background="@drawable/btn_danger_bg"
-        android:textColor="@android:color/white"
         android:drawableStart="@drawable/ic_circle_stop"
-        android:drawablePadding="6dp" />
+        android:drawablePadding="6dp"
+        android:text="STOP"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
 
     <!-- Glass Expand Extra Keys Button -->
     <Button
