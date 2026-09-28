@@ -17,6 +17,7 @@ class ThemeFragment : Fragment() {
 
     private lateinit var currentDot: View
     private lateinit var currentName: TextView
+    private lateinit var cardsLayout: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -28,12 +29,12 @@ class ThemeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         ThemeManager.init(requireContext())
 
-        val cards = view.findViewById<LinearLayout>(R.id.themeCards)
+        cardsLayout = view.findViewById<LinearLayout>(R.id.themeCards)
         currentDot = view.findViewById(R.id.themeCurrentDot)
         currentName = view.findViewById(R.id.themeCurrentName)
 
         for (theme in ThemeManager.Theme.entries) {
-            cards.addView(createCard(theme, theme == ThemeManager.getCurrent()))
+            cardsLayout.addView(createCard(theme, theme == ThemeManager.getCurrent()))
         }
         updateIndicator(ThemeManager.getCurrent())
     }
@@ -75,7 +76,7 @@ class ThemeFragment : Fragment() {
         card.setOnClickListener {
             ThemeManager.setTheme(requireContext(), theme)
             updateIndicator(theme)
-            cards.forEach { c ->
+            cardsLayout.forEach { c ->
                 (c as? LinearLayout)?.getChildAt(2)?.visibility = View.GONE
             }
             check.visibility = View.VISIBLE
