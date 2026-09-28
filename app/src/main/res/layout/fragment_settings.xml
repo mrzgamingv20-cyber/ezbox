@@ -91,7 +91,7 @@
                     android:id="@+id/checkDeXfce"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_circle-check"
+                    android:src="@drawable/ic_circle_check"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="16dp"
                     app:tint="@color/ezos_accent" />
@@ -144,7 +144,7 @@
                     android:id="@+id/checkDeLxqt"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_circle-check"
+                    android:src="@drawable/ic_circle_check"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="16dp"
                     app:tint="@color/ezos_accent"

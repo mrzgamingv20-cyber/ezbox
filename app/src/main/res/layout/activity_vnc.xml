@@ -81,7 +81,7 @@
         android:text="STOP"
         android:background="@drawable/btn_danger_bg"
         android:textColor="@android:color/white"
-        android:drawableStart="@drawable/ic_circle-stop"
+        android:drawableStart="@drawable/ic_circle_stop"
         android:drawablePadding="6dp" />
 
     <!-- Glass Expand Extra Keys Button -->
