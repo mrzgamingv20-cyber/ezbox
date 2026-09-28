@@ -1,6 +1,5 @@
 package com.mrzgaming.ezbox
 
-import android.app.AlertDialog
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.util.Log
@@ -14,6 +13,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import org.json.JSONArray
 import org.json.JSONObject
@@ -411,9 +411,9 @@ class ExtraKeysPanel(
                 if (id != 0) setCompoundDrawablesRelativeWithIntrinsicBounds(id, 0, 0, 0)
             }
             setPadding(dp(6), dp(8), dp(6), dp(8))
-            layoutParams = LinearLayout.LayoutParams(dp(if (wide) 90 else 46), dp(42)).apply {
-                marginEnd = dp(3)
-                marginBottom = dp(3)
+            layoutParams = LinearLayout.LayoutParams(dp(if (wide) 90 else 46), dp(42)).also { lp ->
+                lp.marginEnd = dp(3)
+                lp.bottomMargin = dp(3)
             }
             setOnClickListener {
                 dlg.dismiss()
@@ -450,7 +450,7 @@ class ExtraKeysPanel(
                 setPadding(dp(14), dp(8), dp(14), dp(8))
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, dp(36)
-                ).apply { marginEnd = dp(4) }
+                ).also { lp -> lp.marginEnd = dp(4) }
                 setOnClickListener { fill(group) }
             }
             tabs.addView(tab)
