@@ -9,15 +9,15 @@ object ThemeManager {
         OCEAN("Ocean", R.color.ez_info, R.color.ez_primary_gradient_end)
     }
 
-    val ALL: List<Theme> = listOf(CLASSIC_DARK, AMOLED, OCEAN)
+    val ALL: List<Theme> = listOf(Theme.CLASSIC_DARK, Theme.AMOLED, Theme.OCEAN)
 
     private const val KEY_THEME = "theme_preference"
-    private var current: Theme = CLASSIC_DARK
+    private var current: Theme = Theme.CLASSIC_DARK
 
     fun init(context: Context) {
         val name = context.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
             .getString(KEY_THEME, "Classic Dark") ?: "Classic Dark"
-        current = ALL.firstOrNull { it.displayName == name } ?: CLASSIC_DARK
+        current = ALL.firstOrNull { it.displayName == name } ?: Theme.CLASSIC_DARK
     }
 
     fun getCurrent(): Theme = current

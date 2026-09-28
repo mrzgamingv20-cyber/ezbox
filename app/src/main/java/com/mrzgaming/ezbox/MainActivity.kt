@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -120,12 +121,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenu() {
-        val header = drawerLayout.findViewById<LinearLayout>(R.id.drawerHeader)
-        if (header == null) {
-            val headerView = layoutInflater.inflate(R.layout.drawer_header, null)
-            drawerLayout.addView(headerView)
-        }
-
         val menuItems = listOf(
             R.id.menuItemTutorial to {
                 drawerLayout.closeDrawers()

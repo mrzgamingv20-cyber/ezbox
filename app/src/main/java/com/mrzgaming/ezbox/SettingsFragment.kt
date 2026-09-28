@@ -62,8 +62,6 @@ class SettingsFragment : Fragment() {
         deLxqtCard = view.findViewById(R.id.deLxqtCard)
         checkDeXfce = view.findViewById(R.id.checkDeXfce)
         checkDeLxqt = view.findViewById(R.id.checkDeLxqt)
-        chevronVnc = view.findViewById(R.id.chevronVnc)
-        panelVncSub = view.findViewById(R.id.panelVncSub)
 
         val spinnerMouseMode = view.findViewById<Spinner>(R.id.spinnerMouseMode)
         val inputPassword = view.findViewById<EditText>(R.id.inputVncPassword)
@@ -136,12 +134,6 @@ class SettingsFragment : Fragment() {
             updateDeSelection()
         }
 
-        chevronVnc.setOnClickListener {
-            val expand = panelVncSub.visibility != View.VISIBLE
-            panelVncSub.visibility = if (expand) View.VISIBLE else View.GONE
-            chevronVnc.text = if (expand) "⌃" else "⌄"
-        }
-
         spinnerMouseMode.bindSelection { prefs.edit().putString("mouse_mode", mouseModes[it]).apply() }
 
         inputPassword.setOnFocusChangeListener { _, hasFocus ->
@@ -179,45 +171,10 @@ class SettingsFragment : Fragment() {
 
         btnResetDesktop.setOnClickListener { confirmResetDesktop() }
 
-        // Graphics settings (hidden by default)
-        val spRenderer = view.findViewById<Spinner>(R.id.spRenderer)
-        val spScale = view.findViewById<Spinner>(R.id.spScale)
         val switchVsync = view.findViewById<Switch>(R.id.switchVsync)
-        val switchRenderQuality = view.findViewById<Switch>(R.id.switchRenderQuality)
-
-        val rendererModes = listOf("Auto", "VNC", "Termux:X11")
-        val scaleModes = listOf("1x", "2x", "3x")
-        spRenderer.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, rendererModes)
-        spScale.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scaleModes)
-        val savedRenderer = prefs.getString("graphics_renderer", "Auto")
-        val savedScale = prefs.getString("graphics_scale", "1x")
-        val savedVsync = prefs.getBoolean("graphics_vsync", true)
-        val savedRenderQuality = prefs.getBoolean("graphics_render_quality", true)
-        spRenderer.setSelection(rendererModes.indexOf(savedRenderer ?: "Auto").coerceAtLeast(0))
-        spScale.setSelection(scaleModes.indexOf(savedScale ?: "1x").coerceAtLeast(0))
-        switchVsync.isChecked = savedVsync
-        switchRenderQuality.isChecked = savedRenderQuality
-
-        spRenderer.bindSelection { index ->
-            prefs.edit().putString("graphics_renderer", rendererModes[index]).apply()
-        }
-        spScale.bindSelection { index ->
-            prefs.edit().putString("graphics_scale", scaleModes[index]).apply()
-        }
         switchVsync.setOnCheckedChangeListener { _, checked ->
             prefs.edit().putBoolean("graphics_vsync", checked).apply()
         }
-        switchRenderQuality.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean("graphics_render_quality", checked).apply()
-        }
-
-        view.findViewById<View>(R.id.labelRenderer).visibility = View.GONE
-        view.findViewById<View>(R.id.spRenderer).visibility = View.GONE
-        view.findViewById<View>(R.id.labelScale).visibility = View.GONE
-        view.findViewById<View>(R.id.spScale).visibility = View.GONE
-        view.findViewById<View>(R.id.labelRenderQuality).visibility = View.GONE
-        view.findViewById<View>(R.id.switchRenderQuality).visibility = View.GONE
-        view.findViewById<View>(R.id.rowRenderQuality).visibility = View.GONE
 
         return view
     }

@@ -104,7 +104,7 @@ class HomeFragment : Fragment() {
     private fun waitForBackendReady(vncPassword: String?) {
         isDesktopRunning = true
         val startTime = System.currentTimeMillis()
-        val runnable = object : Runnable {
+        statusPollRunnable = object : Runnable {
             override fun run() {
                 if (!isAdded) return
                 val elapsed = System.currentTimeMillis() - startTime
@@ -119,7 +119,7 @@ class HomeFragment : Fragment() {
                 }
             }
         }
-        statusPollHandler.post(runnable)
+        statusPollHandler.post(statusPollRunnable!!)
     }
 
     private fun onBackendCheckResult(ready: Boolean, elapsed: Long, vncPassword: String?) {
@@ -131,7 +131,22 @@ class HomeFragment : Fragment() {
             isDesktopRunning = false
             Toast.makeText(context, "Backend timeout. Try again.", Toast.LENGTH_LONG).show()
         } else {
-            statusPollHandler.postDelayed(this, 500)
+            val retryRunnable = object : Runnable {
+                override fun run() {
+                    if (isAdded) {
+                        checkExecutor.execute {
+                            val r = try {
+                                val socket = java.net.Socket()
+                                socket.connect(java.net.InetSocketAddress("127.0.0.1", 5901), 300)
+                                socket.close()
+                                true
+                            } catch (e: Exception) { false }
+                            statusPollHandler.post { onBackendCheckResult(r, elapsed + 500, vncPassword) }
+                        }
+                    }
+                }
+            }
+            statusPollHandler.postDelayed(retryRunnable, 500)
         }
     }
 
