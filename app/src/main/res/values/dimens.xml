@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="theme_dot_size">12dp</dimen>
+    <dimen name="theme_dot_gap">12dp</dimen>
+</resources>

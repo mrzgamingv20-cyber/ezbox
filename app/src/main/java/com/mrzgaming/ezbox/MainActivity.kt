@@ -148,6 +148,14 @@ class MainActivity : AppCompatActivity() {
             navigateTo(R.id.nav_settings)
         }
 
+        dialog.findViewById<TextView>(R.id.menuItemTheme).setOnClickListener {
+            dialog.dismiss()
+            supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                .replace(R.id.fragmentContainer, ThemeFragment())
+                .commit()
+        }
+
         dialog.findViewById<TextView>(R.id.menuItemAbout).setOnClickListener {
             dialog.dismiss()
             AlertDialog.Builder(this)

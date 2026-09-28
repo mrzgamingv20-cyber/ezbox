@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="theme_accents">
+        <item>@color/ez_primary</item>
+        <item>@color/ez_secondary</item>
+        <item>@color/ez_tertiary</item>
+        <item>@color/ez_warm</item>
+        <item>@color/ez_cool</item>
+    </integer-array>
+    <integer-array name="theme_accent_ends">
+        <item>@color/ez_primary_gradient_end</item>
+        <item>@color/ez_secondary_glow</item>
+        <item>@color/ez_tertiary_glow</item>
+        <item>@color/ez_warm_glow</item>
+        <item>@color/ez_cool_glow</item>
+    </integer-array>
+</resources>
