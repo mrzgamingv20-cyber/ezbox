@@ -162,14 +162,14 @@ class VncActivity : AppCompatActivity() {
             return
         }
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Tombol custom")
-            .setItems(arrayOf("Tambah tombol", "Hapus semua tombol")) { _, which ->
+            .setTitle("Custom keys")
+            .setItems(arrayOf("Add key", "Delete all keys")) { _, which ->
                 when (which) {
                     0 -> extraKeys.showPicker { extraKeys.addKey(it) }
                     1 -> extraKeys.clearAll()
                 }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -179,15 +179,15 @@ class VncActivity : AppCompatActivity() {
             if (isFinishing || isDestroyed) return@runOnUiThread
             val setupMissing = TermuxCommand.needsTermuxSetup(message)
             val text = if (setupMissing) {
-                "EZBox tidak bisa menjalankan perintah di Termux.\n\n" +
-                    "Buka ~/.termux/termux.properties lalu tambahkan:\n\n" +
+                "EZBox cannot run commands in Termux.\n\n" +
+                    "Open ~/.termux/termux.properties and add:\n\n" +
                     "allow-external-apps = true\n\n" +
-                    "Setelah itu force-stop Termux, lalu coba lagi."
+                    "Then force-stop Termux and try again."
             } else {
-                "Perintah Termux gagal:\n\n$message"
+                "Termux command failed:\n\n$message"
             }
             androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(if (setupMissing) "Termux belum siap" else "Kesalahan Termux")
+                .setTitle(if (setupMissing) "Termux is not ready" else "Termux error")
                 .setMessage(text)
                 .setPositiveButton("OK", null)
                 .show()

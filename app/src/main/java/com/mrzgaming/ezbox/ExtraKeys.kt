@@ -127,10 +127,10 @@ class ExtraKeysPanel(
 ) {
     private val keys = mutableListOf<ExtraKey>()
     private val activeMods = mutableSetOf<String>()
-    private val minW = dp(40)
-    private val minH = dp(36)
-    private val maxW = dp(240)
-    private val maxH = dp(170)
+    private val minW = dp(MIN_W_DP)
+    private val minH = dp(MIN_H_DP)
+    private val maxW = dp(MAX_W_DP)
+    private val maxH = dp(MAX_H_DP)
     private val slop = ViewConfiguration.get(activity).scaledTouchSlop
 
     val isEmpty get() = keys.isEmpty()
@@ -165,7 +165,7 @@ class ExtraKeysPanel(
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "gagal baca tombol tersimpan: ${e.message}")
+            Log.e(TAG, "Failed to read saved keys: ${e.message}")
         }
     }
 
@@ -197,6 +197,31 @@ class ExtraKeysPanel(
         activeMods.clear()
         save()
         render()
+    }
+
+    /**
+     * Cari slot kosong pertama di grid, dalam dp. Slot yang tumpang tindih dengan
+     * tombol yang sudah ada dilewati supaya tombol baru tidak menutupi yang lama.
+     */
+    private fun freeSlot(w: Int, h: Int): Pair<Int, Int> {
+        val stepX = w + 8
+        val stepY = h + 8
+        val top = 90
+        // container belum di-layout saat onCreate, jadi lebar pixel bisa 0.
+        // Jatuh ke estimasi densitas layar supaya slot tetap masuk layar.
+        val screenW = if (container.width > 0) container.width else activity.resources.displayMetrics.widthPixels
+        val cols = ((screenW - dp(24)) / stepX).coerceAtLeast(1)
+        for (row in 0 until 12) {
+            for (col in 0 until cols) {
+                val x = 12 + col * stepX
+                val y = top + row * stepY
+                val clash = keys.any { k ->
+                    x < k.x + k.w && x + w > k.x && y < k.y + k.h && y + h > k.y
+                }
+                if (!clash) return x to y
+            }
+        }
+        return 12 to (top + 12 * stepY)
     }
 
     // ---------------------------------------------------------------- render
@@ -240,8 +265,8 @@ class ExtraKeysPanel(
         keys[idx] = k.copy(
             x = toDp(v.x),
             y = toDp(v.y),
-            w = toDp(v.width.toFloat()).coerceAtLeast(40),
-            h = toDp(v.height.toFloat()).coerceAtLeast(36)
+            w = toDp(v.width.toFloat()).coerceIn(MIN_W_DP, MAX_W_DP),
+            h = toDp(v.height.toFloat()).coerceIn(MIN_H_DP, MAX_H_DP)
         )
         save()
     }
@@ -336,9 +361,9 @@ class ExtraKeysPanel(
 
     private fun showKeyMenu(idx: Int) {
         val key = keys.getOrNull(idx) ?: return
-        val opts = arrayOf("Ganti tombol", "Hapus tombol", "Besarkan", "Kecilkan")
+        val opts = arrayOf("Change key", "Delete key", "Enlarge", "Shrink")
         AlertDialog.Builder(activity)
-            .setTitle(key.label.ifEmpty { "Tombol" })
+            .setTitle(key.label.ifEmpty { "Key" })
             .setItems(opts) { _, which ->
                 when (which) {
                     0 -> showPicker { picked -> replaceKey(idx, picked) }
@@ -347,7 +372,7 @@ class ExtraKeysPanel(
                     3 -> scaleKey(idx, 0.8f)
                 }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -368,26 +393,20 @@ class ExtraKeysPanel(
     private fun scaleKey(idx: Int, factor: Float) {
         val k = keys.getOrNull(idx) ?: return
         keys[idx] = k.copy(
-            w = (k.w * factor).roundToInt().coerceIn(40, 240),
-            h = (k.h * factor).roundToInt().coerceIn(36, 170)
+            w = (k.w * factor).roundToInt().coerceIn(MIN_W_DP, MAX_W_DP),
+            h = (k.h * factor).roundToInt().coerceIn(MIN_H_DP, MAX_H_DP)
         )
         save()
         render()
     }
 
     fun addKey(picked: ExtraKey) {
-        // tempatkan menumpuk ke bawah supaya tidak menimpa tombol yang sudah ada
-        val n = keys.size
-        val col = n % 5
-        val row = n / 5
-        keys.add(
-            picked.copy(
-                w = picked.w.coerceIn(40, 240),
-                h = picked.h.coerceIn(36, 170),
-                x = dp(12) + dp(col) * dp(60),
-                y = dp(90) + dp(row) * dp(52)
-            )
-        )
+        // x/y/w/h di model disimpan dalam dp (render() mengonversi ke px),
+        // jadi di sini cukup tulis satuan dp - jangan pernah pakai dp() lagi.
+        val w = picked.w.coerceIn(MIN_W_DP, MAX_W_DP)
+        val h = picked.h.coerceIn(MIN_H_DP, MAX_H_DP)
+        val slot = freeSlot(w, h)
+        keys.add(picked.copy(w = w, h = h, x = slot.first, y = slot.second))
         save()
         render()
     }
@@ -398,7 +417,7 @@ class ExtraKeysPanel(
         val rows = v.findViewById<LinearLayout>(R.id.pickerRows)
         val dlg = AlertDialog.Builder(activity)
             .setView(v)
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .create()
 
         fun keyButton(k: ExtraKey, wide: Boolean): Button = Button(activity).apply {
@@ -475,6 +494,10 @@ class ExtraKeysPanel(
 
     companion object {
         private const val TAG = "ExtraKeys"
+        const val MIN_W_DP = 40
+        const val MIN_H_DP = 36
+        const val MAX_W_DP = 240
+        const val MAX_H_DP = 170
         private const val KEY_PREFS = "vnc_extra_keys"
         private const val LONG_PRESS_MS = 480L
     }

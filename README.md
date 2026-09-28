@@ -128,15 +128,29 @@ EZBox does not bundle Termux — it must be installed separately.
 Because it's built on Termux rather than a full virtualization/proot solution, it's significantly lighter on resources.
 Wine/Box64 application support is still under active deve
 
-# No License
+# License
 
-This project is intentionally provided without a formal license.
+EZBox's own source code is intentionally provided **without a formal license**.
 
 You are free to use, modify, and build upon this project for your own purposes. However, you may not claim the original work as your own, remove or misrepresent its original authorship, or present the project as if you created it from scratch.
 
 Feel free to fork it.
 Feel free to modify it.
 Feel free to build something new from it.
+
+## Third-party licenses
+
+This does **not** apply to bundled third-party components, which keep their own
+licenses:
+
+| Component | Where | License |
+| --- | --- | --- |
+| [noVNC](https://github.com/novnc/noVNC) | `app/src/main/assets/novnc/` | MPL 2.0 |
+| [pako](https://github.com/nodeca/pako) | `app/src/main/assets/novnc/vendor/pako/` | MIT |
+
+Full license texts are bundled in the app at `assets/licenses/` and are readable
+from **Menu → About → Licenses**. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
+for details.
 
 Just remember:
 

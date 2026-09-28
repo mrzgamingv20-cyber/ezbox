@@ -161,17 +161,51 @@ class MainActivity : AppCompatActivity() {
             },
             R.id.menuItemAbout to {
                 drawerLayout.closeDrawers()
-                AlertDialog.Builder(this)
-                    .setTitle("About EZBox")
-                    .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                    .setPositiveButton("OK", null)
-                    .show()
+                showAboutDialog()
             }
         )
 
         for ((id, action) in menuItems) {
             drawerLayout.findViewById<TextView>(id)?.setOnClickListener { action() }
         }
+    }
+
+    /**
+     * Dialog About. Tombol "Licenses" membuka daftar lisensi pihak ketiga yang
+     * ikut di-bundle di app (noVNC/MPL-2.0 dan pako/MIT), sesuai kewajiban MPL 2.0
+     * bab 3.1 agar teks lisensi menyertai software.
+     */
+    private fun showAboutDialog() {
+        val version = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+        AlertDialog.Builder(this)
+            .setTitle("About EZBox")
+            .setMessage("EZBox — Your Android desktop environment.\nPowered by Termux backend.\n\n$version")
+            .setNeutralButton("Licenses") { _, _ -> showThirdPartyLicenses() }
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun showThirdPartyLicenses() {
+        val licenses = listOf(
+            "noVNC" to "licenses/noVNC-LICENSE.txt",
+            "Mozilla Public License 2.0" to "licenses/MPL-2.0.txt",
+            "pako (MIT)" to "licenses/pako-MIT.txt"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("Open Source Licenses")
+            .setItems(licenses.map { it.first }.toTypedArray()) { _, which ->
+                val (name, path) = licenses[which]
+                val text = runCatching {
+                    assets.open(path).bufferedReader().use { it.readText() }
+                }.getOrElse { "Could not read $name license." }
+                AlertDialog.Builder(this)
+                    .setTitle(name)
+                    .setMessage(text)
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+            .setNegativeButton("Back", null)
+            .show()
     }
 
     private fun requestTermuxPermissionIfNeeded(then: () -> Unit) {

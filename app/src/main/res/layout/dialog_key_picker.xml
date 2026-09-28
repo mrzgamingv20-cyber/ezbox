@@ -10,7 +10,7 @@
         android:id="@+id/pickerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pilih tombol"
+        android:text="Select key"
         android:textColor="@android:color/white"
         android:textSize="17sp"
         android:textStyle="bold" />
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:layout_marginBottom="10dp"
-        android:text="Ketuk tombol untuk menambah ke panel"
+        android:text="Tap a key to add it to the panel"
         android:textColor="@color/ezos_text_secondary"
         android:textSize="12sp" />
 

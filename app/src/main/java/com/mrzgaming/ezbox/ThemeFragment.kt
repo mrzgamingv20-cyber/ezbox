@@ -82,7 +82,7 @@ class ThemeFragment : Fragment() {
                 (c as? LinearLayout)?.getChildAt(2)?.visibility = View.GONE
             }
             check.visibility = View.VISIBLE
-            Toast.makeText(requireContext(), "Tema ${theme.displayName} aktif", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Theme ${theme.displayName} applied", Toast.LENGTH_SHORT).show()
         }
 
         card.addView(dot)
