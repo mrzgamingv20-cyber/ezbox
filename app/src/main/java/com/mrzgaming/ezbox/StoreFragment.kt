@@ -234,9 +234,6 @@ class StoreFragment : Fragment() {
             iv.scaleType = ImageView.ScaleType.CENTER_INSIDE
             iv
         }
-            iv.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            iv
-        }
 
         val textContainer = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
