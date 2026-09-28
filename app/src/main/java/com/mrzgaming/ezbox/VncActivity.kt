@@ -371,6 +371,7 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun showLoadingState(message: String) {
+        if (isFinishing || isDestroyed) return
         vncStatusSpinner.visibility = View.VISIBLE
         vncStatusIcon.visibility = View.GONE
         btnRetryConnection.visibility = View.GONE
@@ -380,6 +381,7 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun showErrorState(message: String) {
+        if (isFinishing || isDestroyed) return
         vncStatusSpinner.visibility = View.GONE
         vncStatusIcon.visibility = View.VISIBLE
         vncStatusIcon.text = "⚠"
@@ -389,6 +391,7 @@ class VncActivity : AppCompatActivity() {
     }
 
     private fun hideStatusCard() {
+        if (isFinishing || isDestroyed) return
         findViewById<View>(R.id.vncStatusCard).visibility = View.GONE
     }
 
@@ -417,16 +420,17 @@ class VncActivity : AppCompatActivity() {
                 return
             }
             // Leaked one socket + two 64KB buffers per retry otherwise.
-            client.close()
+            try { client.close() } catch (_: Exception) {}
             retryCount++
             if (retryCount < maxRetries) {
                 delay((retryCount * 2000L).coerceAtMost(10000L))
             }
         }
-        showErrorState("Failed to connect after ${maxRetries} attempts.\nTap retry to try again.")
+        if (!isFinishing && !isDestroyed) showErrorState("Failed to connect after ${maxRetries} attempts.\nTap retry to try again.")
     }
 
     private fun showRetryButton() {
+        if (isFinishing || isDestroyed) return
         btnRetryConnection.visibility = View.VISIBLE
     }
 
@@ -448,9 +452,9 @@ class VncActivity : AppCompatActivity() {
                 val updated = withContext(Dispatchers.IO) { client.requestFramebufferUpdate(true); client.readServerMessage() }
                 // `if (updated)` already skips the redraw for untouched frames, which is
                 // what graphics_vsync promises, so no extra branch is needed.
-                if (updated) vncScreen.invalidate()
+                if (updated && !isFinishing && !isDestroyed) vncScreen.invalidate()
                 // Sync clipboard dari desktop ke Android
-                if (!disableClipboard) {
+                if (!disableClipboard && !isFinishing && !isDestroyed) {
                     client.serverClipboardText?.let { text ->
                         val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                         val clip = android.content.ClipData.newPlainText("EZBox Desktop", text)
@@ -464,7 +468,7 @@ class VncActivity : AppCompatActivity() {
                 throw e
             } catch (e: Exception) {
                 running = false
-                showErrorState("Connection lost.\nTap retry to reconnect.")
+                if (!isFinishing && !isDestroyed) showErrorState("Connection lost.\nTap retry to reconnect.")
                 client.close()
                 return
             }
@@ -680,7 +684,7 @@ class VncActivity : AppCompatActivity() {
         cancelLongPress()
         TermuxCommand.removeErrorListener(termuxErrorListener)
         rfbClient?.close()
-        scope.coroutineContext[Job]?.cancel()
+        scope.cancel()
         notificationManager.cancel()
     }
 }
