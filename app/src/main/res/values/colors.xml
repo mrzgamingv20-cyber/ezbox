@@ -27,6 +27,24 @@
     <color name="ez_error">#da3633</color>
     <color name="ez_info">#0969da</color>
 
+    <!-- Legacy (referenced by theme_arrays.xml, now aliases) -->
+    <color name="ez_secondary">#0969da</color>
+    <color name="ez_secondary_dim">#0854a0</color>
+    <color name="ez_secondary_glow">#58a6ff</color>
+    <color name="ez_secondary_soft">#1a3a6b</color>
+    <color name="ez_tertiary">#238636</color>
+    <color name="ez_tertiary_dim">#1a6b2f</color>
+    <color name="ez_tertiary_glow">#3fb950</color>
+    <color name="ez_tertiary_soft">#064E3B</color>
+    <color name="ez_warm">#d29922</color>
+    <color name="ez_warm_dim">#9e6a03</color>
+    <color name="ez_warm_glow">#e3b341</color>
+    <color name="ez_warm_soft">#78350F</color>
+    <color name="ez_cool">#0969da</color>
+    <color name="ez_cool_dim">#0550ae</color>
+    <color name="ez_cool_glow">#58a6ff</color>
+    <color name="ez_cool_soft">#164E63</color>
+
     <!-- Typography -->
     <color name="ez_text">#e6edf3</color>
     <color name="ez_text_secondary">#8b949e</color>
