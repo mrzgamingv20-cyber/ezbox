@@ -52,7 +52,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_accent_bg"
+            android:background="@drawable/ez_card_settings"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -419,7 +419,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_accent_bg"
+            android:background="@drawable/ez_card_settings"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
@@ -514,7 +514,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_accent_bg"
+            android:background="@drawable/ez_card_settings"
             android:padding="20dp"
             android:layout_marginBottom="20dp">
 
