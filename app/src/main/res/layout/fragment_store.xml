@@ -18,7 +18,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🛒 Store"
+                android:drawableStart="@drawable/ic_shopping-cart"
+            android:drawablePadding="8dp"
+            android:text="Store"
                 android:textColor="@android:color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"

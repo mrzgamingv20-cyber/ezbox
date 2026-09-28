@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -32,12 +33,12 @@ import kotlinx.coroutines.launch
 class StoreFragment : Fragment() {
 
     private val availablePackages = listOf(
-        StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", "🍷", R.color.ezos_icon_rose, category = "Runtime"),
-        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", "📦", R.color.ezos_icon_blue, R.drawable.pkg_box64, category = "Runtime"),
-        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", "🌐", R.color.ezos_icon_amber, R.drawable.pkg_firefox, category = "Apps"),
-        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", "🎨", R.color.ezos_icon_green, R.drawable.pkg_gimp, category = "Apps"),
-        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", "▶", R.color.ezos_icon_cyan, R.drawable.pkg_vlc, category = "Apps"),
-        StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", "📁", R.color.ezos_icon_blue, category = "Tools")
+        StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", R.drawable.ic_wine, R.color.ezos_icon_rose, category = "Runtime"),
+        StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", R.drawable.ic_box, R.color.ezos_icon_blue, R.drawable.pkg_box64, category = "Runtime"),
+        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", R.drawable.ic_globe, R.color.ezos_icon_amber, R.drawable.pkg_firefox, category = "Apps"),
+        StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", R.drawable.ic_palette, R.color.ezos_icon_green, R.drawable.pkg_gimp, category = "Apps"),
+        StorePackage("VLC", "Media player", listOf("vlc"), "vlc", R.drawable.ic_play, R.color.ezos_icon_cyan, R.drawable.pkg_vlc, category = "Apps"),
+        StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", R.drawable.ic_folder, R.color.ezos_icon_blue, category = "Tools")
     )
 
     private val categories = listOf("All", "Runtime", "Apps", "Tools")
@@ -222,16 +223,15 @@ class StoreFragment : Fragment() {
                 setPadding(pad, pad, pad, pad)
             }
         } else {
-            TextView(requireContext()).apply {
-                text = pkg.icon
-                textSize = 20f
-                gravity = Gravity.CENTER
+            ImageView(requireContext()).apply {
+                setImageResource(pkg.iconRes)
                 layoutParams = LinearLayout.LayoutParams(96, 96).apply { marginEnd = 32 }
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
                     setColor(ContextCompat.getColor(requireContext(), pkg.colorRes))
                     alpha = 60
                 }
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
             }
         }
 

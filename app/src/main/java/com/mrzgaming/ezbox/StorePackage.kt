@@ -5,7 +5,7 @@ data class StorePackage(
     val description: String,
     val pkgNames: List<String>,
     val checkBinary: String,
-    val icon: String,
+    val iconRes: Int,
     val colorRes: Int,
     val iconRes: Int? = null,
     val category: String = "Apps"

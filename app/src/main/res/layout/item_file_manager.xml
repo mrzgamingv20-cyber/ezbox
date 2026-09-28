@@ -19,8 +19,10 @@
             android:id="@+id/tvFileIcon"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:text="📁"
-            android:textSize="20sp"
+            android:src="@drawable/ic_folder"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:tint="@color/ezos_text_primary"
             android:gravity="center"
             android:layout_marginEnd="12dp" />
 

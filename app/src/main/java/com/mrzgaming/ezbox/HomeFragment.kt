@@ -165,7 +165,7 @@ class HomeFragment : Fragment() {
             "pkill -9 -f 'Xvnc :1 '; pkill -9 -f 'xfce4-session'; pkill -9 -f 'ezos-run'"
         )
         getDownloadDir()?.let { File(it, "ezbox_backend_status.txt").delete() }
-        tvBackendStatus?.text = "🟢 Idle"
+        tvBackendStatus?.text = "Idle"
         tvUptime?.visibility = View.GONE
         btnStopDesktop?.isEnabled = false
     }
@@ -178,7 +178,7 @@ class HomeFragment : Fragment() {
             else -> "Good evening"
         }
         val tv = view?.findViewById<TextView>(R.id.tvBackendStatus)
-        tv?.text = "🟢 $greeting"
+        tv?.text = "$greeting"
     }
 
     private fun loadBackendStatus() {
@@ -190,18 +190,18 @@ class HomeFragment : Fragment() {
                 val content = statusFile.readText().trim()
                 if (content == "running") {
                     isDesktopRunning = true
-                    tvBackendStatus?.text = "🟢 Running"
+                    tvBackendStatus?.text = "Running"
                     tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_success))
                     updateUptime(prefs)
                 } else {
                     isDesktopRunning = false
-                    tvBackendStatus?.text = "🟢 Idle"
+                    tvBackendStatus?.text = "Idle"
                     tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
                     tvUptime?.visibility = View.GONE
                 }
             } else {
                 isDesktopRunning = false
-                tvBackendStatus?.text = "🟢 Idle"
+                tvBackendStatus?.text = "Idle"
                 tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
                 tvUptime?.visibility = View.GONE
             }

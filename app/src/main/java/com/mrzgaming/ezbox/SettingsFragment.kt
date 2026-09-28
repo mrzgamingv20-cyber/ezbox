@@ -12,7 +12,9 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
@@ -38,8 +40,8 @@ class SettingsFragment : Fragment() {
     private lateinit var tvHeightValue: TextView
     private lateinit var deXfceCard: LinearLayout
     private lateinit var deLxqtCard: LinearLayout
-    private lateinit var checkDeXfce: TextView
-    private lateinit var checkDeLxqt: TextView
+    private lateinit var checkDeXfce: ImageView
+    private lateinit var checkDeLxqt: ImageView
     private lateinit var chevronVnc: TextView
     private lateinit var panelVncSub: LinearLayout
 
@@ -186,8 +188,10 @@ class SettingsFragment : Fragment() {
         deXfceCard.setBackgroundResource(if (currentDe == "xfce") selectedBg else unselectedBg)
         deLxqtCard.setBackgroundResource(if (currentDe == "lxqt") selectedBg else unselectedBg)
 
-        checkDeXfce.text = if (currentDe == "xfce") "✓" else ""
-        checkDeLxqt.text = if (currentDe == "lxqt") "✓" else ""
+        checkDeXfce.setImageResource(R.drawable.ic_circle_check)
+        checkDeLxqt.setImageResource(R.drawable.ic_circle_check)
+        checkDeXfce.visibility = if (currentDe == "xfce") View.VISIBLE else View.GONE
+        checkDeLxqt.visibility = if (currentDe == "lxqt") View.VISIBLE else View.GONE
     }
 
     private fun updateResolutionDisplay() {

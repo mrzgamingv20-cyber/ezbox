@@ -155,7 +155,7 @@ class FileAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val file = files[position]
-        holder.icon.text = if (file.isDirectory) "📁" else "📄"
+        holder.icon.setImageResource(if (file.isDirectory) R.drawable.ic_folder else R.drawable.ic_file)
         holder.name.text = file.name
         holder.info.text = if (file.isDirectory) "Folder" else formatSizeCompact(file.length())
         holder.itemView.setOnClickListener { onItemClick(file) }

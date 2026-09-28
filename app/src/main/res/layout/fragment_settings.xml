@@ -14,7 +14,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="⚙ Settings"
+            android:drawableStart="@drawable/ic_info"
+            android:drawablePadding="8dp"
+            android:text="Settings"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -85,14 +87,14 @@
 
                 </LinearLayout>
 
-                <TextView
+                <ImageView
                     android:id="@+id/checkDeXfce"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="✓"
-                    android:textColor="@color/ezos_accent"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_circle-check"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="16dp"
+                    app:tint="@color/ezos_accent" />
 
             </LinearLayout>
 
@@ -138,14 +140,15 @@
 
                 </LinearLayout>
 
-                <TextView
+                <ImageView
                     android:id="@+id/checkDeLxqt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=""
-                    android:textColor="@color/ezos_accent"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_circle-check"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="16dp"
+                    app:tint="@color/ezos_accent"
+                    android:visibility="gone" />
 
             </LinearLayout>
 

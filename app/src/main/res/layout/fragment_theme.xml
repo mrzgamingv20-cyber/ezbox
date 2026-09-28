@@ -13,7 +13,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🎨 Pilih Tema"
+            android:drawableStart="@drawable/ic_palette"
+            android:drawablePadding="8dp"
+            android:text="Pilih Tema"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"

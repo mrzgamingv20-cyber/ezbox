@@ -1,5 +1,6 @@
 package com.mrzgaming.ezbox
 
+import android.graphics.PorterDuffMode
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -66,12 +68,11 @@ class ThemeFragment : Fragment() {
         val nameParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         name.layoutParams = nameParams
 
-        val check = TextView(requireContext())
-        check.text = "✓"
-        check.setTextColor(ContextCompat.getColor(requireContext(), R.color.ez_primary))
-        check.textSize = 20f
-        check.setTypeface(null, Typeface.BOLD)
+        val check = ImageView(requireContext())
+        check.setImageResource(R.drawable.ic_circle_check)
+        check.setColorFilter(ContextCompat.getColor(requireContext(), R.color.ez_primary), PorterDuffMode.SRC_IN)
         check.visibility = if (isCurrent) View.VISIBLE else View.GONE
+        check.layoutParams = LinearLayout.LayoutParams(24, 24).apply { gravity = Gravity.CENTER_VERTICAL }
 
         card.setOnClickListener {
             ThemeManager.setTheme(requireContext(), theme)
