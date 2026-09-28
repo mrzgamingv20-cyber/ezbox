@@ -1,159 +1,65 @@
-
 ![Logo](Tak%20berjudul48_20260824185844.png)
-
 
 # EZBox
 
-
-
 ![Build Status](https://github.com/mrzgamingv20-cyber/ezbox/actions/workflows/android-build.yml/badge.svg)
-
-
-
 
 ![Release](https://img.shields.io/github/v/release/mrzgamingv20-cyber/ezbox)
 
-
-
-
 ![License](https://img.shields.io/github/license/mrzgamingv20-cyber/ezbox)
-
-
-
 
 ![Platform](https://img.shields.io/badge/platform-Android%20ARM64-blue)
 
+**EZBox** is an Android app that runs a full Linux desktop environment (XFCE4 / LXQt) directly on your phone using a Termux backend — similar to Winlator, but built on native Termux instead of proot-distro, chroot, or full virtualization.
 
+| | |
+|---|---|
+| **Package** | `com.mrzgaming.ezbox` |
+| **Version** | `1.3` (versionCode 4) |
+| **Target** | Android ARM64 (aarch64), minSdk 24, targetSdk 34 |
 
-**EZBox** is an Android app that runs a full Linux desktop environment (XFCE4) directly on your phone using a Termux backend — similar to Winlator, but built on native Termux instead of proot-distro, chroot, or full virtualization.
+## Features
 
-- **Package:** `com.mrzgaming.ezbox`
-- **Version:** `1.2`
-- **Target:** Android ARM64 (aarch64), minSdk 24, targetSdk 34
-
----
-
-## 📝 Changelog
-
-### v1.2
-- Added: Container-based navigation with RecyclerView (Home tab)
-- Added: Apps Library tab with grid of installed Linux apps
-- Added: Files Manager tab with storage browser
-- Added: Graphics settings (Renderer, Scale, VSync, Render Quality)
-- Added: Gamepad/controller support (DPAD, analog sticks, A/B/X/Y buttons)
-- Added: VNC status notification channel (running/idle)
-- Added: Splash screen animation (scale + fade)
-- UI Refresh: Glassmorphism design across all layouts, colors, themes, drawables
-- Added: `ic_nav_files`, `ic_home`, `ic_add` vector icons
-- Refactored: `EZBoxNotificationManager` for notification lifecycle
-
-### v1.1
-- Fixed: Software Store now performs actual `pkg install` via Termux with real verification polling
-- Fixed: Shortcut intent "Launch Desktop" now properly triggers desktop launch
-- Fixed: NoVncActivity uses password from settings instead of hardcoded value
-- Fixed: Background stop only kills desktop when app truly leaves foreground
-- Refactored: Extracted Termux command execution to `TermuxCommand` helper
-- Added: ProGuard rules and release build configuration
-- Fixed: Deprecated `Environment.getExternalStoragePublicDirectory` usage
-- Fixed: RFB protocol `skipFully` negative skip handling
-
-### v1.0 "La Peace"
-
-## ✨ Features
-
-- Persistent XFCE4 Linux desktop (auto-resumes from the last session)
-- Custom VNC client written entirely in Kotlin — no NDK, no native code
-- Built-in software store: Wine, Box64, Firefox, GIMP, VLC, File Manager
+- Persistent XFCE4 / LXQt Linux desktop that resumes your last session
+- Custom VNC client written entirely in Kotlin (`RfbClient`) — no NDK, no native code
+- Customizable VNC key panel (drag, resize, and assign your own keys)
+- Software store with category filters: Wine, Box64, Firefox, GIMP, VLC, File Manager
 - Configurable resolution, VNC password, and mouse mode (direct / trackpad)
+- View-Only, clipboard sync, screenshots, and low-bandwidth tuning
 - Keep-awake and auto-stop-in-background toggles
-- Clipboard sync (Android → Desktop)
-- In-app desktop screenshot
+- Theme Engine with selectable accent themes
+- Desktop uptime and RAM gauge on the Home screen
 
----
+## Download
 
-## 📦
-
-1. Install [Termux](https://github.com/termux/termux-app) from github (**not** the Play Store version — it's outdated and incompatible).
-2. Download the latest `EZBox-debug.apk` from the [Releases](../../releases) page.
+1. Install [Termux](https://github.com/termux/termux-app) from GitHub (**not** the Play Store version — it's outdated and incompatible).
+2. Download the latest `EZBox-debug.apk` from the [Releases](../../releases) page (or grab the `EZBox-debug` artifact from the latest [Actions](../../actions) run).
 3. Install the APK manually on your device.
 4. Open Termux once, then open EZBox — grant the **RUN_COMMAND** and **All Files Access** permissions when prompted.
+5. Tap **Launch Environment**, wait for the status to show **Running**, then tap **Open Desktop**.
 
----
+## Documentation
 
-## 🚀 Usage
-
-1. Open **EZBox** and tap **Launch Environment** on the Home screen.
-2. Wait for the Termux backend to set up the desktop (first launch takes longer as packages are installed).
-3. Once the status shows **Running**, tap **Open Desktop** to enter the VNC view.
-4. Inside the desktop:
-   - Tap = click (**Direct** mode), or drag = move cursor (**Trackpad** mode) — configurable in Settings.
-   - Tap ⌨ to show the virtual keyboard and extra keys (Ctrl, Alt, Esc, Tab, arrows).
-   - Tap 📋 to sync your Android clipboard into the desktop.
-   - Tap 📷 to take a screenshot of the desktop.
-5. Install software from the **Store** tab (Wine, Box64, Firefox, etc.).
-6. Use the **Terminal** tab to jump into Termux directly or view debug logs.
-
----
-
-## ⚙️ Settings
-
-| Option | Description |
+| Document | Contents |
 |---|---|
-| Resolution | 800x480 / 960x540 / 1280x720 / 1600x900 |
-| Mouse Mode | Direct (tap = absolute position) / Trackpad (drag = relative cursor) |
-| VNC Password | Regenerated automatically on every launch |
-| Keep Awake | Keeps the screen on while the desktop is active |
-| Auto-stop Background | Automatically kills the desktop process when the app goes to background |
-| Reset Desktop | Wipes all desktop data (`~/.ezos`) and starts fresh |
+| [Usage](docs/USAGE.md) | Starting the desktop, in-desktop controls, tabs, settings reference |
+| [Changelog](docs/CHANGELOG.md) | What changed in every release |
+| [Development](docs/DEVELOPMENT.md) | Building from Termux, Termux backend setup, debugging |
+| [Third-party notices](THIRD_PARTY_NOTICES.md) | Bundled components and their licenses |
 
----
-
-## 🐞 Debugging
-
-EZBox doesn't rely on `adb` for debugging. Instead:
-
-- Crash logs are automatically saved to your **Download** folder (`/storage/emulated/0/Download/`)
-- Non-crash activity logs are written to `ezbox_debug.log` in the same folder
-
-> **Note:** always confirm the installed APK matches the latest commit/build before reporting an issue.
-
----
-
-## 🛠️ Building from Source (via Termux)
-
-This project is developed entirely from Termux — no PC, Android Studio, or NDK required.
-
-⚠️ Notes
-EZBox does not bundle Termux — it must be installed separately.
-Because it's built on Termux rather than a full virtualization/proot solution, it's significantly lighter on resources.
-Wine/Box64 application support is still under active deve
-
-# License
+## License
 
 EZBox's own source code is intentionally provided **without a formal license**.
 
 You are free to use, modify, and build upon this project for your own purposes. However, you may not claim the original work as your own, remove or misrepresent its original authorship, or present the project as if you created it from scratch.
 
-Feel free to fork it.
-Feel free to modify it.
-Feel free to build something new from it.
+> Use it. Change it. Build on it. But don't claim it.
 
-## Third-party licenses
-
-This does **not** apply to bundled third-party components, which keep their own
-licenses:
+Bundled third-party components keep their own licenses:
 
 | Component | Where | License |
-| --- | --- | --- |
+|---|---|---|
 | [noVNC](https://github.com/novnc/noVNC) | `app/src/main/assets/novnc/` | MPL 2.0 |
 | [pako](https://github.com/nodeca/pako) | `app/src/main/assets/novnc/vendor/pako/` | MIT |
 
-Full license texts are bundled in the app at `assets/licenses/` and are readable
-from **Menu → About → Licenses**. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
-for details.
-
-Just remember:
-
-«Use it. Change it. Build on it. But don't claim it.»
-
-The code is open to exploration and modification, while its original authorship remains respected.
+Full license texts are bundled in the app and readable from **Menu / About / Licenses**. Details in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

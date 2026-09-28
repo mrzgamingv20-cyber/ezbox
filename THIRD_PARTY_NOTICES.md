@@ -2,7 +2,7 @@
 
 EZBox bundles third-party code. The corresponding license texts are shipped
 inside the APK under `assets/licenses/` and are reachable in-app from
-**Menu → About → Licenses**.
+**Menu / About / Licenses**.
 
 ## noVNC
 
