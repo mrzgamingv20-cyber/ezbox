@@ -64,6 +64,7 @@
 
     <!-- === Backward compatibility aliases (ezos_*) === -->
     <color name="ezos_bg_base">@color/ez_bg</color>
+    <color name="ezos_bg_black">@color/ez_bg</color>
     <color name="ezos_bg_dark">@color/ez_bg_surface</color>
     <color name="ezos_surface">@color/ez_bg_surface</color>
     <color name="ezos_surface_light">@color/ez_bg_elevated</color>
