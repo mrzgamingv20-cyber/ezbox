@@ -401,7 +401,7 @@ class StoreFragment : Fragment() {
             marker.parentFile?.mkdirs()
             val verifyCommand = "command -v ${pkg.checkBinary} >/dev/null 2>&1 && " +
                 "touch '${marker.absolutePath}'"
-            requireContext().startService(TermuxCommand.execute(requireContext(), verifyCommand, background = false))
+            TermuxCommand.start(requireContext(), verifyCommand, background = false)
             false
         } catch (e: Exception) {
             Log.e("EZBox", "Install verification failed: ${e.message}")

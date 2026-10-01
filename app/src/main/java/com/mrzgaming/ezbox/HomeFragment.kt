@@ -182,27 +182,30 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadBackendStatus() {
+        // The 3s poll can fire right after detach; requireActivity()/requireContext()
+        // here would crash the app.
+        val ctx = context ?: return
         val downloadsDir = getDownloadDir() ?: return
         val statusFile = File(downloadsDir, "ezbox_backend_status.txt")
-        val prefs = requireActivity().getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
+        val prefs = ctx.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
         try {
             if (statusFile.exists()) {
                 val content = statusFile.readText().trim()
                 if (content == "running") {
                     isDesktopRunning = true
                     tvBackendStatus?.text = "Running"
-                    tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_success))
+                    tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_success))
                     updateUptime(prefs)
                 } else {
                     isDesktopRunning = false
                     tvBackendStatus?.text = "Idle"
-                    tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+                    tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_text_secondary))
                     tvUptime?.visibility = View.GONE
                 }
             } else {
                 isDesktopRunning = false
                 tvBackendStatus?.text = "Idle"
-                tvBackendStatus?.setTextColor(ContextCompat.getColor(requireContext(), R.color.ezos_text_secondary))
+                tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_text_secondary))
                 tvUptime?.visibility = View.GONE
             }
         } catch (e: Exception) {

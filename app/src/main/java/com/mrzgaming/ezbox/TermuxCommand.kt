@@ -15,6 +15,8 @@ object TermuxCommand {
     private const val RUN_COMMAND_SERVICE = "com.termux.app.RunCommandService"
     private const val ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND"
     private const val ACTION_RESULT = "com.mrzgaming.ezbox.RUN_COMMAND_RESULT"
+    private const val MAX_START_ATTEMPTS = 5
+    private const val START_RETRY_DELAY_MS = 500L
 
     /**
      * Termux reports failures through this PendingIntent. Without it every error is
@@ -92,7 +94,25 @@ object TermuxCommand {
     fun needsTermuxSetup(message: String): Boolean = message.contains(ERR_EXTERNAL_APPS)
 
     fun start(context: Context, command: String, background: Boolean = true) {
-        context.startService(execute(context, command, background))
+        startWithRetry(context.applicationContext, execute(context, command, background), MAX_START_ATTEMPTS)
+    }
+
+    /**
+     * Android 12+ throws BackgroundServiceStartNotAllowedException while our process
+     * state is not TOP yet (activity transitions, resuming from recents). The state
+     * settles in a few hundred ms, so retry briefly instead of crashing the caller.
+     */
+    private fun startWithRetry(context: Context, intent: Intent, attemptsLeft: Int) {
+        try {
+            context.startService(intent)
+        } catch (e: Exception) {
+            Log.w(TAG, "startService blocked (${e.message}), attemptsLeft=$attemptsLeft")
+            if (attemptsLeft > 0) {
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    startWithRetry(context, intent, attemptsLeft - 1)
+                }, START_RETRY_DELAY_MS)
+            }
+        }
     }
 
     fun startForResult(context: Context, command: String, requestCode: Int) {

@@ -1,9 +1,7 @@
 package com.mrzgaming.ezbox
 
 import android.app.AlertDialog
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +16,7 @@ import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 
@@ -213,19 +212,8 @@ class SettingsFragment : Fragment() {
     }
 
     private fun resetDesktop() {
-        try {
-            val command = "pkill -9 -f 'Xvnc :1 ' 2>/dev/null; rm -rf \$HOME/.ezos"
-            val intent = Intent().apply {
-                action = "com.termux.RUN_COMMAND"
-                component = ComponentName("com.termux", "com.termux.app.RunCommandService")
-                putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
-                putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf("-c", command))
-                putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
-            }
-            requireContext().startService(intent)
-            android.widget.Toast.makeText(context, "Desktop reset. Next launch will set up a fresh environment.", android.widget.Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            android.widget.Toast.makeText(context, "Reset failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
-        }
+        val command = "pkill -9 -f 'Xvnc :1 ' 2>/dev/null; rm -rf \$HOME/.ezos"
+        TermuxCommand.start(requireContext(), command)
+        Toast.makeText(context, "Desktop reset. Next launch will set up a fresh environment.", Toast.LENGTH_LONG).show()
     }
 }
