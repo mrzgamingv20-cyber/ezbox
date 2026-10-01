@@ -33,9 +33,9 @@ import kotlinx.coroutines.launch
 class StoreFragment : Fragment() {
 
     private val availablePackages = listOf(
-        StorePackage("Wine", "Run Windows applications on EZOS desktop", listOf("wine-staging"), "wine", R.drawable.ic_wine, R.color.ezos_icon_rose, category = "Runtime"),
+        StorePackage("Wine", "Run Windows applications on the desktop", listOf("wine-staging"), "wine", R.drawable.ic_wine, R.color.ezos_icon_rose, category = "Runtime"),
         StorePackage("Box64", "x86_64 binary translation for ARM devices", listOf("box64"), "box64", R.drawable.ic_box, R.color.ezos_icon_blue, R.drawable.pkg_box64, category = "Runtime"),
-        StorePackage("Firefox", "Web browser for the EZOS desktop", listOf("firefox"), "firefox", R.drawable.ic_globe, R.color.ezos_icon_amber, R.drawable.pkg_firefox, category = "Apps"),
+        StorePackage("Firefox", "Web browser for the desktop", listOf("firefox"), "firefox", R.drawable.ic_globe, R.color.ezos_icon_amber, R.drawable.pkg_firefox, category = "Apps"),
         StorePackage("GIMP", "Image editor", listOf("gimp"), "gimp", R.drawable.ic_palette, R.color.ezos_icon_green, R.drawable.pkg_gimp, category = "Apps"),
         StorePackage("VLC", "Media player", listOf("vlc"), "vlc", R.drawable.ic_play, R.color.ezos_icon_cyan, R.drawable.pkg_vlc, category = "Apps"),
         StorePackage("File Manager", "Lightweight graphical file manager (PCManFM)", listOf("pcmanfm"), "pcmanfm", R.drawable.ic_folder, R.color.ezos_icon_blue, category = "Tools")

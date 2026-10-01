@@ -153,7 +153,7 @@ class HomeFragment : Fragment() {
     private fun openDesktop(vncPassword: String?) {
         val intent = Intent(requireContext(), VncActivity::class.java)
         intent.putExtra("vnc_password", vncPassword)
-        intent.putExtra("container_name", "EZOS Desktop")
+        intent.putExtra("container_name", "EZBox Desktop")
         startActivity(intent)
     }
 

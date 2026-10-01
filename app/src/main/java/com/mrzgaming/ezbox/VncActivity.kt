@@ -48,12 +48,24 @@ class VncActivity : AppCompatActivity() {
     private var virtualCursorX = 0
     private var virtualCursorY = 0
 
-    // Gesture: long-press untuk right-click, two-finger drag untuk scroll
+    // Gestures: tap = left click, double tap = right click, hold = drag,
+    // two-finger = scroll wheel. See handleDirectTouch / handleTrackpadTouch.
     private var longPressHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var longPressRunnable: Runnable? = null
-    private var isLongPress = false
     private var twoFingerStartY = 0f
     private var isTwoFinger = false
+    private var isDragging = false
+    private var isSecondTap = false
+    private var movedBeyondSlop = false
+    private var gestureStartX = 0f
+    private var gestureStartY = 0f
+    private var lastTapUpTime = 0L
+    private var lastTapX = 0f
+    private var lastTapY = 0f
+    private var pendingTapRunnable: Runnable? = null
+    private var tapSlop = 0f
+    private val tapTimeoutMs = 300L
+    private val longPressMs = 400L
 
     // Advanced VNC preferences, dibaca sekali saat onCreate dari SettingsFragment
     private var viewOnlyMode = false
@@ -110,7 +122,7 @@ class VncActivity : AppCompatActivity() {
         vncStatusSpinner = findViewById(R.id.vncStatusSpinner)
         btnRetryConnection = findViewById(R.id.btnRetryConnection)
         btnRetryConnection.setOnClickListener {
-            showLoadingState("Reconnecting to EZOS desktop...")
+            showLoadingState("Reconnecting to desktop...")
             connectAndRender()
         }
         hiddenInput = findViewById(R.id.hiddenInput)
@@ -134,6 +146,7 @@ class VncActivity : AppCompatActivity() {
 
         applyViewOnlyMode()
 
+        tapSlop = android.view.ViewConfiguration.get(this).scaledTouchSlop.toFloat()
         vncScreen.setOnTouchListener { _, event ->
             if (!viewOnlyMode) handleTouch(event)
             true
@@ -390,7 +403,7 @@ class VncActivity : AppCompatActivity() {
         var retryCount = 0
         val maxRetries = 5
         while (retryCount < maxRetries) {
-            showLoadingState("Connecting to EZOS desktop...${if (retryCount > 0) " (retry ${retryCount}/${maxRetries})" else ""}")
+            showLoadingState("Connecting to desktop...${if (retryCount > 0) " (retry ${retryCount}/${maxRetries})" else ""}")
             val client = RfbClient("127.0.0.1", port, password)
             val connected = try { withContext(Dispatchers.IO) { client.connect() } } catch (e: Exception) { false }
             if (connected) {
@@ -500,6 +513,75 @@ class VncActivity : AppCompatActivity() {
         }
     }
 
+    /** Reset per-gesture state on finger-down and detect a double tap. */
+    private fun onGestureStart(x: Float, y: Float) {
+        cancelLongPress()
+        gestureStartX = x
+        gestureStartY = y
+        movedBeyondSlop = false
+        isDragging = false
+        val now = android.os.SystemClock.uptimeMillis()
+        isSecondTap = now - lastTapUpTime < tapTimeoutMs &&
+            Math.abs(x - lastTapX) < tapSlop * 5 &&
+            Math.abs(y - lastTapY) < tapSlop * 5
+    }
+
+    private fun tapMoved(x: Float, y: Float) =
+        Math.abs(x - gestureStartX) > tapSlop || Math.abs(y - gestureStartY) > tapSlop
+
+    /** Finger-up that was neither a drag nor a big move: a tap. */
+    private fun onTap(mx: Int, my: Int, x: Float, y: Float) {
+        if (isSecondTap) {
+            cancelPendingTap()
+            isSecondTap = false
+            lastTapUpTime = 0L
+            pointerChannel.trySend(Triple(mx, my, 4))  // right button down
+            pointerChannel.trySend(Triple(mx, my, 0))
+        } else {
+            schedulePendingTap(mx, my)
+            lastTapUpTime = android.os.SystemClock.uptimeMillis()
+            lastTapX = x
+            lastTapY = y
+        }
+    }
+
+    /**
+     * The left click waits tapTimeoutMs so a second tap can cancel it and turn it
+     * into a right click instead. The same window is the double-tap window, so the
+     * two can never both fire for one gesture pair.
+     */
+    private fun schedulePendingTap(mx: Int, my: Int) {
+        cancelPendingTap()
+        pendingTapRunnable = Runnable {
+            pendingTapRunnable = null
+            pointerChannel.trySend(Triple(mx, my, 1))
+            pointerChannel.trySend(Triple(mx, my, 0))
+        }
+        longPressHandler.postDelayed(pendingTapRunnable!!, tapTimeoutMs)
+    }
+
+    private fun cancelPendingTap() {
+        pendingTapRunnable?.let { longPressHandler.removeCallbacks(it) }
+        pendingTapRunnable = null
+    }
+
+    /** Fire a waiting tap now, so it lands before a drag takes over the button. */
+    private fun flushPendingTap() {
+        val r = pendingTapRunnable ?: return
+        longPressHandler.removeCallbacks(r)
+        pendingTapRunnable = null
+        r.run()
+    }
+
+    /** Left button down: the drag begins (from hold or from a finger slide). */
+    private fun beginDrag(mx: Int, my: Int) {
+        if (isDragging) return
+        flushPendingTap()
+        isDragging = true
+        isSecondTap = false
+        pointerChannel.trySend(Triple(mx, my, 1))
+    }
+
     private fun handleTouch(event: MotionEvent) {
         val client = rfbClient ?: return
         if (mouseMode == "trackpad") handleTrackpadTouch(client, event) else handleDirectTouch(client, event)
@@ -510,6 +592,13 @@ class VncActivity : AppCompatActivity() {
         if (event.pointerCount == 2) {
             isTwoFinger = true
             cancelLongPress()
+            flushPendingTap()
+            if (isDragging) {
+                isDragging = false
+                mapTouchToDesktop(client, event.x, event.y)?.let { (mx, my) ->
+                    pointerChannel.trySend(Triple(mx, my, 0))
+                }
+            }
             when (event.actionMasked) {
                 MotionEvent.ACTION_POINTER_DOWN -> {
                     twoFingerStartY = (event.getY(0) + event.getY(1)) / 2f
@@ -542,34 +631,40 @@ class VncActivity : AppCompatActivity() {
         val mapped = mapTouchToDesktop(client, event.x, event.y) ?: return
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                // Start long-press timer untuk right-click
-                isLongPress = false
+                onGestureStart(event.x, event.y)
+                // Hold still: left button goes down, drag begins.
                 longPressRunnable = Runnable {
-                    isLongPress = true
-                    // Right-click (button 3 = mask 4)
-                    pointerChannel.trySend(Triple(mapped.first, mapped.second, 4))
-                    pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                    if (!movedBeyondSlop) beginDrag(mapped.first, mapped.second)
                 }
-                longPressHandler.postDelayed(longPressRunnable!!, 500)
-                pointerChannel.trySend(Triple(mapped.first, mapped.second, 1))
+                longPressHandler.postDelayed(longPressRunnable!!, longPressMs)
             }
             MotionEvent.ACTION_MOVE -> {
-                cancelLongPress()
-                pointerChannel.trySend(Triple(mapped.first, mapped.second, 1))
+                if (tapMoved(event.x, event.y) && !movedBeyondSlop) {
+                    movedBeyondSlop = true
+                    cancelLongPress()
+                    // Sliding the finger carries the button, as before: drag.
+                    beginDrag(mapped.first, mapped.second)
+                }
+                if (isDragging) {
+                    pointerChannel.trySend(Triple(mapped.first, mapped.second, 1))
+                }
             }
             MotionEvent.ACTION_UP -> {
                 cancelLongPress()
-                if (!isLongPress) {
+                if (isDragging) {
                     pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                    isDragging = false
+                } else {
+                    onTap(mapped.first, mapped.second, event.x, event.y)
                 }
-                isLongPress = false
             }
             // Without this a cancelled gesture (incoming call, system edge-swipe) leaves
             // button 1 held down on the remote desktop indefinitely.
             MotionEvent.ACTION_CANCEL -> {
                 cancelLongPress()
-                pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
-                isLongPress = false
+                if (isDragging) pointerChannel.trySend(Triple(mapped.first, mapped.second, 0))
+                isDragging = false
+                isSecondTap = false
                 isTwoFinger = false
             }
         }
@@ -585,6 +680,7 @@ class VncActivity : AppCompatActivity() {
         if (event.pointerCount == 2) {
             isTwoFinger = true
             cancelLongPress()
+            flushPendingTap()
             when (event.actionMasked) {
                 MotionEvent.ACTION_POINTER_DOWN -> {
                     twoFingerStartY = (event.getY(0) + event.getY(1)) / 2f
@@ -613,32 +709,41 @@ class VncActivity : AppCompatActivity() {
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                onGestureStart(event.x, event.y)
                 lastTrackpadX = event.x; lastTrackpadY = event.y
-                // Long-press for right-click
-                isLongPress = false
+                // Hold still: left button goes down, cursor moves then drag the desktop.
                 longPressRunnable = Runnable {
-                    isLongPress = true
-                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 4))
-                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                    if (!movedBeyondSlop) beginDrag(virtualCursorX, virtualCursorY)
                 }
-                longPressHandler.postDelayed(longPressRunnable!!, 500)
+                longPressHandler.postDelayed(longPressRunnable!!, longPressMs)
             }
             MotionEvent.ACTION_MOVE -> {
-                cancelLongPress()
                 val dx = (event.x - lastTrackpadX).toInt()
                 val dy = (event.y - lastTrackpadY).toInt()
+                lastTrackpadX = event.x; lastTrackpadY = event.y
+                if (tapMoved(event.x, event.y) && !movedBeyondSlop) {
+                    movedBeyondSlop = true
+                    cancelLongPress()
+                }
                 virtualCursorX = (virtualCursorX + dx).coerceIn(0, client.width - 1)
                 virtualCursorY = (virtualCursorY + dy).coerceIn(0, client.height - 1)
-                lastTrackpadX = event.x; lastTrackpadY = event.y
-                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, if (isDragging) 1 else 0))
             }
             MotionEvent.ACTION_UP -> {
                 cancelLongPress()
-                if (!isLongPress) {
-                    pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 1))
+                if (isDragging) {
                     pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                    isDragging = false
+                } else if (!movedBeyondSlop) {
+                    onTap(virtualCursorX, virtualCursorY, event.x, event.y)
                 }
-                isLongPress = false
+                // Moved without holding: cursor reposition only, no click.
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                cancelLongPress()
+                if (isDragging) pointerChannel.trySend(Triple(virtualCursorX, virtualCursorY, 0))
+                isDragging = false
+                isSecondTap = false
             }
         }
     }
@@ -681,6 +786,7 @@ class VncActivity : AppCompatActivity() {
         super.onDestroy()
         running = false
         cancelLongPress()
+        cancelPendingTap()
         TermuxCommand.removeErrorListener(termuxErrorListener)
         rfbClient?.close()
         scope.coroutineContext[Job]?.cancel()

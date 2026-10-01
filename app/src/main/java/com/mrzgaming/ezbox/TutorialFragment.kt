@@ -16,7 +16,7 @@ class TutorialFragment : Fragment() {
     private val steps = listOf(
         TutorialStep(
             "1. Launch Environment",
-            "Tap 'Launch Environment' on the Home tab to start your EZOS desktop. First launch will set up the backend automatically.",
+            "Tap 'Launch Environment' on the Home tab to start your desktop. First launch will set up the backend automatically.",
             "Got it"
         ),
         TutorialStep(
@@ -26,7 +26,7 @@ class TutorialFragment : Fragment() {
         ),
         TutorialStep(
             "3. Install Apps",
-            "Go to the Store tab to install Wine, Box64, or other apps directly into your EZOS environment.",
+            "Go to the Store tab to install Wine, Box64, or other apps directly into your desktop.",
             "Got it"
         ),
         TutorialStep(

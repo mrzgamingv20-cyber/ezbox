@@ -10,7 +10,14 @@ Day-to-day guide for running and controlling the EZBox desktop.
 
 ## Inside the desktop
 
-- Tap to click (**Direct** mode), or drag to move the cursor (**Trackpad** mode) — configurable in Settings.
+- Mouse gestures (both mouse modes):
+  - **Tap** = left click
+  - **Double tap** = right click
+  - **Press and hold** = drag (keep the button held while you move)
+  - **Two fingers** = scroll wheel
+- **Direct** mode maps your finger onto the desktop; **Trackpad** mode slides a
+  virtual cursor under your finger (moving it without holding repositions the
+  cursor without clicking).
 - Tap the keyboard button to toggle the virtual keyboard.
 - Tap the key-panel button to open the custom key editor:
   - **Add key** places a new key

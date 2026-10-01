@@ -205,7 +205,7 @@ class SettingsFragment : Fragment() {
     private fun confirmResetDesktop() {
         AlertDialog.Builder(requireContext())
             .setTitle("Reset Desktop?")
-            .setMessage("This will permanently delete all files, apps, and settings inside your EZOS desktop. This cannot be undone.")
+            .setMessage("This will permanently delete all files, apps, and settings inside your desktop. This cannot be undone.")
             .setPositiveButton("Reset") { _, _ -> resetDesktop() }
             .setNegativeButton("Cancel", null)
             .show()
