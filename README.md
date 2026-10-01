@@ -15,7 +15,7 @@
 | | |
 |---|---|
 | **Package** | `com.mrzgaming.ezbox` |
-| **Version** | `1.3` (versionCode 4) |
+| **Version** | `1.3-beta` (versionCode 4) |
 | **Target** | Android ARM64 (aarch64), minSdk 24, targetSdk 34 |
 
 ## Features

@@ -3,7 +3,7 @@
 All notable changes to EZBox. Version numbers follow `app/build.gradle`
 (`versionName` / `versionCode`).
 
-## v1.3 (versionCode 4)
+## v1.3 beta (versionCode 4)
 
 ### Added
 - Custom VNC key panel replacing the 17 hard-coded extra keys — build your own key row:
