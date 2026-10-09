@@ -93,7 +93,40 @@ object TermuxCommand {
 
     fun needsTermuxSetup(message: String): Boolean = message.contains(ERR_EXTERNAL_APPS)
 
+    /**
+     * Bring Termux out of Android's "stopped" state. An app in stopped state
+     * ignores all explicit intents, so startService silently does nothing.
+     * Launching the activity once wakes it up. Without this, the user must
+     * open Termux manually before EZBox can send any command.
+     */
+    private fun ensureTermuxRunning(context: Context) {
+        try {
+            val pm = context.packageManager
+            // If the service component is disabled / not found, the launch intent
+            // is the only way to wake the app out of stopped state.
+            val launchIntent = pm.getLaunchIntentForPackage(TERMUX_PACKAGE)
+            if (launchIntent != null) {
+                // Check if Termux is already running (has a process) by trying to
+                // resolve the service. If it resolves, it's already awake.
+                val probe = Intent().apply {
+                    component = ComponentName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
+                }
+                val ri = pm.resolveService(probe, 0)
+                if (ri == null) {
+                    // Service not resolvable = Termux is in stopped state.
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(launchIntent)
+                    // Give Termux a moment to initialise its services.
+                    Thread.sleep(1500)
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ensureTermuxRunning failed: ${e.message}")
+        }
+    }
+
     fun start(context: Context, command: String, background: Boolean = true) {
+        ensureTermuxRunning(context.applicationContext)
         startWithRetry(context.applicationContext, execute(context, command, background), MAX_START_ATTEMPTS)
     }
 
@@ -104,7 +137,7 @@ object TermuxCommand {
      */
     private fun startWithRetry(context: Context, intent: Intent, attemptsLeft: Int) {
         try {
-            context.startService(intent)
+            androidx.core.content.ContextCompat.startForegroundService(context, intent)
         } catch (e: Exception) {
             Log.w(TAG, "startService blocked (${e.message}), attemptsLeft=$attemptsLeft")
             if (attemptsLeft > 0) {
@@ -112,13 +145,6 @@ object TermuxCommand {
                     startWithRetry(context, intent, attemptsLeft - 1)
                 }, START_RETRY_DELAY_MS)
             }
-        }
-    }
-
-    fun startForResult(context: Context, command: String, requestCode: Int) {
-        val intent = execute(context, command, background = false)
-        if (context is android.app.Activity) {
-            context.startActivityForResult(intent, requestCode)
         }
     }
 }

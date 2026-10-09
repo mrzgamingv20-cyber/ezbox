@@ -86,14 +86,26 @@ class HomeFragment : Fragment() {
         val resolution = prefs.getString("resolution", "960x540") ?: "960x540"
         val de = prefs.getString("desktop_environment", "xfce") ?: "xfce"
 
-        deployBackendScript()
         val downloadsDir = getDownloadDir()
         downloadsDir?.let { File(it, "ezbox_backend_status.txt").delete() }
         prefs.edit().putLong("desktop_launch_time", System.currentTimeMillis()).apply()
 
         val statusPath = downloadsDir?.let { File(it, "ezbox_backend_status.txt").absolutePath } ?: "/storage/emulated/0/Download/ezbox_backend_status.txt"
         val safePassword = vncPassword.orEmpty().replace("'", "'\\''")
-        val command = "echo running > $statusPath; " +
+        
+        // Deploy the backend script and launch in a single command to avoid the
+        // race where the launch fires before the script finishes writing.
+        val scriptContent = try {
+            requireContext().assets.open("ezos-run").bufferedReader().readText()
+        } catch (e: Exception) {
+            Log.e("EZBox", "Cannot read ezos-run asset: ${e.message}")
+            null
+        }
+        val deployPrefix = if (scriptContent != null) {
+            "cat << 'EZBOX_SCRIPT_EOF' > \$PREFIX/bin/ezos-run\n${scriptContent}\nEZBOX_SCRIPT_EOF\nchmod +x \$PREFIX/bin/ezos-run && "
+        } else ""
+        
+        val command = "${deployPrefix}echo running > $statusPath; " +
             "EZBOX_RES=$resolution EZBOX_DE=$de EZBOX_VNC_PASSWORD='$safePassword' ezos-run EZOS; " +
             "echo idle > $statusPath"
 
@@ -182,36 +194,34 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadBackendStatus() {
-        // The 3s poll can fire right after detach; requireActivity()/requireContext()
-        // here would crash the app.
         val ctx = context ?: return
         val downloadsDir = getDownloadDir() ?: return
         val statusFile = File(downloadsDir, "ezbox_backend_status.txt")
         val prefs = ctx.getSharedPreferences("EZBoxPrefs", Context.MODE_PRIVATE)
-        try {
-            if (statusFile.exists()) {
-                val content = statusFile.readText().trim()
-                if (content == "running") {
-                    isDesktopRunning = true
-                    tvBackendStatus?.text = "Running"
-                    tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_success))
-                    updateUptime(prefs)
-                } else {
-                    isDesktopRunning = false
-                    tvBackendStatus?.text = "Idle"
-                    tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_text_secondary))
-                    tvUptime?.visibility = View.GONE
+        checkExecutor.execute {
+            try {
+                val content = if (statusFile.exists()) statusFile.readText().trim() else null
+                statusPollHandler.post {
+                    if (!isAdded) return@post
+                    if (content == "running") {
+                        isDesktopRunning = true
+                        tvBackendStatus?.text = "Running"
+                        tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_success))
+                        updateUptime(prefs)
+                    } else {
+                        isDesktopRunning = false
+                        tvBackendStatus?.text = "Idle"
+                        tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_text_secondary))
+                        tvUptime?.visibility = View.GONE
+                    }
+                    btnStopDesktop?.isEnabled = isDesktopRunning
                 }
-            } else {
-                isDesktopRunning = false
-                tvBackendStatus?.text = "Idle"
-                tvBackendStatus?.setTextColor(ContextCompat.getColor(ctx, R.color.ezos_text_secondary))
-                tvUptime?.visibility = View.GONE
+            } catch (e: Exception) {
+                statusPollHandler.post {
+                    if (isAdded) tvBackendStatus?.text = "Unknown"
+                }
             }
-        } catch (e: Exception) {
-            tvBackendStatus?.text = "Unknown"
         }
-        btnStopDesktop?.isEnabled = isDesktopRunning
     }
 
     private fun updateUptime(prefs: android.content.SharedPreferences) {

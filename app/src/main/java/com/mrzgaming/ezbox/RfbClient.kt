@@ -17,6 +17,7 @@ class RfbClient(private val host: String, private val port: Int, private val pas
     private val writeLock = Any()
 
     /** Teks clipboard terakhir yang dikirim dari desktop ke Android */
+    @Volatile
     var serverClipboardText: String? = null
         private set
 
