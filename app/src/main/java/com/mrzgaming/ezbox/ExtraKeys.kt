@@ -22,13 +22,12 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 /**
- * Satu tombol di panel tombol custom.
+ * Single key item in the custom extra keys panel.
  *
- * Tiga mode powerfully, dipilih lewat field yang terisi:
- *  - char != null  -> ketik karakter itu (tunnel lewat [VncActivity.sendModifiedChar],
- *                    jadi Shift/Ctrl/Alt dari keyboard Android ikut dihormati)
- *  - mod  != null  -> modifier lengket (Ctrl/Alt/Shift), nyala-mati saat diketuk
- *  - selain itu    -> tekan keysym X11 sekali
+ * Three modes selected based on populated field:
+ *  - char != null  -> Type that character (sent via [VncActivity.sendModifiedChar] so Shift/Ctrl/Alt modifiers are respected)
+ *  - mod  != null  -> Sticky modifier (Ctrl/Alt/Shift), toggles on/off when tapped
+ *  - otherwise     -> Press an X11 keysym once
  */
 data class ExtraKey(
     val label: String,
@@ -42,7 +41,7 @@ data class ExtraKey(
     val y: Int = 0
 )
 
-/** Keysym X11 (XF86 / Latin-1 range) untuk tombol non-karakter. */
+/** X11 Keysyms (XF86 / Latin-1 range) for non-character keys. */
 object Ks {
     const val BACKSPACE = 0xFF08
     const val TAB = 0xFF09
@@ -70,8 +69,7 @@ object Ks {
 }
 
 /**
- * Kandidat tombol untuk dialog picker. Tiap grup = satu baris keyboard sungguhan,
- * jadi yang tampil di picker memang bentuk keyboard, bukan daftar nama datar.
+ * Key presets available in the picker dialog. Organized in realistic keyboard layouts per category.
  */
 object KeyPresets {
     private fun sym(label: String, keysym: Int, icon: String? = null) = ExtraKey(label, keysym, icon = icon)
@@ -95,16 +93,16 @@ object KeyPresets {
             listOf(ch("A"), ch("S"), ch("D"), ch("F"), ch("G"), ch("H"), ch("J"), ch("K"), ch("L")),
             listOf(ch("Z"), ch("X"), ch("C"), ch("V"), ch("B"), ch("N"), ch("M"))
         ),
-        "Simbol" to listOf(
+        "Symbols" to listOf(
             listOf(ch("1"), ch("2"), ch("3"), ch("4"), ch("5"), ch("6"), ch("7"), ch("8"), ch("9"), ch("0")),
             listOf(ch("-"), ch("="), ch("["), ch("]"), ch("\\"), ch(";"), ch("'"), ch(",")),
             listOf(ch("."), ch("/"), ch("`"), ch("~"), ch("_"), ch("+"))
         ),
-        "Fungsi" to listOf(
+        "Functions" to listOf(
             (1..6).map { sym("F$it", Ks.fkey(it)) },
             (7..12).map { sym("F$it", Ks.fkey(it)) }
         ),
-        "Navigasi" to listOf(
+        "Navigation" to listOf(
             listOf(sym("Ins", Ks.INSERT), sym("Home", Ks.HOME), sym("PgUp", Ks.PGUP)),
             listOf(sym("Del", Ks.DEL), sym("End", Ks.END), sym("PgDn", Ks.PGDN)),
             listOf(sym("Bksp", Ks.BACKSPACE), sym("Tab", Ks.TAB), sym("Enter", Ks.ENTER))
@@ -113,11 +111,9 @@ object KeyPresets {
 }
 
 /**
- * Panel tombol custom di atas desktop VNC.
- *
- * Kosong secara default - user yang menentukan tombol apa saja yang mau muncul,
- * lalu bebas menggeser, memperbesar, mengganti, dan menghapusnya.
- * State disimpan sebagai JSON di SharedPreferences supaya bertahan antar-sesi.
+ * Custom extra keys panel rendered over the VNC desktop view.
+ * User customizable with drag-and-drop position, resizing, adding, and removing keys.
+ * Persistent state stored in SharedPreferences as JSON.
  */
 class ExtraKeysPanel(
     private val activity: androidx.appcompat.app.AppCompatActivity,
@@ -200,15 +196,12 @@ class ExtraKeysPanel(
     }
 
     /**
-     * Cari slot kosong pertama di grid, dalam dp. Slot yang tumpang tindih dengan
-     * tombol yang sudah ada dilewati supaya tombol baru tidak menutupi yang lama.
+     * Find first open slot on the panel grid (in dp) to avoid overlapping existing keys.
      */
     private fun freeSlot(w: Int, h: Int): Pair<Int, Int> {
         val stepX = w + 8
         val stepY = h + 8
         val top = 90
-        // container belum di-layout saat onCreate, jadi lebar pixel bisa 0.
-        // Jatuh ke estimasi densitas layar supaya slot tetap masuk layar.
         val screenW = if (container.width > 0) container.width else activity.resources.displayMetrics.widthPixels
         val cols = ((screenW - dp(24)) / stepX).coerceAtLeast(1)
         for (row in 0 until 12) {
@@ -259,7 +252,7 @@ class ExtraKeysPanel(
         v.y = v.y.coerceIn(0f, maxY)
     }
 
-    /** Simpan posisi/ukuran view yang sedang diedit balik ke model. */
+    /** Commit edited key position/size back to the model. */
     private fun commit(idx: Int, v: View) {
         val k = keys.getOrNull(idx) ?: return
         keys[idx] = k.copy(
@@ -325,7 +318,7 @@ class ExtraKeysPanel(
                         longPress?.let { v.removeCallbacks(it) }
                     }
                     if (e.pointerCount >= 2) {
-                        // dua jari = perbesar/perkecil
+                        // Pinch to resize
                         val d = spacing(e)
                         if (lastDist > 8f && d > 8f) {
                             val f = d / lastDist
@@ -401,8 +394,6 @@ class ExtraKeysPanel(
     }
 
     fun addKey(picked: ExtraKey) {
-        // x/y/w/h di model disimpan dalam dp (render() mengonversi ke px),
-        // jadi di sini cukup tulis satuan dp - jangan pernah pakai dp() lagi.
         val w = picked.w.coerceIn(MIN_W_DP, MAX_W_DP)
         val h = picked.h.coerceIn(MIN_H_DP, MAX_H_DP)
         val slot = freeSlot(w, h)
@@ -447,7 +438,6 @@ class ExtraKeysPanel(
                     orientation = LinearLayout.HORIZONTAL
                 }
                 for (k in row) {
-                    // spasi dan enter dipakai penuh satu baris
                     line.addView(keyButton(k, wide = k.label == "Space" || k.label == "Enter"))
                 }
                 rows.addView(
@@ -485,7 +475,7 @@ class ExtraKeysPanel(
 
     fun isModActive(name: String) = name in activeMods
 
-    /** Lepas semua modifier setelah satu karakter terkirim (perilaku tombol Ctrl/Alt lama). */
+    /** Clear all active modifiers after a character is typed. */
     fun clearMods() {
         if (activeMods.isEmpty()) return
         activeMods.clear()
